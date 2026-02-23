@@ -1,53 +1,8 @@
 import { motion } from 'framer-motion';
 import { BarChart3, BookOpen, GitBranch, Link2 } from 'lucide-react';
+import { useDialKit } from 'dialkit';
 
 type PlaceholderVariant = 'repo' | 'dashboard' | 'docs';
-
-/* ─────────────────────────────────────────────────────────
- * ANIMATION STORYBOARD
- *
- *    0ms   Card fades in + slides up
- *  200ms   Icon container starts breathing (continuous)
- *  400ms   Title & Text fade in
- *  600ms   Feature grid items slide in (staggered)
- * ───────────────────────────────────────────────────────── */
-
-const ANIMATION = {
-  card: {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.4, ease: "easeOut" as const }
-  },
-  breathingIcon: {
-    animate: {
-      boxShadow: [
-        "0 0 0 1px var(--border-subtle)",
-        "0 0 0 2px var(--accent-blue-light)",
-        "0 0 0 1px var(--border-subtle)"
-      ],
-      backgroundColor: [
-        "var(--secondary)",
-        "var(--bg-subtle)",
-        "var(--secondary)"
-      ],
-    },
-    transition: {
-      duration: 4,
-      ease: "easeInOut" as const,
-      repeat: Infinity,
-    }
-  },
-  content: {
-    initial: { opacity: 0, y: 5 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.3, delay: 0.2 }
-  },
-  gridItem: (index: number) => ({
-    initial: { opacity: 0, x: -5 },
-    animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.3, delay: 0.4 + (index * 0.1) }
-  })
-};
 
 export function RepositoryPlaceholderCard({
   className = '',
@@ -56,6 +11,52 @@ export function RepositoryPlaceholderCard({
   className?: string;
   variant?: PlaceholderVariant;
 }) {
+  const tune = useDialKit('Placeholder Card', {
+    animations: {
+      breathingDuration: [4, 1, 20, 0.5],
+      entryDelay: [0.1, 0, 1, 0.05],
+      waitingDuration: [2, 0.5, 10, 0.5],
+      cardYOffset: [10, 0, 50, 1],
+    }
+  });
+
+  const ANIMATION = {
+    card: {
+      initial: { opacity: 0, y: tune.animations.cardYOffset },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.4, ease: "easeOut" as const }
+    },
+    breathingIcon: {
+      animate: {
+        boxShadow: [
+          "0 0 0 1px var(--border-subtle)",
+          "0 0 0 2px var(--accent-blue-light)",
+          "0 0 0 1px var(--border-subtle)"
+        ],
+        backgroundColor: [
+          "var(--secondary)",
+          "var(--bg-subtle)",
+          "var(--secondary)"
+        ],
+      },
+      transition: {
+        duration: tune.animations.breathingDuration,
+        ease: "easeInOut" as const,
+        repeat: Infinity,
+      }
+    },
+    content: {
+      initial: { opacity: 0, y: 5 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.3, delay: 0.2 }
+    },
+    gridItem: (index: number) => ({
+      initial: { opacity: 0, x: -5 },
+      animate: { opacity: 1, x: 0 },
+      transition: { duration: 0.3, delay: 0.4 + (index * tune.animations.entryDelay) }
+    })
+  };
+
   const isDashboard = variant === 'dashboard';
   const isDocs = variant === 'docs';
 
@@ -114,7 +115,7 @@ export function RepositoryPlaceholderCard({
           {...ANIMATION.gridItem(0)}
         >
           <div className="mb-1 text-sm font-semibold text-text-primary">Explore History</div>
-          <div className="text-text-muted">Commit timeline + changed files + context</div>
+          <div className="text-text-tertiary">Commit timeline + changed files + context</div>
         </motion.div>
 
         <motion.div
@@ -122,17 +123,17 @@ export function RepositoryPlaceholderCard({
           {...ANIMATION.gridItem(1)}
         >
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-text-primary">
-            <Link2 className="h-3.5 w-3.5 text-text-muted" />
+            <Link2 className="h-3.5 w-3.5 text-text-tertiary" />
             Link Sessions
           </div>
-          <div className="text-text-muted">Claude/Codex/Cursor session attribution</div>
+          <div className="text-text-tertiary">Claude/Codex/Cursor session attribution</div>
         </motion.div>
       </div>
 
       <motion.p
-        className="mt-6 text-xs italic text-text-muted opacity-70"
-        animate={{ opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="mt-6 text-xs italic text-text-tertiary"
+        animate={{ opacity: [0.7, 1, 0.7] }}
+        transition={{ duration: tune.animations.waitingDuration, repeat: Infinity, ease: "easeInOut", delay: 1 }}
       >
         Waiting for repository context…
       </motion.p>

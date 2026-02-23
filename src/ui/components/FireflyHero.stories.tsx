@@ -21,7 +21,7 @@ type Story = StoryObj<typeof FireflyHero>;
 
 export const Default: Story = {
   args: {
-    onCtaClick: () => console.log('CTA Clicked'),
+    onExitComplete: () => console.log('Firefly transition complete'),
   },
 };
 

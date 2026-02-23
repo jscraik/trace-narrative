@@ -119,6 +119,38 @@ Configure the MCP server in `~/.claude/settings.json` for Claude Code integratio
 
 ---
 
+
+## Troubleshooting: Webhook/Websocket panel empty on startup
+
+If the Agentation panel shows no webhook URL or a blank websocket field:
+
+1. Verify the dev env var is loaded:
+
+```bash
+cp .env.agentation.example .env.local
+```
+
+2. Ensure Vite has:
+
+```bash
+VITE_AGENTATION_WEBHOOK_URL=http://localhost:8787
+```
+
+3. Start services in order:
+
+```bash
+pnpm agentation:dev    # starts MCP + autopilot listener
+pnpm tauri:dev         # start the app
+```
+
+Expected:
+
+- MCP endpoint in panel points to `http://localhost:4747`.
+- Webhook URL is present and points to `http://localhost:8787`.
+- Submitting an annotation triggers a local POST to `http://localhost:8787`.
+
+In this repo the app also falls back to `http://localhost:8787` if the env var is unset, but setting it explicitly keeps automation reliable across shells.
+
 ## Webhook + Automation Setup (Narrative)
 
 1. Copy the local env template:

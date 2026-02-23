@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDialKit } from 'dialkit';
 import type { TimelineNode as TimelineNodeType } from '../../core/types';
 import type { FireflyEvent } from '../../hooks/useFirefly';
 import { useTimelineNavigation } from '../../hooks/useTimelineNavigation';
@@ -32,6 +33,12 @@ export function Timeline({
   fireflyDisabled = false,
   onFireflyTrackingSettled,
 }: TimelineProps) {
+  const tune = useDialKit('Timeline', {
+    layout: {
+      padding: [7, 0, 80, 1],
+      maskWidth: [22, 0, 100, 1],
+    }
+  });
   const {
     containerRef,
     sorted,
@@ -117,8 +124,16 @@ export function Timeline({
     };
   }, [measureFireflyPosition, onFireflyTrackingSettled, selectedId, containerRef]);
 
+  const maskStyle = {
+    maskImage: `linear-gradient(to right, transparent, black ${tune.layout.maskWidth}px, black calc(100% - ${tune.layout.maskWidth}px), transparent)`,
+    WebkitMaskImage: `linear-gradient(to right, transparent, black ${tune.layout.maskWidth}px, black calc(100% - ${tune.layout.maskWidth}px), transparent)`,
+  };
+
   return (
-    <div className="bg-black/20 backdrop-blur-lg border-t border-white/10 px-4 py-4">
+    <div
+      className="bg-bg-secondary/80 backdrop-blur-lg border-t border-border-subtle"
+      style={{ padding: `${tune.layout.padding}px` }}
+    >
       <div className="flex items-center gap-3">
         <TimelineNavButtons
           hasPrev={hasPrev}
@@ -133,12 +148,7 @@ export function Timeline({
           tabIndex={0}
           role="listbox"
           aria-label="Commit timeline"
-          style={{
-            maskImage:
-              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)',
-            WebkitMaskImage:
-              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)',
-          }}
+          style={maskStyle}
           onKeyDown={(event) => {
             if (event.key === 'ArrowLeft') {
               event.preventDefault();

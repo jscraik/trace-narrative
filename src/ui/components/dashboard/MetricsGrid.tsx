@@ -1,3 +1,4 @@
+import { useDialKit } from 'dialkit';
 import { Cpu } from 'lucide-react';
 import type { PeriodStats, ToolStats } from '../../../core/types';
 import { computeTrend, getTrendColor } from '../../../core/attribution-api';
@@ -28,6 +29,12 @@ export function MetricsGrid({
   previousPeriod,
   toolBreakdown,
 }: MetricsGridProps) {
+  const tune = useDialKit('Dashboard', {
+    layout: {
+      sectionGap: [48, 12, 120, 2],
+      gridGap: [24, 8, 48, 2],
+    }
+  });
   // Calculate trends
   const commitsTrend = computeTrend(
     currentPeriod.period.commits,
@@ -35,11 +42,11 @@ export function MetricsGrid({
   );
   const commitsColor = commitsTrend
     ? getTrendColor({
-        metric: 'commits',
-        direction: commitsTrend,
-        currentValue: currentPeriod.period.commits,
-        previousValue: previousPeriod?.period.commits,
-      })
+      metric: 'commits',
+      direction: commitsTrend,
+      currentValue: currentPeriod.period.commits,
+      previousValue: previousPeriod?.period.commits,
+    })
     : undefined;
 
   const aiPercentageTrend = computeTrend(
@@ -48,11 +55,11 @@ export function MetricsGrid({
   );
   const aiPercentageColor = aiPercentageTrend
     ? getTrendColor({
-        metric: 'ai-percentage',
-        direction: aiPercentageTrend,
-        currentValue: currentPeriod.attribution.aiPercentage,
-        previousValue: previousPeriod?.attribution.aiPercentage,
-      })
+      metric: 'ai-percentage',
+      direction: aiPercentageTrend,
+      currentValue: currentPeriod.attribution.aiPercentage,
+      previousValue: previousPeriod?.attribution.aiPercentage,
+    })
     : undefined;
 
   const aiLines = currentPeriod.attribution.aiAgentLines + currentPeriod.attribution.aiAssistLines;
@@ -63,11 +70,11 @@ export function MetricsGrid({
   const aiLinesTrend = computeTrend(aiLines, previousAiLines);
   const aiLinesColor = aiLinesTrend
     ? getTrendColor({
-        metric: 'ai-lines',
-        direction: aiLinesTrend,
-        currentValue: aiLines,
-        previousValue: previousAiLines,
-      })
+      metric: 'ai-lines',
+      direction: aiLinesTrend,
+      currentValue: aiLines,
+      previousValue: previousAiLines,
+    })
     : undefined;
 
   // Top tool badge
@@ -82,10 +89,13 @@ export function MetricsGrid({
   return (
     <section
       data-metrics-grid
-      className="mb-12"
       aria-label="Key metrics"
+      style={{ marginBottom: `${tune.layout.sectionGap}px` }}
     >
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div
+        className="grid grid-cols-2 md:grid-cols-4"
+        style={{ gap: `${tune.layout.gridGap}px` }}
+      >
         {/* Total Commits */}
         <MetricCard
           index={0}

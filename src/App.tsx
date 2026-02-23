@@ -126,7 +126,8 @@ export default function App() {
   const [githubConnectorEnabled, setGithubConnectorEnabled] = useState(false);
   const [AgentationComponent, setAgentationComponent] = useState<AgentationComponentType | null>(null);
   const rawAgentationWebhookUrl = import.meta.env.VITE_AGENTATION_WEBHOOK_URL as string | undefined;
-  const agentationWebhookUrl = normalizeWebhookUrl(rawAgentationWebhookUrl);
+  const normalizedAgentationWebhookUrl = normalizeWebhookUrl(rawAgentationWebhookUrl);
+  const agentationWebhookUrl = normalizedAgentationWebhookUrl ?? 'http://localhost:8787';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -166,14 +167,16 @@ export default function App() {
     if (!import.meta.env.DEV) return;
 
     if (!rawAgentationWebhookUrl) {
-      console.warn('[Agentation] VITE_AGENTATION_WEBHOOK_URL is not set. Webhook events are disabled.');
+      console.warn(
+        '[Agentation] VITE_AGENTATION_WEBHOOK_URL is not set. Using default http://localhost:8787.'
+      );
       return;
     }
 
-    if (!agentationWebhookUrl) {
+    if (!normalizedAgentationWebhookUrl) {
       console.warn('[Agentation] VITE_AGENTATION_WEBHOOK_URL is invalid. Use an http(s) URL.');
     }
-  }, [agentationWebhookUrl]);
+  }, [normalizedAgentationWebhookUrl]);
 
   // Clear dashboard filter when switching away from repo mode (optional UX enhancement)
   useEffect(() => {
@@ -334,7 +337,13 @@ export default function App() {
       </TopNav>
 
       {/* `min-h-0` is critical so nested flex children can scroll instead of overflowing */}
-      <div className="flex-1 min-h-0 overflow-hidden bg-bg-tertiary">
+      <div
+        className={
+          mode === 'landing'
+            ? 'flex-1 min-h-0 bg-bg-tertiary'
+            : 'flex-1 min-h-0 overflow-hidden bg-bg-tertiary'
+        }
+      >
         {mode === 'dashboard' ? (
           <DashboardView
             repoState={repoState}

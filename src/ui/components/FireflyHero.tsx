@@ -1,6 +1,7 @@
 import { motion, useSpring, useTransform } from 'framer-motion';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDialKit } from 'dialkit';
 import './FireflyHero.css';
 
 /**
@@ -26,6 +27,20 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
 }) => {
   const stageRef = useRef<HTMLDivElement>(null);
 
+  // --- DIALKIT TUNING ---
+  const tune = useDialKit('Brand Hero', {
+    physics: {
+      stiffness: [40, 1, 200, 1],
+      damping: [30.5, 1, 100, 0.5],
+      mass: [3, 0.1, 5, 0.1],
+    },
+    motion: {
+      breathDuration: [10, 1, 60, 0.5],
+      jitterIntensity: [1, 0, 5, 0.1],
+      mousePower: [0.39, 0, 1, 0.01],
+    }
+  });
+
   const [latency, setLatency] = useState(0);
   const [status, setStatus] = useState('SCANNING...');
   const [isBooting, setIsBooting] = useState(true);
@@ -39,7 +54,11 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
   const jitterRef = useRef({ x: 0, y: 0 });
 
   // --- PHYSICS SPRINGS ---
-  const springConfig = { stiffness: 40, damping: 20, mass: 1 };
+  const springConfig = {
+    stiffness: tune.physics.stiffness,
+    damping: tune.physics.damping,
+    mass: tune.physics.mass
+  };
   const mouseX = useSpring(0, springConfig);
   const mouseY = useSpring(0, springConfig);
   const scale = useSpring(1, springConfig);
@@ -111,8 +130,9 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
 
       localFrame++;
 
-      // Breathing (12s @ 60fps = 720 frames)
-      const breathPhase = (localFrame % 720) / 720;
+      // Breathing (Calculated from tune.motion.breathDuration @ 60fps)
+      const framesPerBreath = Math.round(tune.motion.breathDuration * 60);
+      const breathPhase = (localFrame % framesPerBreath) / framesPerBreath;
       const bMultiplier = (Math.sin(breathPhase * Math.PI * 2 - Math.PI / 2) + 1) / 2;
       setBreathVal(bMultiplier);
 
@@ -123,8 +143,8 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
       // Update jitter every 8 frames (~7.5Hz) — organic micro-tremble without render-time Math.random()
       if (localFrame % 8 === 0) {
         jitterRef.current = {
-          x: (Math.random() - 0.5) * 0.8,
-          y: (Math.random() - 0.5) * 0.8,
+          x: (Math.random() - 0.5) * tune.motion.jitterIntensity,
+          y: (Math.random() - 0.5) * tune.motion.jitterIntensity,
         };
       }
 
@@ -178,7 +198,7 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
       // Cancel any in-flight orb burst recovery timer
       if (orbBurstTimerRef.current) clearTimeout(orbBurstTimerRef.current);
     };
-  }, [triggerPackets]);
+  }, [triggerPackets, tune.motion.breathDuration, tune.motion.jitterIntensity]);
 
   // --- EXIT SEQUENCE: firefly travels the trace thread, then fades ---
   useEffect(() => {
@@ -219,8 +239,8 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
 
       if (dist < 600) {
         const power = 1 - dist / 600;
-        mouseX.set((e.clientX - sCX) * 0.18 * power);
-        mouseY.set((e.clientY - sCY) * 0.18 * power);
+        mouseX.set((e.clientX - sCX) * tune.motion.mousePower * power);
+        mouseY.set((e.clientY - sCY) * tune.motion.mousePower * power);
         scale.set(1 + power * 0.3);
       } else {
         mouseX.set(0);
@@ -231,7 +251,7 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY, scale]);
+  }, [mouseX, mouseY, scale, tune.motion.mousePower]);
 
   // Unified click handler — orb click triggers a burst (not a full exit; CTA does the exit)
   const handleOrbClick = () => {
@@ -273,51 +293,31 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
           focusable="false"
           style={{ position: 'absolute', width: '100%', height: '100%', pointerEvents: 'none' }}
         >
-          <path d="M 520,380 L 610,290" fill="none" stroke="rgba(245,158,11,0.08)" strokeWidth="0.5" strokeDasharray="2,2" />
-          <path d="M 500,440 L 430,540" fill="none" stroke="rgba(245,158,11,0.08)" strokeWidth="0.5" strokeDasharray="2,2" />
+          <path d="M 520,380 L 610,290" className="hud-guide-line" fill="none" />
+          <path d="M 500,440 L 430,540" className="hud-guide-line" fill="none" />
         </svg>
 
-        {/* Circuitry */}
-        <svg aria-hidden="true" focusable="false" className="circuitry-svg" viewBox="0 0 800 800">
-          <defs>
-            <filter id="led-glow-ui">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-          <g transform="translate(400, 400)">
-            <circle cx="0" cy="0" r="45" fill="rgba(245,158,11,0.05)" stroke="rgba(245,158,11,0.2)" strokeWidth="1" />
 
-            {/* Conversion Trace — offset 120px right so it doesn't bisect subtitle text */}
-            <path className="trace-base" d="M 120,10 L 120,280" />
-            <path className="trace-copper" d="M 120,10 L 120,280" strokeWidth="2" />
-            <path className="trace-bg-pulse" d="M 120,10 L 120,280" />
-            <rect className="node-pad" x="110" y="275" width="20" height="20" rx="2" />
-            <circle className="node-led" cx="120" cy="285" r="4" filter="url(#led-glow-ui)" id="n-conversion" />
-            <circle className="node-ripple" cx="120" cy="285" r="4" id="r-conversion" />
-            <path className="packet" d="M 120,10 L 120,280" id="p-conversion" />
+        {/* HUD Assembly — decoupled from mouse translation so tags stay in position while orb moves */}
+        <motion.div
+          className="hud-assembly"
+          style={{ rotateX, rotateY, pointerEvents: 'none', position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transformStyle: 'preserve-3d' }}
+        >
+          <div
+            className="hud-tag oled-hud"
+            style={{ transform: 'translate3d(-200px, -180px, 80px)', marginLeft: jitterX, marginTop: jitterY }}
+          >
+            STATUS: {status}
+          </div>
+          <div
+            className="hud-tag oled-hud"
+            style={{ transform: 'translate3d(180px, 200px, 100px)', marginLeft: -jitterX, marginTop: -jitterY }}
+          >
+            TRACE: {isGlitching ? '---' : latency}ms_LATENCY
+          </div>
+        </motion.div>
 
-            {/* Right Traces */}
-            <path className="trace-base" d="M 15,0 L 140,-50 L 260,-50 L 340,-130" />
-            <path className="trace-copper" d="M 15,0 L 140,-50 L 260,-50 L 340,-130" strokeWidth="2.5" />
-            <rect className="node-pad" x="330" y="-140" width="20" height="20" rx="4" transform="rotate(45, 340, -130)" />
-            <circle className="node-led" cx="340" cy="-130" r="5" id="n-r1" />
-            <circle className="node-ripple" cx="340" cy="-130" r="5" id="r-r1" />
-            <path className="packet" d="M 15,0 L 140,-50 L 260,-50 L 340,-130" id="p-r1" />
-
-            {/* Left Traces */}
-            <g transform="scale(-1, 1)">
-              <path className="trace-base" d="M 15,0 L 140,-50 L 260,-50 L 340,-130" />
-              <path className="trace-copper" d="M 15,0 L 140,-50 L 260,-50 L 340,-130" strokeWidth="2.5" />
-              <rect className="node-pad" x="330" y="-140" width="20" height="20" rx="4" transform="rotate(45, 340, -130)" />
-              <circle className="node-led" cx="340" cy="-130" r="5" id="n-l1" />
-              <circle className="node-ripple" cx="340" cy="-130" r="5" id="r-l1" />
-              <path className="packet" d="M 15,0 L 140,-50 L 260,-50 L 340,-130" id="p-l1" />
-            </g>
-          </g>
-        </svg>
-
-        {/* Spring-physics assembly */}
+        {/* Core Assembly — the firefly itself, which translates and pivots with mouse */}
         <motion.div
           className="core-assembly"
           style={{ x: mouseX, y: mouseY, scale, rotateX, rotateY }}
@@ -338,19 +338,6 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
               onClick={handleOrbClick}
               aria-label="Trigger signal burst"
             />
-          </div>
-
-          <div
-            className="hud-tag oled-hud"
-            style={{ transform: 'translate3d(-200px, -180px, 80px)', marginLeft: jitterX, marginTop: jitterY }}
-          >
-            STATUS: {status}
-          </div>
-          <div
-            className="hud-tag oled-hud"
-            style={{ transform: 'translate3d(180px, 200px, 100px)', marginLeft: -jitterX, marginTop: -jitterY }}
-          >
-            TRACE: {isGlitching ? '---' : latency}ms_LATENCY
           </div>
         </motion.div>
       </div>

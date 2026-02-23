@@ -321,11 +321,18 @@ function DiffDock({
   return (
     <>
       <div className="card flex-none overflow-hidden">
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={onToggleExpanded}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onToggleExpanded();
+            }
+          }}
           title="Toggle diff panel"
-          className="w-full flex items-center justify-between gap-3 px-4 py-2 bg-bg-secondary text-xs font-medium text-text-secondary transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:bg-bg-hover"
+          className="w-full flex items-center justify-between gap-3 px-4 py-2 bg-bg-secondary text-xs font-medium text-text-secondary transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:bg-bg-hover cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-accent-blue/30"
         >
           <span className="flex min-w-0 items-center gap-2">
             <FileCode className="w-3.5 h-3.5" />
@@ -346,7 +353,7 @@ function DiffDock({
             </button>
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${diffExpanded ? '' : '-rotate-90'}`} />
           </span>
-        </button>
+        </div>
         {diffExpanded && !diffPip && (
           <div className="max-h-[400px] overflow-auto border-t border-border-light">
             <DiffViewer
@@ -846,15 +853,15 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
           <SettingsTabPanel
             ingestConfig={ingestConfig}
             otlpKeyStatus={otlpKeyStatus}
-        discoveredSources={discoveredSources}
-        collectorMigrationStatus={collectorMigrationStatus}
-        captureReliabilityStatus={captureReliabilityStatus}
-        onToggleAutoIngest={onToggleAutoIngest}
-        onUpdateWatchPaths={onUpdateWatchPaths}
-        onMigrateCollector={onMigrateCollector}
-        onRollbackCollector={onRollbackCollector}
-        onRefreshCaptureReliability={onRefreshCaptureReliability}
-        onConfigureCodex={onConfigureCodex}
+            discoveredSources={discoveredSources}
+            collectorMigrationStatus={collectorMigrationStatus}
+            captureReliabilityStatus={captureReliabilityStatus}
+            onToggleAutoIngest={onToggleAutoIngest}
+            onUpdateWatchPaths={onUpdateWatchPaths}
+            onMigrateCollector={onMigrateCollector}
+            onRollbackCollector={onRollbackCollector}
+            onRefreshCaptureReliability={onRefreshCaptureReliability}
+            onConfigureCodex={onConfigureCodex}
             onRotateOtlpKey={onRotateOtlpKey}
             onGrantCodexConsent={onGrantCodexConsent}
             githubConnectorEnabled={githubConnectorEnabled}
