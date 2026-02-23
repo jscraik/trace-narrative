@@ -84,7 +84,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "agentation": "^2.2.1",
     "agentation-mcp": "^1.2.0",
-    "jsdom": "^27.4.0",
+    "jsdom": "^28.1.0",
     "tailwindcss": "^4.1.0",
     "typedoc": "^0.28.17",
     "typescript": "^5.4.5",
