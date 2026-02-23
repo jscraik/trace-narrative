@@ -113,6 +113,8 @@ Then open a git repository and see your commit history come to life with narrati
 - [Development Setup](docs/agents/development.md) — How to set up your environment.
 - [Testing Guide](docs/agents/testing.md) — Running tests and type checks.
 - [Repository Structure](docs/agents/repo-structure.md) — Codebase layout overview.
+- [Frontend Website Rules](docs/agents/frontend-website-rules.md) — Standalone landing-page workflow, screenshot conventions, and visual review.
+- [Landing Page Separation](docs/agents/landing-page-separation.md) — Scope split between standalone landing work and in-app Tauri UI changes.
 
 ---
 
@@ -129,6 +131,19 @@ Check that your log files are in the supported JSON format. See [Documentation](
 ### "Build errors"
 
 Run `pnpm install` again. Ensure your Rust toolchain is up to date (`rustup update`).
+
+### "serve / screenshot workflow errors"
+
+For standalone frontend-only landing-page work (check `docs/agents/landing-page-separation.md` first):
+
+- Build latest assets: `pnpm build`
+- Start: `node serve.mjs` (uses `http://localhost:2000`). If already running, do not start another process on port 2000.
+- Capture required shots:
+  - `node screenshot.mjs http://localhost:2000`
+  - `node screenshot.mjs http://localhost:2000 card`
+  - `node screenshot.mjs http://localhost:2000 button`
+
+Use `temporary screenshots/screenshot-<N>-<label>.png`. If you see `ERR_CONNECTION_REFUSED`, wait for server start or stop the existing `serve.mjs` process first.
 
 ---
 

@@ -1,104 +1,78 @@
 schema_version: 1
 
-# Narrative Desktop MVP
-A Tauri desktop app that layers AI session narratives onto git history.
+# AGENTS.md — Frontend Website Rules
+
+## Agent Startup Checklist
+- Confirm task scope: check `docs/agents/landing-page-separation.md` before deciding in-app vs standalone-page workflow.
+- If standalone landing-page work: read `docs/agents/frontend-website-rules.md` before making code changes.
+- For visual work, capture required screenshots in order:
+  - `node screenshot.mjs http://localhost:2000`
+  - `node screenshot.mjs http://localhost:2000 card`
+  - `node screenshot.mjs http://localhost:2000 button`
+- Verify screenshot naming: `temporary screenshots/screenshot-<N>-<label>.png`.
+
+## Table of Contents
+- [Project Description](#project-description)
+- [Instruction Discovery Order](#instruction-discovery-order)
+- [References](#references)
+- [Tooling Essentials](#tooling-essentials)
+- [Non-Standard Commands](#non-standard-commands)
+- [Instruction Index](#instruction-index)
+- [Notes](#notes)
+
+## Project Description
+Narrative is a Tauri desktop app that layers AI session narratives onto git history.
+
+## Instruction Discovery Order
+1. Global: `/Users/jamiecraik/.codex/AGENTS.md`
+2. Repo root: `AGENTS.md`
+3. Nested AGENTS/README instructions in subdirectories
 
 ## References (informational)
-- Global protocol: ~/.codex/instructions/rvcp-common.md
-- Global override: ~/.codex/AGENTS.override.md
-- Global codestyle: ~/.codex/instructions/CODESTYLE.md
-- Pre-flight checklist (significant tasks): ~/.codex/instructions/README.checklist.md
+- Protocol: `/Users/jamiecraik/.codex/instructions/rvcp-common.md`
+- Security and standards baseline: `/Users/jamiecraik/.codex/instructions/standards.md`
+- Codestyle: `/Users/jamiecraik/.codex/instructions/CODESTYLE.md`
 
-## Tooling essentials
-- Package manager: pnpm (Node via mise).
-- Rust toolchain + Tauri system deps (see Tauri docs).
-- Git must be on PATH (the app invokes git via tauri-plugin-shell).
+## Tooling Essentials
+- Package manager: `pnpm` (Node via mise)
+- Rust toolchain for Tauri features
+- Git must be available in PATH
 
-## Mandatory workflow
-1. Explore project first, then invoke skill.
-2. IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any React, Tauri, Apps-SDK-ui, Tailwind, Vite, Storybook + Chat Widget tasks.
-3. Add a Table of Contents for docs.
+## Non-Standard Commands
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test`
+- `pnpm tauri dev`
+- `pnpm tauri build`
+- `pnpm agentation:autopilot`
+- `pnpm agentation:critique`
+- `pnpm docs:lint`
 
-## Common commands
-- Install: pnpm install
-- Dev app (Tauri): pnpm tauri dev
-- Dev web-only: pnpm dev
-- Build web: pnpm build
-- Build app (Tauri): pnpm tauri build
-- Typecheck: pnpm typecheck
-- Lint: pnpm lint
-- Tests: pnpm test
+## Instruction Index
+- [`docs/agents/frontend-website-rules.md`](docs/agents/frontend-website-rules.md) — Session-specific frontend website workflow and hard constraints
+- [`docs/agents/development.md`](docs/agents/development.md) — App setup and local development
+- [`docs/agents/testing.md`](docs/agents/testing.md) — Test and verification commands
+- [`docs/agents/tauri.md`](docs/agents/tauri.md) — Tauri integration and security
+- [`docs/agents/repo-structure.md`](docs/agents/repo-structure.md) — Codebase structure
+- [`docs/agents/repair-agent.md`](docs/agents/repair-agent.md) — Agent repair and troubleshooting workflow
+- [`docs/agents/instruction-governance.md`](docs/agents/instruction-governance.md) — Instruction conflicts and cleanup candidates
+- [`docs/agents/landing-page-separation.md`](docs/agents/landing-page-separation.md) — Landing page vs in-app UI boundary and separation workflow.
 
-## Instruction discovery order
-1. Global: ~/.codex/AGENTS.override.md (or ~/.codex/AGENTS.md if override missing)
-2. Repo root: ./AGENTS.md
-3. Subdirectories: nested AGENTS.override.md / AGENTS.md
+## Landing Page / Frontend Verification Ops
+- For standalone landing-page work (and only then), follow `docs/agents/frontend-website-rules.md`.
+- Confirm boundary first in `docs/agents/landing-page-separation.md` before entering frontend verification mode.
+- Mandatory verification flow:
+  1. `pnpm build` (ensures `dist` is current),
+  2. Ensure no stale `node serve.mjs` process is already running, then
+  3. `node serve.mjs`,
+  4. capture at least these shots:
+     - `node screenshot.mjs http://localhost:2000`
+     - `node screenshot.mjs http://localhost:2000 card`
+     - `node screenshot.mjs http://localhost:2000 button`
+- Never start a second `serve.mjs` if port 2000 is already in use.
+- If `screenshot.mjs` fails with `ERR_CONNECTION_REFUSED`, wait/retry after server startup.
+- Use `temporary screenshots/screenshot-<N>-<label>.png` naming; avoid overwriting and keep labels descriptive (`card`, `button`, `modal`, etc.).
 
-## Guides
-- docs/agents/development.md
-- docs/agents/tauri.md
-- docs/agents/testing.md
-- docs/agents/repo-structure.md
-
-## Docs table of contents
-- docs/README.md
-- docs/agents/development.md
-- docs/agents/testing.md
-- docs/agents/tauri.md
-- docs/agents/repo-structure.md
-- docs/agents/repair-agent.md
-
-## Common pitfalls + fixes
-- Release workflow (manual trigger): create the GitHub Release for the tag first; the workflow resolves the release by tag and fails if it does not exist.
-- Release assets: the workflow fails if the tag release is missing a DMG or `latest.json` (auto-update endpoint).
-
-## Release Protocol (CRITICAL)
-
-**All updates MUST be published through GitHub Releases.** Do not create manual DMG files.
-
-### Release Process
-**Recommended (fully automated):**
-1. Merge normal PRs into `main` using conventional commits (`feat:`, `fix:`, etc.)
-2. A bot (`release-please`) opens/updates a **Release PR** that bumps versions + updates `CHANGELOG.md`
-3. Merge the Release PR → it creates tag `vX.Y.Z` + a published GitHub Release
-
-**Fallback (manual trigger):**
-```bash
-./scripts/release.sh 0.2.1
-```
-
-**The GitHub Action** (`.github/workflows/release.yml`) will automatically:
-- Build for all platforms (macOS Intel/Apple Silicon, Windows, Linux)
-- Upload build artifacts (including DMGs) to the tag’s GitHub Release
-- Publish updater artifacts for auto-update (including `latest.json` + signatures)
-
-### Why GitHub Releases?
-- Enables automatic updates for existing users
-- Provides signed, verified builds
-- Supports all platforms from a single workflow
-- Creates a proper changelog and release notes
-
-### Auto-Update Configuration
-The app is configured to check for updates via:
-```json
-{
-  "endpoints": [
-    "https://github.com/jscraik/narrative/releases/latest/download/latest.json"
-  ]
-}
-```
-
-### Manual DMG Files (DEPRECATED)
-Manual DMG files in the repo root (e.g., `Narrative-MVP-v0.1.x-AppleSilicon.dmg`) are legacy artifacts. Do not create new ones. Users should download from GitHub Releases instead.
-
-### Required Secrets (Repository Settings)
-The GitHub Action requires these secrets in the repository settings:
-- `TAURI_SIGNING_PRIVATE_KEY` - The private key for signing updates (generate with `pnpm tauri signer generate`)
-- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` - Password for the private key
-- `RELEASE_PLEASE_TOKEN` - GitHub PAT used by release-please to open the Release PR and create tags/releases (must not be `GITHUB_TOKEN`)
-
-To generate a new signing key:
-```bash
-pnpm tauri signer generate -w ~/.tauri/narrative-mvp.key
-```
-Then add the public key to `tauri.conf.json` and the private key to GitHub secrets.
+## Notes
+- Frontend-specific rules are in `docs/agents/frontend-website-rules.md` and are the primary reference when the website/landing page is being built or maintained separately from the Tauri shell.
+- For in-app Tauri UI changes, prefer the app-specific docs unless the task explicitly requests standalone-page workflow.
