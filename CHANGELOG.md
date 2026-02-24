@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.12.1...firefly-narrative-v0.13.0) (2026-02-24)
+
+
+### Features
+
+* Narrative Truth Loop feedback calibration ([#37](https://github.com/jscraik/firefly-narrative/issues/37)) ([59be4bf](https://github.com/jscraik/firefly-narrative/commit/59be4bf3fee4d3040b1a4134af60336438744432))
+
 ## [0.12.1](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.12.0...firefly-narrative-v0.12.1) (2026-02-24)
 
 
