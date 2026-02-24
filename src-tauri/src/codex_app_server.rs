@@ -1,7 +1,14 @@
 use serde::{Deserialize, Serialize};
+use sqlx::SqlitePool;
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::process::{Child, Command, Stdio};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc, Mutex,
+};
+use std::thread;
+use std::time::{Duration, Instant};
 use tauri::{command, AppHandle, Emitter, Manager, State};
 
 const RESTART_BUDGET: usize = 3;
@@ -9,16 +16,94 @@ const RESTART_WINDOW_SECS: i64 = 60;
 const MAX_DEDUPE_LOG: usize = 200;
 const MAX_DEDUPE_SOURCES: usize = 10_000;
 const MAX_TRANSITIONS: usize = 100;
+const MONITOR_POLL_INTERVAL_MS: u64 = 250;
+const RESTART_COOLDOWN_MS: u64 = 500;
+const SHUTDOWN_GRACE_MS: u64 = 1_500;
+const DEFAULT_LIVE_SESSIONS_TTL_HOURS: i64 = 72;
+const DEFAULT_LIVE_SESSIONS_MAX_ROWS: i64 = 10_000;
+
+pub const LIVE_SESSION_EVENT: &str = "session:live:event";
 
 #[derive(Clone, Default)]
 pub struct CodexAppServerState {
     inner: Arc<Mutex<CodexAppServerRuntime>>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ProcessState {
+    Inactive,
+    Starting,
+    Running,
+    Degraded,
+    CrashLoop,
+    Stopping,
+}
+
+impl ProcessState {
+    fn as_status(self) -> &'static str {
+        match self {
+            ProcessState::Inactive => "inactive",
+            ProcessState::Starting => "starting",
+            ProcessState::Running => "running",
+            ProcessState::Degraded => "degraded",
+            ProcessState::CrashLoop => "crash_loop",
+            ProcessState::Stopping => "stopping",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AuthState {
+    NeedsLogin,
+    Authenticating,
+    Authenticated,
+    LoggedOut,
+}
+
+impl AuthState {
+    fn as_status(self) -> &'static str {
+        match self {
+            AuthState::NeedsLogin => "needs_login",
+            AuthState::Authenticating => "authenticating",
+            AuthState::Authenticated => "authenticated",
+            AuthState::LoggedOut => "logged_out",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HandshakeState {
+    NotStarted,
+    InitializeSent,
+    Initialized,
+}
+
+impl HandshakeState {
+    fn initialize_sent(self) -> bool {
+        matches!(
+            self,
+            HandshakeState::InitializeSent | HandshakeState::Initialized
+        )
+    }
+
+    fn initialized(self) -> bool {
+        matches!(self, HandshakeState::Initialized)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum StreamSessionState {
+    Disabled,
+    Expected,
+    Alive,
+    Completed,
+    Failed,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CodexAppServerStatus {
-    pub state: String, // inactive | starting | healthy | degraded | crash_loop | error
+    pub state: String, // inactive | starting | running | degraded | crash_loop | error | stopping
     pub initialized: bool,
     pub initialize_sent: bool,
     pub auth_state: String, // needs_login | authenticating | authenticated | logged_out
@@ -121,10 +206,75 @@ pub struct CaptureReliabilityStatus {
     pub app_server: CodexAppServerStatus,
 }
 
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum LiveSessionEventPayload {
+    #[serde(rename_all = "camelCase")]
+    SessionDelta {
+        thread_id: String,
+        turn_id: String,
+        item_id: String,
+        event_type: String,
+        source: String,
+        sequence_id: u64,
+        received_at_iso: String,
+        payload: serde_json::Value,
+    },
+    #[serde(rename_all = "camelCase")]
+    ApprovalRequest {
+        request_id: String,
+        thread_id: String,
+        turn_id: String,
+        command: String,
+        options: Vec<String>,
+        timeout_ms: u64,
+    },
+    #[serde(rename_all = "camelCase")]
+    ApprovalResult {
+        request_id: String,
+        thread_id: String,
+        approved: bool,
+        decided_at_iso: String,
+        decided_by: Option<String>,
+        reason: Option<String>,
+    },
+    #[serde(rename_all = "camelCase")]
+    ParserValidationError {
+        kind: String, // schema_mismatch | missing_fields | protocol_violation
+        raw_preview: String,
+        reason: String,
+        occurred_at_iso: String,
+    },
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LiveSessionsCleanupResult {
+    pub removed_rows: u64,
+    pub ttl_hours: i64,
+    pub max_rows: i64,
+}
+
+#[derive(Debug, Clone)]
+struct PendingApproval {
+    thread_id: String,
+}
+
+struct SidecarProcess {
+    child: Child,
+}
+
 struct CodexAppServerRuntime {
     status: CodexAppServerStatus,
+    process_state: ProcessState,
+    auth_state: AuthState,
+    handshake_state: HandshakeState,
+    stream_session_state: StreamSessionState,
     restart_attempts: VecDeque<i64>,
+    sidecar_path: Option<PathBuf>,
+    sidecar: Option<SidecarProcess>,
+    monitor_cancel: Arc<AtomicBool>,
+    monitor_handle: Option<thread::JoinHandle<()>>,
     dedupe_sources: HashMap<String, String>,
     dedupe_key_order: VecDeque<String>,
     recent_dedupe: VecDeque<CodexStreamDedupeDecision>,
@@ -134,6 +284,42 @@ struct CodexAppServerRuntime {
     stream_events_replaced: u64,
     transitions: VecDeque<CaptureModeTransition>,
     last_mode: Option<String>,
+    approval_waiters: HashMap<String, PendingApproval>,
+    parse_error_total: HashMap<String, u64>,
+    approval_result_total: HashMap<String, u64>,
+    restart_total: HashMap<String, u64>,
+    event_sequence_id: u64,
+}
+
+impl Default for CodexAppServerRuntime {
+    fn default() -> Self {
+        Self {
+            status: CodexAppServerStatus::default(),
+            process_state: ProcessState::Inactive,
+            auth_state: AuthState::NeedsLogin,
+            handshake_state: HandshakeState::NotStarted,
+            stream_session_state: StreamSessionState::Disabled,
+            restart_attempts: VecDeque::new(),
+            sidecar_path: None,
+            sidecar: None,
+            monitor_cancel: Arc::new(AtomicBool::new(false)),
+            monitor_handle: None,
+            dedupe_sources: HashMap::new(),
+            dedupe_key_order: VecDeque::new(),
+            recent_dedupe: VecDeque::new(),
+            stream_events_accepted: 0,
+            stream_events_duplicates: 0,
+            stream_events_dropped: 0,
+            stream_events_replaced: 0,
+            transitions: VecDeque::new(),
+            last_mode: None,
+            approval_waiters: HashMap::new(),
+            parse_error_total: HashMap::new(),
+            approval_result_total: HashMap::new(),
+            restart_total: HashMap::new(),
+            event_sequence_id: 0,
+        }
+    }
 }
 
 fn now_iso() -> String {
@@ -183,11 +369,47 @@ fn source_priority(event_type: &str, source: &str) -> i32 {
     }
 }
 
+fn increment_labeled_counter(counter: &mut HashMap<String, u64>, key: &str) {
+    let entry = counter.entry(key.to_string()).or_insert(0);
+    *entry += 1;
+}
+
+fn sync_status(runtime: &mut CodexAppServerRuntime) {
+    runtime.status.state = runtime.process_state.as_status().to_string();
+    runtime.status.auth_state = runtime.auth_state.as_status().to_string();
+    runtime.status.initialize_sent = runtime.handshake_state.initialize_sent();
+    runtime.status.initialized = runtime.handshake_state.initialized();
+    runtime.status.restart_attempts_in_window = runtime.restart_attempts.len();
+    runtime.status.restart_budget = RESTART_BUDGET;
+    runtime.status.last_transition_at_iso = Some(now_iso());
+}
+
+fn set_process_state(
+    runtime: &mut CodexAppServerRuntime,
+    process_state: ProcessState,
+    last_error: Option<String>,
+) {
+    runtime.process_state = process_state;
+    runtime.status.last_error = last_error;
+    sync_status(runtime);
+}
+
 fn emit_status(app_handle: &AppHandle, status: &CodexAppServerStatus) {
     let _ = app_handle.emit("codex-app-server-status", status.clone());
 }
 
+fn emit_live_session_event(app_handle: &AppHandle, payload: &LiveSessionEventPayload) {
+    let _ = app_handle.emit(LIVE_SESSION_EVENT, payload.clone());
+}
+
 fn detect_sidecar_path(app_handle: &AppHandle) -> Option<PathBuf> {
+    if let Ok(override_path) = std::env::var("NARRATIVE_CODEX_APP_SERVER_BIN") {
+        let path = PathBuf::from(override_path);
+        if path.exists() && is_executable_candidate(&path) {
+            return Some(path);
+        }
+    }
+
     let mut candidates: Vec<PathBuf> = Vec::new();
 
     if let Ok(resource_dir) = app_handle.path().resource_dir() {
@@ -232,19 +454,19 @@ fn prune_restart_attempts(runtime: &mut CodexAppServerRuntime, now_epoch: i64) {
     runtime.status.restart_attempts_in_window = runtime.restart_attempts.len();
 }
 
-fn register_start_failure(runtime: &mut CodexAppServerRuntime, message: String) {
+fn register_start_failure(runtime: &mut CodexAppServerRuntime, message: String, cause: &str) {
     let now_epoch = chrono::Utc::now().timestamp();
     runtime.restart_attempts.push_back(now_epoch);
     prune_restart_attempts(runtime, now_epoch);
 
-    runtime.status.last_error = Some(message);
-    runtime.status.stream_healthy = false;
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    increment_labeled_counter(&mut runtime.restart_total, cause);
 
+    runtime.status.stream_healthy = false;
+    runtime.stream_session_state = StreamSessionState::Failed;
     if runtime.restart_attempts.len() >= RESTART_BUDGET {
-        runtime.status.state = "crash_loop".to_string();
+        set_process_state(runtime, ProcessState::CrashLoop, Some(message));
     } else {
-        runtime.status.state = "degraded".to_string();
+        set_process_state(runtime, ProcessState::Degraded, Some(message));
     }
 }
 
@@ -269,40 +491,44 @@ fn remember_dedupe_source(runtime: &mut CodexAppServerRuntime, key: &str, source
     }
 }
 
-fn apply_account_updated(status: &mut CodexAppServerStatus, auth_mode: &str, authenticated: bool) {
+fn apply_account_updated(
+    runtime: &mut CodexAppServerRuntime,
+    auth_mode: &str,
+    authenticated: bool,
+) {
     let mode = normalize_auth_mode(auth_mode);
     if mode != "chatgpt" {
-        status.auth_mode = mode.clone();
-        status.auth_state = "needs_login".to_string();
-        status.stream_healthy = false;
-        if status.state != "crash_loop" {
-            status.state = "degraded".to_string();
+        runtime.status.auth_mode = mode.clone();
+        runtime.auth_state = AuthState::NeedsLogin;
+        runtime.status.stream_healthy = false;
+        if runtime.process_state != ProcessState::CrashLoop {
+            runtime.process_state = ProcessState::Degraded;
         }
-        status.last_error = Some(format!(
+        runtime.status.last_error = Some(format!(
             "Unsupported auth mode for v1: {mode}. Expected chatgpt",
         ));
+        sync_status(runtime);
         return;
     }
 
-    status.auth_mode = mode;
+    runtime.status.auth_mode = mode;
     if authenticated {
-        status.auth_state = "authenticated".to_string();
-        status.last_error = None;
-        if status.state != "crash_loop" {
-            status.state = if status.stream_healthy {
-                "healthy".to_string()
-            } else {
-                "degraded".to_string()
-            };
+        runtime.auth_state = AuthState::Authenticated;
+        runtime.status.last_error = None;
+        if runtime.process_state == ProcessState::Running && runtime.status.stream_healthy {
+            runtime.stream_session_state = StreamSessionState::Alive;
         }
     } else {
-        status.auth_state = "needs_login".to_string();
-        status.stream_healthy = false;
-        if status.state != "crash_loop" {
-            status.state = "degraded".to_string();
+        runtime.auth_state = AuthState::NeedsLogin;
+        runtime.status.stream_healthy = false;
+        runtime.stream_session_state = StreamSessionState::Failed;
+        if runtime.process_state != ProcessState::CrashLoop {
+            runtime.process_state = ProcessState::Degraded;
         }
-        status.last_error = Some("Authentication required via sidecar account update".to_string());
+        runtime.status.last_error =
+            Some("Authentication required via sidecar account update".to_string());
     }
+    sync_status(runtime);
 }
 
 fn emit_mode_transition(
@@ -332,6 +558,532 @@ fn emit_mode_transition(
     let _ = app_handle.emit("capture-reliability-transition", transition);
 }
 
+fn spawn_sidecar_process(path: &Path) -> Result<SidecarProcess, String> {
+    let mut command = Command::new(path);
+    command
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+
+    let child = command
+        .spawn()
+        .map_err(|e| format!("Failed to spawn Codex App Server sidecar: {e}"))?;
+
+    let _ = child.id();
+    Ok(SidecarProcess { child })
+}
+
+fn spawn_monitor_thread(
+    app_handle: AppHandle,
+    state: Arc<Mutex<CodexAppServerRuntime>>,
+    cancel: Arc<AtomicBool>,
+) -> thread::JoinHandle<()> {
+    thread::spawn(move || {
+        while !cancel.load(Ordering::SeqCst) {
+            let mut should_restart = false;
+            let mut restart_path: Option<PathBuf> = None;
+
+            {
+                let mut runtime = match state.lock() {
+                    Ok(guard) => guard,
+                    Err(_) => break,
+                };
+
+                if runtime.sidecar.is_none() {
+                    break;
+                }
+
+                let child_status = runtime
+                    .sidecar
+                    .as_mut()
+                    .and_then(|sidecar| sidecar.child.try_wait().ok().flatten());
+
+                if let Some(exit_status) = child_status {
+                    runtime.sidecar = None;
+                    runtime.status.stream_healthy = false;
+                    runtime.stream_session_state = StreamSessionState::Failed;
+                    register_start_failure(
+                        &mut runtime,
+                        format!("Codex App Server sidecar exited: {exit_status}"),
+                        "process_exit",
+                    );
+
+                    if runtime.process_state != ProcessState::CrashLoop
+                        && !runtime.status.stream_kill_switch
+                    {
+                        should_restart = true;
+                        restart_path = runtime.sidecar_path.clone();
+                    }
+
+                    emit_status(&app_handle, &runtime.status);
+                }
+            }
+
+            if should_restart {
+                thread::sleep(Duration::from_millis(RESTART_COOLDOWN_MS));
+                if cancel.load(Ordering::SeqCst) {
+                    break;
+                }
+
+                if let Some(path) = restart_path {
+                    match spawn_sidecar_process(&path) {
+                        Ok(sidecar) => {
+                            let mut runtime = match state.lock() {
+                                Ok(guard) => guard,
+                                Err(_) => break,
+                            };
+                            runtime.sidecar = Some(sidecar);
+                            runtime.process_state = ProcessState::Running;
+                            runtime.stream_session_state = StreamSessionState::Expected;
+                            runtime.handshake_state = HandshakeState::NotStarted;
+                            runtime.status.stream_healthy = false;
+                            runtime.status.last_error = Some(
+                                "Sidecar restarted; waiting for initialize/auth handshake"
+                                    .to_string(),
+                            );
+                            sync_status(&mut runtime);
+                            emit_status(&app_handle, &runtime.status);
+                        }
+                        Err(err) => {
+                            let mut runtime = match state.lock() {
+                                Ok(guard) => guard,
+                                Err(_) => break,
+                            };
+                            register_start_failure(&mut runtime, err, "restart_spawn_failed");
+                            emit_status(&app_handle, &runtime.status);
+                        }
+                    }
+                }
+            }
+
+            thread::sleep(Duration::from_millis(MONITOR_POLL_INTERVAL_MS));
+        }
+    })
+}
+
+fn with_db_pool(app_handle: &AppHandle) -> Option<Arc<SqlitePool>> {
+    app_handle
+        .try_state::<crate::DbState>()
+        .map(|state| state.0.clone())
+}
+
+fn parse_i64_env(key: &str, default_value: i64) -> i64 {
+    std::env::var(key)
+        .ok()
+        .and_then(|v| v.parse::<i64>().ok())
+        .filter(|v| *v > 0)
+        .unwrap_or(default_value)
+}
+
+fn live_sessions_ttl_hours() -> i64 {
+    parse_i64_env(
+        "NARRATIVE_LIVE_SESSIONS_TTL_HOURS",
+        DEFAULT_LIVE_SESSIONS_TTL_HOURS,
+    )
+}
+
+fn live_sessions_max_rows() -> i64 {
+    parse_i64_env(
+        "NARRATIVE_LIVE_SESSIONS_MAX_ROWS",
+        DEFAULT_LIVE_SESSIONS_MAX_ROWS,
+    )
+}
+
+async fn upsert_live_session(
+    pool: &SqlitePool,
+    payload: &LiveSessionEventPayload,
+) -> Result<(), String> {
+    let (thread_id, turn_id, item_id, event_type, source, status, payload_json, last_activity_at) =
+        match payload {
+            LiveSessionEventPayload::SessionDelta {
+                thread_id,
+                turn_id,
+                item_id,
+                event_type,
+                source,
+                received_at_iso,
+                ..
+            } => {
+                let status = if event_type.to_lowercase().contains("completed") {
+                    "completed"
+                } else {
+                    "active"
+                };
+                (
+                    thread_id.clone(),
+                    turn_id.clone(),
+                    item_id.clone(),
+                    event_type.clone(),
+                    source.clone(),
+                    status.to_string(),
+                    serde_json::to_string(payload).map_err(|e| e.to_string())?,
+                    received_at_iso.clone(),
+                )
+            }
+            _ => return Ok(()),
+        };
+
+    sqlx::query(
+        r#"
+        INSERT INTO live_sessions (
+          thread_id, turn_id, item_id, event_type, source, status, payload, last_activity_at, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, (strftime('%Y-%m-%dT%H:%M:%fZ','now')), (strftime('%Y-%m-%dT%H:%M:%fZ','now')))
+        ON CONFLICT(thread_id, turn_id, item_id, event_type)
+        DO UPDATE SET
+          source = excluded.source,
+          status = excluded.status,
+          payload = excluded.payload,
+          last_activity_at = excluded.last_activity_at,
+          updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+        "#,
+    )
+    .bind(thread_id)
+    .bind(turn_id)
+    .bind(item_id)
+    .bind(event_type)
+    .bind(source)
+    .bind(status)
+    .bind(payload_json)
+    .bind(last_activity_at)
+    .execute(pool)
+    .await
+    .map_err(|e| format!("failed to upsert live_sessions row: {e}"))?;
+
+    Ok(())
+}
+
+async fn cleanup_live_sessions_with_policy(
+    pool: &SqlitePool,
+    ttl_hours: i64,
+    max_rows: i64,
+) -> Result<LiveSessionsCleanupResult, String> {
+    let cutoff = format!("-{ttl_hours} hours");
+
+    let ttl_result =
+        sqlx::query("DELETE FROM live_sessions WHERE last_activity_at < datetime('now', ?)")
+            .bind(cutoff)
+            .execute(pool)
+            .await
+            .map_err(|e| format!("failed to cleanup live_sessions by ttl: {e}"))?;
+
+    let cap_result = sqlx::query(
+        r#"
+        DELETE FROM live_sessions
+        WHERE id IN (
+          SELECT id
+          FROM live_sessions
+          ORDER BY datetime(last_activity_at) DESC, id DESC
+          LIMIT -1 OFFSET ?
+        )
+        "#,
+    )
+    .bind(max_rows)
+    .execute(pool)
+    .await
+    .map_err(|e| format!("failed to cleanup live_sessions by row cap: {e}"))?;
+
+    Ok(LiveSessionsCleanupResult {
+        removed_rows: ttl_result.rows_affected() + cap_result.rows_affected(),
+        ttl_hours,
+        max_rows,
+    })
+}
+
+fn cleanup_live_sessions_blocking(
+    app_handle: &AppHandle,
+) -> Result<Option<LiveSessionsCleanupResult>, String> {
+    let Some(pool) = with_db_pool(app_handle) else {
+        return Ok(None);
+    };
+
+    let ttl_hours = live_sessions_ttl_hours();
+    let max_rows = live_sessions_max_rows();
+
+    tauri::async_runtime::block_on(cleanup_live_sessions_with_policy(
+        &pool, ttl_hours, max_rows,
+    ))
+    .map(Some)
+}
+
+fn persist_live_event_blocking(
+    app_handle: &AppHandle,
+    payload: &LiveSessionEventPayload,
+) -> Result<(), String> {
+    let Some(pool) = with_db_pool(app_handle) else {
+        return Ok(());
+    };
+
+    tauri::async_runtime::block_on(async {
+        upsert_live_session(&pool, payload).await?;
+        if let LiveSessionEventPayload::SessionDelta { event_type, .. } = payload {
+            if event_type.to_lowercase().contains("completed") {
+                let _ = cleanup_live_sessions_with_policy(
+                    &pool,
+                    live_sessions_ttl_hours(),
+                    live_sessions_max_rows(),
+                )
+                .await?;
+            }
+        }
+        Ok::<(), String>(())
+    })
+}
+
+fn parse_event_from_legacy_input(event: CodexStreamEventInput) -> LiveSessionEventPayload {
+    LiveSessionEventPayload::SessionDelta {
+        thread_id: event.thread_id,
+        turn_id: event.turn_id,
+        item_id: event.item_id,
+        event_type: event.event_type,
+        source: normalize_source(&event.source),
+        sequence_id: 0,
+        received_at_iso: now_iso(),
+        payload: event.payload.unwrap_or(serde_json::Value::Null),
+    }
+}
+
+fn parser_validation_error(
+    kind: &str,
+    raw: &serde_json::Value,
+    reason: &str,
+) -> LiveSessionEventPayload {
+    let mut preview = raw.to_string();
+    if preview.len() > 512 {
+        preview.truncate(512);
+    }
+    LiveSessionEventPayload::ParserValidationError {
+        kind: kind.to_string(),
+        raw_preview: preview,
+        reason: reason.to_string(),
+        occurred_at_iso: now_iso(),
+    }
+}
+
+fn parse_live_payload(
+    raw: serde_json::Value,
+) -> Result<LiveSessionEventPayload, LiveSessionEventPayload> {
+    match serde_json::from_value::<LiveSessionEventPayload>(raw.clone()) {
+        Ok(parsed) => Ok(parsed),
+        Err(_) => {
+            let provider = raw
+                .get("provider")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("codex")
+                .to_string();
+            let thread_id = raw
+                .get("threadId")
+                .or_else(|| raw.get("thread_id"))
+                .and_then(serde_json::Value::as_str)
+                .map(ToOwned::to_owned);
+            let turn_id = raw
+                .get("turnId")
+                .or_else(|| raw.get("turn_id"))
+                .and_then(serde_json::Value::as_str)
+                .map(ToOwned::to_owned);
+            let item_id = raw
+                .get("itemId")
+                .or_else(|| raw.get("item_id"))
+                .and_then(serde_json::Value::as_str)
+                .map(ToOwned::to_owned);
+            let event_type = raw
+                .get("eventType")
+                .or_else(|| raw.get("event_type"))
+                .and_then(serde_json::Value::as_str)
+                .map(ToOwned::to_owned);
+
+            if let (Some(thread_id), Some(turn_id), Some(item_id), Some(event_type)) =
+                (thread_id, turn_id, item_id, event_type)
+            {
+                let source = raw
+                    .get("source")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("app_server_stream");
+                let payload = raw
+                    .get("payload")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
+
+                return Ok(parse_event_from_legacy_input(CodexStreamEventInput {
+                    provider,
+                    thread_id,
+                    turn_id,
+                    item_id,
+                    event_type,
+                    source: source.to_string(),
+                    payload: Some(payload),
+                }));
+            }
+
+            Err(parser_validation_error(
+                "missing_fields",
+                &raw,
+                "Unable to parse sidecar event payload",
+            ))
+        }
+    }
+}
+
+fn apply_session_delta(
+    runtime: &mut CodexAppServerRuntime,
+    input: &CodexStreamEventInput,
+) -> CodexStreamIngestResult {
+    let key = event_identity_key(input);
+    let incoming_source = normalize_source(&input.source);
+    let event_type = input.event_type.trim().to_lowercase();
+
+    let mut decision = "accepted".to_string();
+    let mut replaced_source: Option<String> = None;
+    let chosen_source;
+
+    if let Some(existing_source) = runtime.dedupe_sources.get(&key).cloned() {
+        if existing_source == incoming_source {
+            decision = "duplicate".to_string();
+            runtime.stream_events_duplicates += 1;
+            chosen_source = existing_source;
+        } else {
+            let incoming_priority = source_priority(&event_type, &incoming_source);
+            let existing_priority = source_priority(&event_type, &existing_source);
+            if incoming_priority > existing_priority {
+                remember_dedupe_source(runtime, &key, &incoming_source);
+                decision = "replaced".to_string();
+                runtime.stream_events_replaced += 1;
+                replaced_source = Some(existing_source.clone());
+                chosen_source = incoming_source;
+            } else {
+                decision = "dropped".to_string();
+                runtime.stream_events_dropped += 1;
+                chosen_source = existing_source;
+            }
+        }
+    } else {
+        remember_dedupe_source(runtime, &key, &incoming_source);
+        runtime.stream_events_accepted += 1;
+        chosen_source = incoming_source;
+    }
+
+    let log_entry = CodexStreamDedupeDecision {
+        at_iso: now_iso(),
+        key: key.clone(),
+        decision: decision.clone(),
+        incoming_source: normalize_source(&input.source),
+        chosen_source: chosen_source.clone(),
+        replaced_source: replaced_source.clone(),
+    };
+    runtime.recent_dedupe.push_front(log_entry);
+    while runtime.recent_dedupe.len() > MAX_DEDUPE_LOG {
+        runtime.recent_dedupe.pop_back();
+    }
+
+    if runtime.process_state == ProcessState::Running
+        && runtime.handshake_state == HandshakeState::Initialized
+        && runtime.auth_state == AuthState::Authenticated
+        && matches!(decision.as_str(), "accepted" | "replaced")
+    {
+        runtime.status.stream_healthy = true;
+        runtime.stream_session_state = if event_type.contains("completed") {
+            StreamSessionState::Completed
+        } else {
+            StreamSessionState::Alive
+        };
+        sync_status(runtime);
+    }
+
+    CodexStreamIngestResult {
+        key,
+        decision,
+        chosen_source,
+        replaced_source,
+    }
+}
+
+fn handle_live_event_internal(
+    runtime: &mut CodexAppServerRuntime,
+    payload: &LiveSessionEventPayload,
+) -> Option<CodexStreamIngestResult> {
+    runtime.event_sequence_id = runtime.event_sequence_id.saturating_add(1);
+
+    match payload {
+        LiveSessionEventPayload::SessionDelta {
+            thread_id,
+            turn_id,
+            item_id,
+            event_type,
+            source,
+            payload,
+            ..
+        } => {
+            let input = CodexStreamEventInput {
+                provider: "codex".to_string(),
+                thread_id: thread_id.clone(),
+                turn_id: turn_id.clone(),
+                item_id: item_id.clone(),
+                event_type: event_type.clone(),
+                source: source.clone(),
+                payload: Some(payload.clone()),
+            };
+            Some(apply_session_delta(runtime, &input))
+        }
+        LiveSessionEventPayload::ApprovalRequest {
+            request_id,
+            thread_id,
+            turn_id: _,
+            ..
+        } => {
+            runtime.approval_waiters.insert(
+                request_id.clone(),
+                PendingApproval {
+                    thread_id: thread_id.clone(),
+                },
+            );
+            None
+        }
+        LiveSessionEventPayload::ApprovalResult { approved, .. } => {
+            increment_labeled_counter(
+                &mut runtime.approval_result_total,
+                if *approved { "approved" } else { "rejected" },
+            );
+            None
+        }
+        LiveSessionEventPayload::ParserValidationError { kind, .. } => {
+            increment_labeled_counter(&mut runtime.parse_error_total, kind);
+            None
+        }
+    }
+}
+
+fn command_not_exposed_error(command: &str) -> String {
+    format!("command-not-exposed: {command} is internal-only; use sidecar event bridge")
+}
+
+fn terminate_child_with_timeout(child: &mut Child, timeout: Duration) -> Result<(), String> {
+    let start = Instant::now();
+
+    loop {
+        match child.try_wait() {
+            Ok(Some(_)) => return Ok(()),
+            Ok(None) => {
+                if start.elapsed() >= timeout {
+                    child
+                        .kill()
+                        .map_err(|e| format!("failed to kill sidecar process: {e}"))?;
+                    let _ = child.wait();
+                    return Ok(());
+                }
+                thread::sleep(Duration::from_millis(50));
+            }
+            Err(err) => return Err(format!("failed while waiting for sidecar exit: {err}")),
+        }
+    }
+}
+
+fn schedule_cleanup_task(app_handle: AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        if let Err(err) = cleanup_live_sessions_blocking(&app_handle) {
+            eprintln!("Narrative: live_sessions cleanup failed: {err}");
+        }
+    });
+}
+
 #[command(rename_all = "camelCase")]
 pub fn get_codex_app_server_status(
     state: State<'_, CodexAppServerState>,
@@ -346,37 +1098,70 @@ pub fn start_codex_app_server(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAppServerStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    runtime.status.state = "starting".to_string();
+
+    if runtime.sidecar.is_some() {
+        return Ok(runtime.status.clone());
+    }
+
+    runtime.process_state = ProcessState::Starting;
+    runtime.stream_session_state = StreamSessionState::Expected;
+    runtime.handshake_state = HandshakeState::NotStarted;
+    runtime.auth_state = AuthState::NeedsLogin;
+    runtime.status.stream_healthy = false;
     runtime.status.last_error = None;
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    sync_status(&mut runtime);
 
     if runtime.status.stream_kill_switch {
-        runtime.status.state = "degraded".to_string();
-        runtime.status.stream_healthy = false;
-        runtime.status.last_error = Some("Stream enrichment kill-switch enabled".to_string());
+        runtime.stream_session_state = StreamSessionState::Disabled;
+        set_process_state(
+            &mut runtime,
+            ProcessState::Degraded,
+            Some("Stream enrichment kill-switch enabled".to_string()),
+        );
         emit_status(&app_handle, &runtime.status);
         return Ok(runtime.status.clone());
     }
 
-    if detect_sidecar_path(&app_handle).is_none() {
+    let Some(sidecar_path) = detect_sidecar_path(&app_handle) else {
         register_start_failure(
             &mut runtime,
             "Codex App Server sidecar binary not found (expected bin/codex-app-server)".to_string(),
+            "spawn_path_missing",
         );
-    } else {
-        runtime.status.state = "degraded".to_string();
-        runtime.status.initialize_sent = false;
-        runtime.status.initialized = false;
-        runtime.status.auth_state = "needs_login".to_string();
-        runtime.status.stream_healthy = false;
-        runtime.status.last_error = Some(
-            "Sidecar binary detected, but runtime supervision/auth verification is not yet active"
-                .to_string(),
-        );
-        runtime.status.last_transition_at_iso = Some(now_iso());
+        emit_status(&app_handle, &runtime.status);
+        return Ok(runtime.status.clone());
+    };
+
+    match spawn_sidecar_process(&sidecar_path) {
+        Ok(sidecar) => {
+            runtime.sidecar_path = Some(sidecar_path);
+            runtime.sidecar = Some(sidecar);
+            runtime.process_state = ProcessState::Running;
+            runtime.status.stream_healthy = false;
+            runtime.status.last_error = Some(
+                "Sidecar started; waiting for initialize/initialized/authenticated handshake"
+                    .to_string(),
+            );
+            sync_status(&mut runtime);
+
+            let cancel = Arc::new(AtomicBool::new(false));
+            runtime.monitor_cancel = cancel.clone();
+            runtime.monitor_handle = Some(spawn_monitor_thread(
+                app_handle.clone(),
+                state.inner.clone(),
+                cancel,
+            ));
+            emit_status(&app_handle, &runtime.status);
+            drop(runtime);
+            schedule_cleanup_task(app_handle);
+        }
+        Err(err) => {
+            register_start_failure(&mut runtime, err, "spawn_failed");
+            emit_status(&app_handle, &runtime.status);
+        }
     }
 
-    emit_status(&app_handle, &runtime.status);
+    let runtime = state.inner.lock().map_err(|e| e.to_string())?;
     Ok(runtime.status.clone())
 }
 
@@ -385,12 +1170,41 @@ pub fn stop_codex_app_server(
     app_handle: AppHandle,
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAppServerStatus, String> {
+    let (mut sidecar, monitor_handle, cancel) = {
+        let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+        runtime.process_state = ProcessState::Stopping;
+        runtime.status.stream_healthy = false;
+        runtime.stream_session_state = StreamSessionState::Failed;
+        sync_status(&mut runtime);
+        emit_status(&app_handle, &runtime.status);
+
+        (
+            runtime.sidecar.take(),
+            runtime.monitor_handle.take(),
+            runtime.monitor_cancel.clone(),
+        )
+    };
+
+    cancel.store(true, Ordering::SeqCst);
+
+    if let Some(ref mut process) = sidecar {
+        let _ = terminate_child_with_timeout(
+            &mut process.child,
+            Duration::from_millis(SHUTDOWN_GRACE_MS),
+        );
+    }
+
+    if let Some(handle) = monitor_handle {
+        let _ = handle.join();
+    }
+
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    runtime.status.state = "inactive".to_string();
-    runtime.status.initialized = false;
-    runtime.status.initialize_sent = false;
+    runtime.sidecar = None;
+    runtime.stream_session_state = StreamSessionState::Disabled;
+    runtime.handshake_state = HandshakeState::NotStarted;
+    runtime.auth_state = AuthState::NeedsLogin;
     runtime.status.stream_healthy = false;
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    set_process_state(&mut runtime, ProcessState::Inactive, None);
     emit_status(&app_handle, &runtime.status);
     Ok(runtime.status.clone())
 }
@@ -400,11 +1214,13 @@ pub fn codex_app_server_initialize(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAppServerStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    if runtime.status.state == "inactive" || runtime.status.state == "crash_loop" {
+    if runtime.process_state == ProcessState::Inactive
+        || runtime.process_state == ProcessState::CrashLoop
+    {
         return Err("App Server is not running; cannot send initialize handshake".to_string());
     }
-    runtime.status.initialize_sent = true;
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    runtime.handshake_state = HandshakeState::InitializeSent;
+    sync_status(&mut runtime);
     Ok(runtime.status.clone())
 }
 
@@ -413,11 +1229,12 @@ pub fn codex_app_server_initialized(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAppServerStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    if !runtime.status.initialize_sent {
+    if runtime.handshake_state != HandshakeState::InitializeSent {
         return Err("initialize must be called before initialized".to_string());
     }
-    runtime.status.initialized = true;
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    runtime.handshake_state = HandshakeState::Initialized;
+    runtime.stream_session_state = StreamSessionState::Expected;
+    sync_status(&mut runtime);
     Ok(runtime.status.clone())
 }
 
@@ -439,8 +1256,8 @@ pub fn codex_app_server_account_login_start(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAccountStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    runtime.status.auth_state = "authenticating".to_string();
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    runtime.auth_state = AuthState::Authenticating;
+    sync_status(&mut runtime);
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
         auth_mode: runtime.status.auth_mode.clone(),
@@ -456,18 +1273,18 @@ pub fn codex_app_server_account_login_completed(
 ) -> Result<CodexAccountStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
     if success {
-        // Sidecar callback (account/updated) is the single source of truth for authenticated=true.
-        runtime.status.auth_state = "authenticating".to_string();
+        runtime.auth_state = AuthState::Authenticating;
         runtime.status.last_error = None;
     } else {
-        runtime.status.auth_state = "needs_login".to_string();
+        runtime.auth_state = AuthState::NeedsLogin;
         runtime.status.stream_healthy = false;
-        if runtime.status.state != "crash_loop" {
-            runtime.status.state = "degraded".to_string();
+        runtime.stream_session_state = StreamSessionState::Failed;
+        if runtime.process_state != ProcessState::CrashLoop {
+            runtime.process_state = ProcessState::Degraded;
         }
         runtime.status.last_error = Some("Authentication cancelled or failed".to_string());
     }
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    sync_status(&mut runtime);
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
         auth_mode: runtime.status.auth_mode.clone(),
@@ -483,8 +1300,7 @@ pub fn codex_app_server_account_updated(
     authenticated: bool,
 ) -> Result<CodexAccountStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    apply_account_updated(&mut runtime.status, &auth_mode, authenticated);
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    apply_account_updated(&mut runtime, &auth_mode, authenticated);
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
         auth_mode: runtime.status.auth_mode.clone(),
@@ -498,36 +1314,16 @@ pub fn codex_app_server_account_logout(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAccountStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    runtime.status.auth_state = "logged_out".to_string();
+    runtime.auth_state = AuthState::LoggedOut;
     runtime.status.stream_healthy = false;
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    runtime.stream_session_state = StreamSessionState::Failed;
+    sync_status(&mut runtime);
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
         auth_mode: runtime.status.auth_mode.clone(),
         interactive_login_required: true,
         supported_modes: vec!["chatgpt".to_string()],
     })
-}
-
-#[command(rename_all = "camelCase")]
-pub fn codex_app_server_set_stream_health(
-    state: State<'_, CodexAppServerState>,
-    healthy: bool,
-    reason: Option<String>,
-) -> Result<CodexAppServerStatus, String> {
-    let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    runtime.status.stream_healthy = healthy;
-    if !healthy {
-        runtime.status.state = "degraded".to_string();
-        if let Some(reason) = reason {
-            runtime.status.last_error = Some(reason);
-        }
-    } else if runtime.status.state != "crash_loop" {
-        runtime.status.state = "healthy".to_string();
-        runtime.status.last_error = None;
-    }
-    runtime.status.last_transition_at_iso = Some(now_iso());
-    Ok(runtime.status.clone())
 }
 
 #[command(rename_all = "camelCase")]
@@ -538,11 +1334,12 @@ pub fn codex_app_server_set_stream_kill_switch(
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
     runtime.status.stream_kill_switch = enabled;
     if enabled {
-        runtime.status.state = "degraded".to_string();
+        runtime.process_state = ProcessState::Degraded;
+        runtime.stream_session_state = StreamSessionState::Disabled;
         runtime.status.stream_healthy = false;
         runtime.status.last_error = Some("Stream enrichment disabled by kill-switch".to_string());
     }
-    runtime.status.last_transition_at_iso = Some(now_iso());
+    sync_status(&mut runtime);
     Ok(runtime.status.clone())
 }
 
@@ -552,13 +1349,13 @@ pub fn codex_app_server_request_thread_snapshot(
     thread_id: String,
 ) -> Result<serde_json::Value, String> {
     let runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    if !runtime.status.initialize_sent || !runtime.status.initialized {
+    if runtime.handshake_state != HandshakeState::Initialized {
         return Err(
             "Handshake incomplete: initialize + initialized required before thread requests"
                 .to_string(),
         );
     }
-    if runtime.status.auth_state != "authenticated" {
+    if runtime.auth_state != AuthState::Authenticated {
         return Err("Authentication required before requesting thread data".to_string());
     }
     Ok(serde_json::json!({
@@ -569,65 +1366,71 @@ pub fn codex_app_server_request_thread_snapshot(
 }
 
 #[command(rename_all = "camelCase")]
-pub fn ingest_codex_stream_event(
+pub fn codex_app_server_receive_live_event(
+    app_handle: AppHandle,
     state: State<'_, CodexAppServerState>,
-    event: CodexStreamEventInput,
-) -> Result<CodexStreamIngestResult, String> {
-    let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    let _payload_seen = event.payload.as_ref().map(|_| true).unwrap_or(false);
-    let key = event_identity_key(&event);
-    let incoming_source = normalize_source(&event.source);
-    let event_type = event.event_type.trim().to_lowercase();
-
-    let mut decision = "accepted".to_string();
-    let mut replaced_source: Option<String> = None;
-    let chosen_source;
-
-    if let Some(existing_source) = runtime.dedupe_sources.get(&key).cloned() {
-        if existing_source == incoming_source {
-            decision = "duplicate".to_string();
-            runtime.stream_events_duplicates += 1;
-            chosen_source = existing_source;
-        } else {
-            let incoming_priority = source_priority(&event_type, &incoming_source);
-            let existing_priority = source_priority(&event_type, &existing_source);
-            if incoming_priority > existing_priority {
-                remember_dedupe_source(&mut runtime, &key, &incoming_source);
-                decision = "replaced".to_string();
-                runtime.stream_events_replaced += 1;
-                replaced_source = Some(existing_source.clone());
-                chosen_source = incoming_source;
-            } else {
-                decision = "dropped".to_string();
-                runtime.stream_events_dropped += 1;
-                chosen_source = existing_source;
-            }
+    payload: serde_json::Value,
+) -> Result<Option<CodexStreamIngestResult>, String> {
+    let parsed = match parse_live_payload(payload.clone()) {
+        Ok(parsed) => parsed,
+        Err(parser_error) => {
+            let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+            handle_live_event_internal(&mut runtime, &parser_error);
+            emit_live_session_event(&app_handle, &parser_error);
+            emit_status(&app_handle, &runtime.status);
+            return Err("protocol-violation: failed to parse sidecar payload".to_string());
         }
-    } else {
-        remember_dedupe_source(&mut runtime, &key, &incoming_source);
-        runtime.stream_events_accepted += 1;
-        chosen_source = incoming_source;
-    }
-
-    let log_entry = CodexStreamDedupeDecision {
-        at_iso: now_iso(),
-        key: key.clone(),
-        decision: decision.clone(),
-        incoming_source: normalize_source(&event.source),
-        chosen_source: chosen_source.clone(),
-        replaced_source: replaced_source.clone(),
     };
-    runtime.recent_dedupe.push_front(log_entry);
-    while runtime.recent_dedupe.len() > MAX_DEDUPE_LOG {
-        runtime.recent_dedupe.pop_back();
+
+    let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+    let result = handle_live_event_internal(&mut runtime, &parsed);
+
+    emit_live_session_event(&app_handle, &parsed);
+
+    if let LiveSessionEventPayload::SessionDelta { .. } = &parsed {
+        if let Err(err) = persist_live_event_blocking(&app_handle, &parsed) {
+            let reason = format!("Dropped completion persistence due to error: {err}");
+            eprintln!("Narrative: {reason}");
+            let parser_error = LiveSessionEventPayload::ParserValidationError {
+                kind: "protocol_violation".to_string(),
+                raw_preview: "session persistence failed".to_string(),
+                reason,
+                occurred_at_iso: now_iso(),
+            };
+            handle_live_event_internal(&mut runtime, &parser_error);
+            emit_live_session_event(&app_handle, &parser_error);
+        }
     }
 
-    Ok(CodexStreamIngestResult {
-        key,
-        decision,
-        chosen_source,
-        replaced_source,
-    })
+    emit_status(&app_handle, &runtime.status);
+    Ok(result)
+}
+
+#[command(rename_all = "camelCase")]
+pub fn codex_app_server_submit_approval(
+    app_handle: AppHandle,
+    state: State<'_, CodexAppServerState>,
+    request_id: String,
+    approved: bool,
+    reason: Option<String>,
+) -> Result<LiveSessionEventPayload, String> {
+    let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+    let Some(pending) = runtime.approval_waiters.remove(&request_id) else {
+        return Err(format!("approval request not found: {request_id}"));
+    };
+
+    let payload = LiveSessionEventPayload::ApprovalResult {
+        request_id,
+        thread_id: pending.thread_id,
+        approved,
+        decided_at_iso: now_iso(),
+        decided_by: Some("user".to_string()),
+        reason,
+    };
+
+    handle_live_event_internal(&mut runtime, &payload);
+    emit_live_session_event(&app_handle, &payload);
+    Ok(payload)
 }
 
 #[command(rename_all = "camelCase")]
@@ -660,11 +1463,11 @@ pub fn get_capture_reliability_status(
     let stream_expected = config.codex.stream_enrichment_enabled
         && !config.codex.stream_kill_switch
         && !app_server.stream_kill_switch;
-    let stream_healthy = app_server.state == "healthy"
-        && app_server.initialize_sent
-        && app_server.initialized
-        && app_server.auth_state == "authenticated"
-        && app_server.stream_healthy;
+    let stream_healthy = matches!(runtime.process_state, ProcessState::Running)
+        && runtime.handshake_state == HandshakeState::Initialized
+        && runtime.auth_state == AuthState::Authenticated
+        && app_server.stream_healthy
+        && runtime.stream_session_state != StreamSessionState::Failed;
 
     let mode = if otel_baseline_healthy && stream_healthy {
         "HYBRID_ACTIVE"
@@ -715,13 +1518,38 @@ pub fn get_capture_reliability_status(
     })
 }
 
+/// TODO(2026-02-24): migration-safe deprecation path — keep command shape for one release,
+/// but reject renderer mutation attempts. Remove in next release after bridge rollout verification.
+#[command(rename_all = "camelCase")]
+pub fn codex_app_server_set_stream_health(
+    _healthy: bool,
+    _reason: Option<String>,
+) -> Result<CodexAppServerStatus, String> {
+    Err(command_not_exposed_error(
+        "codex_app_server_set_stream_health",
+    ))
+}
+
+/// TODO(2026-02-24): migration-safe deprecation path — keep command shape for one release,
+/// but reject renderer mutation attempts. Remove in next release after bridge rollout verification.
+#[command(rename_all = "camelCase")]
+pub fn ingest_codex_stream_event(
+    _event: CodexStreamEventInput,
+) -> Result<CodexStreamIngestResult, String> {
+    Err(command_not_exposed_error("ingest_codex_stream_event"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_account_updated, event_identity_key, register_start_failure, remember_dedupe_source,
-        source_priority, CodexAppServerRuntime, CodexAppServerStatus, CodexStreamEventInput,
+        apply_account_updated, cleanup_live_sessions_with_policy, command_not_exposed_error,
+        event_identity_key, handle_live_event_internal, parse_event_from_legacy_input,
+        parse_live_payload, parser_validation_error, register_start_failure,
+        remember_dedupe_source, source_priority, AuthState, CodexAppServerRuntime,
+        CodexAppServerStatus, CodexStreamEventInput, HandshakeState, LiveSessionEventPayload,
         MAX_DEDUPE_SOURCES, RESTART_BUDGET,
     };
+    use sqlx::sqlite::SqlitePoolOptions;
 
     #[test]
     fn identity_key_is_stable() {
@@ -757,7 +1585,7 @@ mod tests {
     fn restart_budget_enters_crash_loop_at_threshold() {
         let mut runtime = CodexAppServerRuntime::default();
         for i in 0..RESTART_BUDGET {
-            register_start_failure(&mut runtime, format!("failure-{i}"));
+            register_start_failure(&mut runtime, format!("failure-{i}"), "test");
         }
         assert_eq!(runtime.status.state, "crash_loop");
         assert_eq!(runtime.status.restart_attempts_in_window, RESTART_BUDGET);
@@ -765,41 +1593,36 @@ mod tests {
 
     #[test]
     fn chatgpt_account_updated_sets_authenticated_when_verified() {
-        let mut status = CodexAppServerStatus {
-            state: "degraded".to_string(),
+        let mut runtime = CodexAppServerRuntime {
+            auth_state: AuthState::NeedsLogin,
+            handshake_state: HandshakeState::Initialized,
+            ..CodexAppServerRuntime::default()
+        };
+        runtime.status = CodexAppServerStatus {
+            state: "running".to_string(),
             stream_healthy: true,
             ..CodexAppServerStatus::default()
         };
-        apply_account_updated(&mut status, "chatgpt", true);
 
-        assert_eq!(status.auth_state, "authenticated");
-        assert_eq!(status.state, "healthy");
-        assert!(status.last_error.is_none());
+        apply_account_updated(&mut runtime, "chatgpt", true);
+
+        assert_eq!(runtime.status.auth_state, "authenticated");
+        assert!(runtime.status.last_error.is_none());
     }
 
     #[test]
     fn account_updated_rejects_unsupported_mode() {
-        let mut status = CodexAppServerStatus::default();
-        apply_account_updated(&mut status, "apikey", true);
-        assert_eq!(status.auth_state, "needs_login");
-        assert_eq!(status.state, "degraded");
-        assert_eq!(status.auth_mode, "apikey");
-        assert!(status
+        let mut runtime = CodexAppServerRuntime::default();
+        apply_account_updated(&mut runtime, "apikey", true);
+        assert_eq!(runtime.status.auth_state, "needs_login");
+        assert_eq!(runtime.status.state, "degraded");
+        assert_eq!(runtime.status.auth_mode, "apikey");
+        assert!(runtime
+            .status
             .last_error
             .as_deref()
             .unwrap_or_default()
             .contains("Unsupported auth mode"));
-    }
-
-    #[test]
-    fn account_updated_unsupported_mode_preserves_crash_loop_state() {
-        let mut status = CodexAppServerStatus {
-            state: "crash_loop".to_string(),
-            ..CodexAppServerStatus::default()
-        };
-        apply_account_updated(&mut status, "apikey", true);
-        assert_eq!(status.state, "crash_loop");
-        assert_eq!(status.auth_state, "needs_login");
     }
 
     #[test]
@@ -816,5 +1639,160 @@ mod tests {
         assert!(runtime
             .dedupe_sources
             .contains_key(&format!("k-{}", MAX_DEDUPE_SOURCES + 31)));
+    }
+
+    #[test]
+    fn parser_payload_fallback_supports_legacy_shape() {
+        let raw = serde_json::json!({
+            "provider": "codex",
+            "threadId": "th_1",
+            "turnId": "tu_1",
+            "itemId": "it_1",
+            "eventType": "item/completed",
+            "source": "otel",
+            "payload": {"done": true}
+        });
+
+        let parsed = parse_live_payload(raw).expect("legacy payload should parse");
+        assert!(matches!(
+            parsed,
+            LiveSessionEventPayload::SessionDelta { .. }
+        ));
+    }
+
+    #[test]
+    fn parser_validation_error_is_produced_for_invalid_payload() {
+        let raw = serde_json::json!({ "unexpected": "shape" });
+        let err = parse_live_payload(raw).expect_err("invalid payload should return parser error");
+        assert!(matches!(
+            err,
+            LiveSessionEventPayload::ParserValidationError {
+                kind,
+                reason,
+                ..
+            } if kind == "missing_fields" && !reason.is_empty()
+        ));
+    }
+
+    #[test]
+    fn internal_approval_round_trip_tracks_pending_requests() {
+        let mut runtime = CodexAppServerRuntime::default();
+        let request = LiveSessionEventPayload::ApprovalRequest {
+            request_id: "req_1".to_string(),
+            thread_id: "th_1".to_string(),
+            turn_id: "tu_1".to_string(),
+            command: "rm -rf /".to_string(),
+            options: vec!["approve".to_string(), "deny".to_string()],
+            timeout_ms: 5_000,
+        };
+
+        handle_live_event_internal(&mut runtime, &request);
+        assert_eq!(runtime.approval_waiters.len(), 1);
+
+        let result = LiveSessionEventPayload::ApprovalResult {
+            request_id: "req_1".to_string(),
+            thread_id: "th_1".to_string(),
+            approved: false,
+            decided_at_iso: "2026-02-24T00:00:00.000Z".to_string(),
+            decided_by: Some("user".to_string()),
+            reason: Some("Denied".to_string()),
+        };
+        handle_live_event_internal(&mut runtime, &result);
+
+        assert_eq!(
+            runtime.approval_result_total.get("rejected").copied(),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn live_sessions_cleanup_applies_ttl_and_row_cap() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("tokio runtime");
+
+        runtime.block_on(async {
+            let pool = SqlitePoolOptions::new()
+                .max_connections(1)
+                .connect("sqlite::memory:")
+                .await
+                .expect("memory sqlite");
+
+            sqlx::query(include_str!("../migrations/015_live_sessions.sql"))
+                .execute(&pool)
+                .await
+                .expect("migration applies");
+
+            for idx in 0..8 {
+                sqlx::query(
+                    r#"
+                    INSERT INTO live_sessions (
+                      thread_id, turn_id, item_id, event_type, source, status, payload, last_activity_at
+                    ) VALUES (?, ?, ?, 'item/completed', 'otel', 'completed', '{}', datetime('now', ?))
+                    "#,
+                )
+                .bind(format!("th_{idx}"))
+                .bind("tu")
+                .bind("it")
+                .bind(format!("-{} hours", idx + 1))
+                .execute(&pool)
+                .await
+                .expect("insert row");
+            }
+
+            let cleanup = cleanup_live_sessions_with_policy(&pool, 2, 3)
+                .await
+                .expect("cleanup works");
+
+            assert!(cleanup.removed_rows >= 5);
+
+            let remaining: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM live_sessions")
+                .fetch_one(&pool)
+                .await
+                .expect("count rows");
+            assert!(remaining <= 3);
+        });
+    }
+
+    #[test]
+    fn deprecated_mutation_commands_return_explicit_error() {
+        let stream_health_err = command_not_exposed_error("codex_app_server_set_stream_health");
+        let ingest_err = command_not_exposed_error("ingest_codex_stream_event");
+
+        assert!(stream_health_err.contains("command-not-exposed"));
+        assert!(ingest_err.contains("command-not-exposed"));
+    }
+
+    #[test]
+    fn parser_error_payload_truncates_raw_preview() {
+        let raw = serde_json::json!({ "payload": "x".repeat(2_048) });
+        let payload = parser_validation_error("protocol_violation", &raw, "boom");
+        match payload {
+            LiveSessionEventPayload::ParserValidationError { raw_preview, .. } => {
+                assert!(raw_preview.len() <= 512);
+            }
+            _ => panic!("expected parser error"),
+        }
+    }
+
+    #[test]
+    fn legacy_input_conversion_sets_expected_source() {
+        let payload = parse_event_from_legacy_input(CodexStreamEventInput {
+            provider: "codex".to_string(),
+            thread_id: "th_1".to_string(),
+            turn_id: "tu_1".to_string(),
+            item_id: "it_1".to_string(),
+            event_type: "item/delta".to_string(),
+            source: "stream".to_string(),
+            payload: None,
+        });
+
+        match payload {
+            LiveSessionEventPayload::SessionDelta { source, .. } => {
+                assert_eq!(source, "app_server_stream");
+            }
+            _ => panic!("expected session delta"),
+        }
     }
 }

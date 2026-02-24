@@ -96,6 +96,10 @@ Recovery sequence:
    - `codex_app_server_account_login_completed(success=true)`
    - `codex_app_server_account_updated(auth_mode="chatgpt", authenticated=true)`
 5. Re-check reliability mode.
+6. Validate event-driven stream lifecycle:
+   - listen for `session:live:event`
+   - verify at least one `SessionDelta` frame after handshake/auth
+   - verify approval request/result round-trip emits `ApprovalRequest` then `ApprovalResult`
 
 ## Migration Operations
 
@@ -111,6 +115,9 @@ Recovery sequence:
 - [ ] OTEL fallback works when stream is disabled
 - [ ] Crash-loop degrades safely without data-loss escalation
 - [ ] Stream duplicate-resolution decisions are logged and visible
+- [ ] `session:live:event` observed for SessionDelta/ApprovalRequest/ApprovalResult/ParserValidationError paths
+- [ ] No UI path writes stream health directly; deprecated mutation commands return `command-not-exposed`
+- [ ] `live_sessions` retention policy verified (TTL + MAX_ROWS bounded cleanup)
 
 ## Troubleshooting
 
