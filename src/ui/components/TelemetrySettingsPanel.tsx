@@ -40,6 +40,8 @@ export function TelemetrySettingsPanel({
     }, [traceConfig?.codexOtelLogPath]);
 
     const receiverEnabled = traceConfig?.codexOtelReceiverEnabled ?? false;
+    const embeddedReceiverAvailable = Boolean(onToggleCodexOtelReceiver);
+    const showFilePathConfig = !embeddedReceiverAvailable || !receiverEnabled;
     const disablePromptSnippet = 'log_user_prompt = false';
     const hasConsent = ingestConfig?.consent.codexTelemetryGranted ?? false;
     const keyPresent = otlpKeyStatus?.present ?? false;
@@ -134,36 +136,42 @@ export function TelemetrySettingsPanel({
 
                 {/* OTel Receiver Log Path Section */}
                 <div className="rounded-lg border border-border-light bg-bg-tertiary p-3">
-                    <div>
-                        <div className="flex items-center justify-between mb-1">
-                            <label htmlFor="codex-otel-path" className="text-xs font-semibold text-text-secondary">
-                                Codex OTel log file path
-                            </label>
-                            <HelpPopover content="Path to the JSON log file where OTel traces are written." />
-                        </div>
+                    {showFilePathConfig ? (
+                        <div>
+                            <div className="flex items-center justify-between mb-1">
+                                <label htmlFor="codex-otel-path" className="text-xs font-semibold text-text-secondary">
+                                    Codex OTel log file path
+                                </label>
+                                <HelpPopover content="Path to the JSON log file where OTel traces are written." />
+                            </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
-                            <input
-                                id="codex-otel-path"
-                                type="text"
-                                value={otelPath}
-                                onChange={(event) => setOtelPath(event.target.value)}
-                                className="min-w-[220px] flex-1 rounded-md border border-border-light bg-bg-secondary px-2 py-1 text-xs text-text-secondary outline-none focus:border-border-medium"
-                                placeholder="/tmp/codex-otel.json"
-                            />
-                            <button
-                                type="button"
-                                className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${otelPath.trim() && otelPath !== (traceConfig?.codexOtelLogPath ?? '/tmp/codex-otel.json')
-                                        ? 'border-accent-blue-light bg-accent-blue-bg text-accent-blue hover:bg-accent-blue-light'
-                                        : 'border-border-light bg-bg-secondary text-text-secondary hover:bg-bg-hover'
-                                    }`}
-                                onClick={() => onUpdateCodexOtelPath?.(otelPath.trim())}
-                                disabled={!otelPath.trim()}
-                            >
-                                Sync
-                            </button>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <input
+                                    id="codex-otel-path"
+                                    type="text"
+                                    value={otelPath}
+                                    onChange={(event) => setOtelPath(event.target.value)}
+                                    className="min-w-[220px] flex-1 rounded-md border border-border-light bg-bg-secondary px-2 py-1 text-xs text-text-secondary outline-none focus:border-border-medium"
+                                    placeholder="/tmp/codex-otel.json"
+                                />
+                                <button
+                                    type="button"
+                                    className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${otelPath.trim() && otelPath !== (traceConfig?.codexOtelLogPath ?? '/tmp/codex-otel.json')
+                                            ? 'border-accent-blue-light bg-accent-blue-bg text-accent-blue hover:bg-accent-blue-light'
+                                            : 'border-border-light bg-bg-secondary text-text-secondary hover:bg-bg-hover'
+                                        }`}
+                                    onClick={() => onUpdateCodexOtelPath?.(otelPath.trim())}
+                                    disabled={!otelPath.trim()}
+                                >
+                                    Sync
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="rounded-md border border-border-subtle bg-bg-secondary px-3 py-2 text-[11px] text-text-tertiary">
+                            Embedded receiver is active. File-path OTEL import is hidden.
+                        </div>
+                    )}
 
                     {onToggleCodexOtelReceiver ? (
                         <div className="flex items-center justify-between pt-2 mt-3 border-t border-border-subtle/50">
