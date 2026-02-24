@@ -775,13 +775,14 @@ function BranchViewInner(props: {
       if (calibrationEnabled) {
         setNarrativeCalibration(result.profile);
       }
+      if (!result.inserted) return;
       trackNarrativeEvent('feedback_submitted', {
         branch: model.meta?.branchName,
         detailLevel: feedback.detailLevel,
         confidence: narrative.confidence,
         feedbackType: feedback.feedbackType,
         feedbackTargetKind: feedback.targetKind,
-        feedbackActorRole: feedback.actorRole,
+        feedbackActorRole: result.verifiedActorRole,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

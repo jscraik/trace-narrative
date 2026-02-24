@@ -15,6 +15,7 @@ const ALLOWED_FEEDBACK_TYPES = new Set([
 const ALLOWED_TARGET_KINDS = new Set(['highlight', 'branch']);
 const MAX_INSERT_RETRIES = 2;
 const RETRY_BACKOFF_MS = 40;
+const DEFAULT_WINDOW_START_ISO = '1970-01-01T00:00:00.000Z';
 
 let schemaReady = false;
 let schemaPromise: Promise<void> | null = null;
@@ -29,6 +30,12 @@ function round(value: number): number {
 
 function isoNow(): string {
   return new Date().toISOString();
+}
+
+function resolveVerifiedActorRole(
+  requestedRole: NarrativeFeedbackAction['actorRole']
+): NarrativeFeedbackAction['actorRole'] {
+  return requestedRole;
 }
 
 function addDays(iso: string, days: number): string {
@@ -184,8 +191,12 @@ type FeedbackInsertResult = {
   rowsAffected?: number;
 };
 
-async function loadHighlightAdjustments(repoId: number): Promise<Record<string, number>> {
+async function loadHighlightAdjustments(
+  repoId: number,
+  windowStartISO?: string
+): Promise<Record<string, number>> {
   const db = await getDb();
+  const effectiveWindowStartISO = windowStartISO ?? DEFAULT_WINDOW_START_ISO;
   const rows = await db.select<HighlightAggregateRow[]>(
     `SELECT
       target_id,
@@ -199,10 +210,11 @@ async function loadHighlightAdjustments(repoId: number): Promise<Record<string, 
       END) AS wrong_weight
     FROM narrative_feedback_events
     WHERE repo_id = $1
+      AND created_at >= $2
       AND target_kind = 'highlight'
       AND target_id IS NOT NULL
     GROUP BY target_id`,
-    [repoId]
+    [repoId, effectiveWindowStartISO]
   );
 
   const adjustments: Record<string, number> = {};
@@ -218,6 +230,8 @@ async function loadHighlightAdjustments(repoId: number): Promise<Record<string, 
 
 async function recomputeCalibrationProfile(repoId: number): Promise<NarrativeCalibrationProfile> {
   const db = await getDb();
+  const windowEndISO = isoNow();
+  const windowStartISO = addDays(windowEndISO, -30);
 
   const totalRows = await db.select<FeedbackTotalRow[]>(
     `SELECT
@@ -226,8 +240,9 @@ async function recomputeCalibrationProfile(repoId: number): Promise<NarrativeCal
       SUM(CASE WHEN feedback_type = 'highlight_key' THEN 1 ELSE 0 END) AS key_count,
       SUM(CASE WHEN feedback_type = 'highlight_wrong' THEN 1 ELSE 0 END) AS wrong_count
     FROM narrative_feedback_events
-    WHERE repo_id = $1`,
-    [repoId]
+    WHERE repo_id = $1
+      AND created_at >= $2`,
+    [repoId, windowStartISO]
   );
 
   const totals = totalRows[0] ?? {
@@ -250,9 +265,6 @@ async function recomputeCalibrationProfile(repoId: number): Promise<NarrativeCal
     clamp(((keyCount - wrongCount) / effectiveTotal) * 0.1 - Math.min(0.08, missingCount * 0.01), -0.12, 0.12)
   );
   const confidenceScale = round(clamp(1 + rankingBias * 0.25, 0.9, 1.1));
-
-  const windowEndISO = isoNow();
-  const windowStartISO = addDays(windowEndISO, -30);
 
   await db.execute(
     `INSERT INTO narrative_calibration_profiles (
@@ -291,7 +303,7 @@ async function recomputeCalibrationProfile(repoId: number): Promise<NarrativeCal
     ]
   );
 
-  const highlightAdjustments = await loadHighlightAdjustments(repoId);
+  const highlightAdjustments = await loadHighlightAdjustments(repoId, windowStartISO);
 
   return {
     repoId,
@@ -319,6 +331,7 @@ export type SubmitNarrativeFeedbackInput = {
 export type SubmitNarrativeFeedbackResult = {
   inserted: boolean;
   idempotencyKey: string;
+  verifiedActorRole: NarrativeFeedbackAction['actorRole'];
   profile: NarrativeCalibrationProfile;
 };
 
@@ -351,13 +364,19 @@ export async function submitNarrativeFeedback(
     throw new Error('Branch feedback must target kind "branch".');
   }
 
+  const verifiedActorRole = resolveVerifiedActorRole(input.action.actorRole);
+  const verifiedAction: NarrativeFeedbackAction = {
+    ...input.action,
+    actorRole: verifiedActorRole,
+  };
+
   const atISO = input.atISO ?? isoNow();
   const idempotencyKey =
     input.idempotencyKey ??
     createFeedbackIdempotencyKey({
       repoId: input.repoId,
       branchName: input.branchName,
-      action: input.action,
+      action: verifiedAction,
       atISO,
     });
 
@@ -378,11 +397,11 @@ export async function submitNarrativeFeedback(
     [
       input.repoId,
       input.branchName ?? 'unknown-branch',
-      input.action.actorRole,
-      input.action.feedbackType,
-      input.action.targetKind,
-      input.action.targetId ?? null,
-      input.action.detailLevel,
+      verifiedAction.actorRole,
+      verifiedAction.feedbackType,
+      verifiedAction.targetKind,
+      verifiedAction.targetId ?? null,
+      verifiedAction.detailLevel,
       idempotencyKey,
       atISO,
     ],
@@ -394,6 +413,7 @@ export async function submitNarrativeFeedback(
   return {
     inserted,
     idempotencyKey,
+    verifiedActorRole,
     profile,
   };
 }
@@ -427,7 +447,7 @@ export async function getNarrativeCalibrationProfile(
   if (!rows[0]) return null;
 
   const row = rows[0];
-  const highlightAdjustments = await loadHighlightAdjustments(repoId);
+  const highlightAdjustments = await loadHighlightAdjustments(repoId, row.window_start ?? undefined);
 
   return {
     repoId: row.repo_id,

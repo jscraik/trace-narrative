@@ -4,33 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BranchViewModel, FileChange, TraceRange } from "../../../core/types";
 
 const mockSelectFile = vi.hoisted(() => vi.fn());
-
-vi.mock("../../../core/context/FileSelectionContext", () => ({
-  FileSelectionProvider: ({ children }: { children: unknown }) => children,
-  useFileSelection: () => ({
-    selectedFile: "preselected.ts",
-    selectFile: mockSelectFile,
-  }),
-}));
-
-vi.mock("../../../core/telemetry/narrativeTelemetry", () => ({
-  trackNarrativeEvent: vi.fn(),
-  trackQualityRenderDecision: vi.fn(),
-}));
-
-vi.mock("../../../core/repo/testRuns", () => ({
-  getLatestTestRunForCommit: vi.fn().mockResolvedValue(null),
-}));
-
-vi.mock("../../../core/repo/githubContext", () => ({
-  loadGitHubContext: vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
-}));
-
-vi.mock("../../../core/repo/narrativeFeedback", () => ({
-  getNarrativeCalibrationProfile: vi.fn().mockResolvedValue(null),
-  submitNarrativeFeedback: vi.fn().mockResolvedValue({
+const mockTrackNarrativeEvent = vi.hoisted(() => vi.fn());
+const mockTrackQualityRenderDecision = vi.hoisted(() => vi.fn());
+const mockGetNarrativeCalibrationProfile = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+const mockSubmitNarrativeFeedback = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({
     inserted: true,
     idempotencyKey: "mock:key",
+    verifiedActorRole: "developer",
     profile: {
       repoId: 1,
       rankingBias: 0,
@@ -43,6 +24,32 @@ vi.mock("../../../core/repo/narrativeFeedback", () => ({
       updatedAtISO: "2026-02-24T00:00:00.000Z",
     },
   }),
+);
+
+vi.mock("../../../core/context/FileSelectionContext", () => ({
+  FileSelectionProvider: ({ children }: { children: unknown }) => children,
+  useFileSelection: () => ({
+    selectedFile: "preselected.ts",
+    selectFile: mockSelectFile,
+  }),
+}));
+
+vi.mock("../../../core/telemetry/narrativeTelemetry", () => ({
+  trackNarrativeEvent: mockTrackNarrativeEvent,
+  trackQualityRenderDecision: mockTrackQualityRenderDecision,
+}));
+
+vi.mock("../../../core/repo/testRuns", () => ({
+  getLatestTestRunForCommit: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("../../../core/repo/githubContext", () => ({
+  loadGitHubContext: vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
+}));
+
+vi.mock("../../../core/repo/narrativeFeedback", () => ({
+  getNarrativeCalibrationProfile: mockGetNarrativeCalibrationProfile,
+  submitNarrativeFeedback: mockSubmitNarrativeFeedback,
 }));
 
 vi.mock("../../../core/narrative/composeBranchNarrative", () => ({
@@ -90,7 +97,32 @@ vi.mock("../../../hooks/useTestImport", () => ({
 }));
 
 vi.mock("../../components/BranchNarrativePanel", () => ({
-  BranchNarrativePanel: () => null,
+  BranchNarrativePanel: ({
+    onSubmitFeedback,
+  }: {
+    onSubmitFeedback: (feedback: {
+      actorRole: "developer" | "reviewer";
+      feedbackType: "highlight_key" | "highlight_wrong" | "branch_missing_decision";
+      targetKind: "highlight" | "branch";
+      targetId?: string;
+      detailLevel: "summary" | "evidence" | "diff";
+    }) => void;
+  }) => (
+    <button
+      type="button"
+      onClick={() =>
+        onSubmitFeedback({
+          actorRole: "developer",
+          feedbackType: "highlight_key",
+          targetKind: "highlight",
+          targetId: "highlight:h1",
+          detailLevel: "summary",
+        })
+      }
+    >
+      submit-feedback
+    </button>
+  ),
 }));
 
 vi.mock("../../components/NarrativeGovernancePanel", () => ({
@@ -242,6 +274,23 @@ function buildProps(overrides: {
 describe("BranchView transition and integration coverage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetNarrativeCalibrationProfile.mockResolvedValue(null);
+    mockSubmitNarrativeFeedback.mockResolvedValue({
+      inserted: true,
+      idempotencyKey: "mock:key",
+      verifiedActorRole: "developer",
+      profile: {
+        repoId: 1,
+        rankingBias: 0,
+        confidenceOffset: 0,
+        confidenceScale: 1,
+        sampleCount: 0,
+        actorWeightPolicyVersion: "v1",
+        branchMissingDecisionCount: 0,
+        highlightAdjustments: {},
+        updatedAtISO: "2026-02-24T00:00:00.000Z",
+      },
+    });
   });
 
   it("ignores stale files loader completion after rapid node change", async () => {
@@ -375,5 +424,38 @@ describe("BranchView transition and integration coverage", () => {
     );
 
     consoleError.mockRestore();
+  });
+
+  it("does not emit feedback_submitted telemetry for idempotent duplicate submissions", async () => {
+    mockSubmitNarrativeFeedback.mockResolvedValueOnce({
+      inserted: false,
+      idempotencyKey: "mock:key",
+      verifiedActorRole: "developer",
+      profile: {
+        repoId: 1,
+        rankingBias: 0,
+        confidenceOffset: 0,
+        confidenceScale: 1,
+        sampleCount: 0,
+        actorWeightPolicyVersion: "v1",
+        branchMissingDecisionCount: 0,
+        highlightAdjustments: {},
+        updatedAtISO: "2026-02-24T00:00:00.000Z",
+      },
+    });
+
+    const props = buildProps();
+    render(<BranchView {...props} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "submit-feedback" }));
+
+    await waitFor(() => {
+      expect(mockSubmitNarrativeFeedback).toHaveBeenCalled();
+    });
+
+    const feedbackEvents = mockTrackNarrativeEvent.mock.calls.filter(
+      ([eventName]) => eventName === "feedback_submitted",
+    );
+    expect(feedbackEvents).toHaveLength(0);
   });
 });
