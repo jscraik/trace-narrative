@@ -85,6 +85,17 @@ export function useTraceCollector({
   setActionError
 }: UseTraceCollectorProps): UseTraceCollectorReturn {
   const _repoStateRef = useRef({ repoRoot, repoId, timeline, model: null as BranchViewModel | null });
+  const applyScopedRepoUpdate = useCallback(
+    (expectedRepoId: number, updater: (prev: BranchViewModel) => BranchViewModel) => {
+      setRepoState((prev) => {
+        if (prev.meta?.repoId !== undefined && prev.meta.repoId !== expectedRepoId) {
+          return prev;
+        }
+        return updater(prev);
+      });
+    },
+    [setRepoState]
+  );
 
   useEffect(() => {
     // These listeners can fire even when no repo is selected (e.g. receiver running in background).
@@ -94,37 +105,49 @@ export function useTraceCollector({
 
     let unlistenStatus: (() => void) | null = null;
     let unlistenIngest: (() => void) | null = null;
+    let cancelled = false;
 
     const setup = async () => {
-      unlistenStatus = await listen<TraceCollectorStatus>('otel-receiver-status', (event) => {
-        setRepoState((prev) => {
+      const statusUnlisten = await listen<TraceCollectorStatus>('otel-receiver-status', (event) => {
+        applyScopedRepoUpdate(repoId, (prev) => {
           return {
             ...prev,
             traceStatus: event.payload
           };
         });
       });
+      if (cancelled) {
+        statusUnlisten();
+        return;
+      }
+      unlistenStatus = statusUnlisten;
 
-      unlistenIngest = await listen<OtelIngestNotification>('otel-trace-ingested', async () => {
+      const ingestUnlisten = await listen<OtelIngestNotification>('otel-trace-ingested', async () => {
         try {
           if (timeline.length === 0) return;
           const commitShas = timeline.map((node) => node.id);
           const trace = await scanAgentTraceRecords(repoRoot, repoId, commitShas);
 
-          setRepoState((prev) => applyTraceUpdate(prev, trace));
+          applyScopedRepoUpdate(repoId, (prev) => applyTraceUpdate(prev, trace));
         } catch (e: unknown) {
           setActionError(e instanceof Error ? e.message : String(e));
         }
       });
+      if (cancelled) {
+        ingestUnlisten();
+        return;
+      }
+      unlistenIngest = ingestUnlisten;
     };
 
     void setup();
 
     return () => {
+      cancelled = true;
       if (unlistenStatus) unlistenStatus();
       if (unlistenIngest) unlistenIngest();
     };
-  }, [repoRoot, repoId, timeline, setRepoState, setActionError]);
+  }, [repoRoot, repoId, timeline, applyScopedRepoUpdate, setActionError]);
 
   const updateCodexOtelPath = useCallback(
     async (path: string) => {
@@ -146,12 +169,12 @@ export function useTraceCollector({
         const commitShas = timeline.map((n) => n.id);
         const trace = await scanAgentTraceRecords(repoRoot, repoId, commitShas);
 
-        setRepoState((prev) => applyTraceUpdate(prev, trace));
+        applyScopedRepoUpdate(repoId, (prev) => applyTraceUpdate(prev, trace));
       } catch (e: unknown) {
         setActionError(e instanceof Error ? e.message : String(e));
       }
     },
-    [repoRoot, repoId, timeline, setRepoState, setActionError]
+    [repoRoot, repoId, timeline, applyScopedRepoUpdate, setActionError]
   );
 
   const exportAgentTrace = useCallback(
@@ -174,12 +197,12 @@ export function useTraceCollector({
         const commitShas = timeline.map((n) => n.id);
         const trace = await scanAgentTraceRecords(repoRoot, repoId, commitShas);
 
-        setRepoState((prev) => applyTraceUpdate(prev, trace));
+        applyScopedRepoUpdate(repoId, (prev) => applyTraceUpdate(prev, trace));
       } catch (e: unknown) {
         setActionError(e instanceof Error ? e.message : String(e));
       }
     },
-    [repoRoot, repoId, timeline, setRepoState, setActionError]
+    [repoRoot, repoId, timeline, applyScopedRepoUpdate, setActionError]
   );
 
   const runOtlpSmokeTestHandler = useCallback(
@@ -203,12 +226,12 @@ export function useTraceCollector({
         const commitShas = timeline.map((n) => n.id);
         const trace = await scanAgentTraceRecords(repoRoot, repoId, commitShas);
 
-        setRepoState((prev) => applyTraceUpdate(prev, trace));
+        applyScopedRepoUpdate(repoId, (prev) => applyTraceUpdate(prev, trace));
       } catch (e: unknown) {
         setActionError(e instanceof Error ? e.message : String(e));
       }
     },
-    [repoRoot, repoId, timeline, setRepoState, setActionError]
+    [repoRoot, repoId, timeline, applyScopedRepoUpdate, setActionError]
   );
 
   const openCodexOtelDocs = useCallback(async () => {

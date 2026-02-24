@@ -275,6 +275,37 @@ describe('useSessionImport', () => {
       expect(sessionExcerpt.messages[0].files).toEqual(['file1.ts', 'file2.ts']);
     });
 
+    it('should reject messages with non-string file entries', async () => {
+      const mockFilePath = '/path/to/session.json';
+      const mockContent = JSON.stringify({
+        tool: 'codex',
+        messages: [
+          { role: 'user', text: 'Valid message', files: ['file1.ts'] },
+          { role: 'assistant', text: 'Invalid files', files: ['file2.ts', 123] },
+        ],
+      });
+      const mockSha = 'abc123';
+
+      mockOpen.mockResolvedValue(mockFilePath);
+      mockReadTextFile.mockResolvedValue(mockContent);
+      mockRedactSecrets.mockReturnValue({ redacted: mockContent, hits: [] });
+      mockSha256Hex.mockResolvedValue(mockSha);
+      mockLinkSessionToCommit.mockResolvedValue({ commitSha: 'abc123', confidence: 0.9, autoLinked: false, temporalScore: 0.5, fileScore: 0.4, needsReview: false });
+      mockExportSessionLinkNote.mockResolvedValue({ commitSha: 'abc123', status: 'exported' });
+      mockRefreshSessionBadges.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useSessionImport(defaultProps));
+
+      await act(async () => {
+        await result.current.importSession();
+      });
+
+      const sessionExcerpt = mockLinkSessionToCommit.mock.calls[0][1];
+      expect(sessionExcerpt.messages).toHaveLength(1);
+      expect(sessionExcerpt.messages[0].text).toBe('Valid message');
+      expect(sessionExcerpt.messages[0].files).toEqual(['file1.ts']);
+    });
+
     it('should continue if exportSessionLinkNote fails (best-effort)', async () => {
       const mockFilePath = '/path/to/session.json';
       const mockContent = JSON.stringify({ tool: 'codex', messages: [] });

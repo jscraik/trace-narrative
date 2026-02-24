@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { check, type Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { ask, message } from '@tauri-apps/plugin-dialog';
@@ -44,12 +44,27 @@ interface UseUpdaterReturn {
 export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
   const { checkOnMount = false, pollIntervalMinutes = 0 } = options;
   const [status, setStatus] = useState<UpdateStatus | null>(null);
+  const checkRequestVersionRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      checkRequestVersionRef.current += 1;
+    };
+  }, []);
 
   const checkForUpdates = useCallback(async () => {
+    const requestVersion = checkRequestVersionRef.current + 1;
+    checkRequestVersionRef.current = requestVersion;
+    const isStaleRequest = () =>
+      !mountedRef.current || checkRequestVersionRef.current !== requestVersion;
+
     try {
       setStatus({ type: 'checking' });
       
       const update = await check();
+      if (isStaleRequest()) return;
       
       if (update) {
         setStatus({ type: 'available', update });
@@ -57,6 +72,7 @@ export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
         setStatus({ type: 'no_update' });
       }
     } catch (error) {
+      if (isStaleRequest()) return;
       console.error('Failed to check for updates:', error);
       setStatus({ 
         type: 'error', 

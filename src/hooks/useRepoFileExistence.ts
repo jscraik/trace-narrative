@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fileExists } from '../core/tauri/narrativeFs';
 
 /**
@@ -11,15 +11,22 @@ import { fileExists } from '../core/tauri/narrativeFs';
 export function useRepoFileExistence(repoRoot: string, paths: string[]) {
   const unique = useMemo(() => Array.from(new Set(paths)).slice(0, 50), [paths]);
   const [existsMap, setExistsMap] = useState<Record<string, boolean>>({});
+  const previousRepoRootRef = useRef(repoRoot);
 
   useEffect(() => {
     let cancelled = false;
+    const repoChanged = previousRepoRootRef.current !== repoRoot;
+    const currentExistsMap = repoChanged ? {} : existsMap;
+    if (repoChanged) {
+      previousRepoRootRef.current = repoRoot;
+      setExistsMap({});
+    }
 
     async function run() {
       if (!repoRoot) return;
 
       for (const p of unique) {
-        if (p in existsMap) continue;
+        if (p in currentExistsMap) continue;
         try {
           const ok = await fileExists(repoRoot, p);
           if (cancelled) return;

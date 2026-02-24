@@ -48,6 +48,10 @@ export function useAtlasSearch(repoId: number | null, opts?: { limit?: number; d
   // Reset when repo changes
   // biome-ignore lint/correctness/useExhaustiveDependencies: repoId is intentionally included so we reset local search/selection state when switching repos.
   useEffect(() => {
+    // Invalidate all in-flight async work tied to the previous repository.
+    searchSeq.current += 1;
+    sessionSeq.current += 1;
+
     setQuery('');
     setResults([]);
     setLoading(false);

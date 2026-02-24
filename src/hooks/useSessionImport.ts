@@ -314,5 +314,6 @@ function isSessionMessageRecord(
   if (role !== 'user' && role !== 'assistant') return false;
   if (typeof record.text !== 'string') return false;
   if (record.files && !Array.isArray(record.files)) return false;
+  if (Array.isArray(record.files) && record.files.some((entry) => typeof entry !== 'string')) return false;
   return true;
 }

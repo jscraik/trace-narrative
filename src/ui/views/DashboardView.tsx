@@ -46,12 +46,19 @@ export function DashboardView({
   const [commandQuery, setCommandQuery] = useState('');
   const commandInputRef = useRef<HTMLInputElement>(null);
   const sequenceRef = useRef<{ lastKey: string; ts: number }>({ lastKey: '', ts: 0 });
+  const fetchRequestVersionRef = useRef(0);
 
   // Fetch stats on repo/timeRange change
   const fetchStats = useCallback(async (isLoadMore = false) => {
+    const requestVersion = fetchRequestVersionRef.current + 1;
+    fetchRequestVersionRef.current = requestVersion;
+    const isStaleRequest = () => fetchRequestVersionRef.current !== requestVersion;
+
     if (repoState.status !== 'ready') {
       setEmptyReason('no-repo');
+      setError(null);
       setLoading(false);
+      setLoadingMore(false);
       return;
     }
 
@@ -69,6 +76,7 @@ export function DashboardView({
         filesOffset,
         20
       );
+      if (isStaleRequest()) return;
 
       // Determine empty state
       if (data.currentPeriod.period.commits === 0) {
@@ -84,12 +92,15 @@ export function DashboardView({
       setStats(data);
       setLastUpdated(new Date());
     } catch (e) {
+      if (isStaleRequest()) return;
       const errorMessage = e instanceof Error ? e.message : 'Failed to load dashboard';
       setError(errorMessage);
       setActionError(errorMessage);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (!isStaleRequest()) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [repoState, timeRange, filesOffset, setActionError]);
 

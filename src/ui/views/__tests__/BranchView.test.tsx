@@ -8,6 +8,9 @@ const mockFileSelectionState = vi.hoisted(() => ({ selectedFile: "preselected.ts
 const mockTrackNarrativeEvent = vi.hoisted(() => vi.fn());
 const mockTrackQualityRenderDecision = vi.hoisted(() => vi.fn());
 const mockGetLatestTestRunForCommit = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+const mockLoadGitHubContext = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
+);
 const mockGetNarrativeCalibrationProfile = vi.hoisted(() => vi.fn().mockResolvedValue(null));
 const mockEvaluateNarrativeRollout = vi.hoisted(() =>
   vi.fn(() => ({
@@ -55,7 +58,7 @@ vi.mock("../../../core/repo/testRuns", () => ({
 }));
 
 vi.mock("../../../core/repo/githubContext", () => ({
-  loadGitHubContext: vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
+  loadGitHubContext: mockLoadGitHubContext,
 }));
 
 vi.mock("../../../core/repo/narrativeFeedback", () => ({
@@ -179,12 +182,14 @@ vi.mock("../../components/RightPanelTabs", () => ({
     testRun,
     loadingTests,
     loadingDiff,
+    githubConnectorState,
   }: {
     diffText: string | null;
     traceRanges: TraceRange[];
     testRun?: TestRun;
     loadingTests?: boolean;
     loadingDiff?: boolean;
+    githubConnectorState?: { status?: string; error?: string };
   }) => (
     <>
       <div data-testid="diff-panel">{diffText ?? "(none)"}</div>
@@ -192,6 +197,8 @@ vi.mock("../../components/RightPanelTabs", () => ({
       <div data-testid="trace-panel">{traceRanges.length}</div>
       <div data-testid="test-run-id">{testRun?.id ?? "none"}</div>
       <div data-testid="tests-loading">{loadingTests ? "loading" : "idle"}</div>
+      <div data-testid="github-status">{githubConnectorState?.status ?? "none"}</div>
+      <div data-testid="github-error">{githubConnectorState?.error ?? ""}</div>
     </>
   ),
 }));
@@ -309,6 +316,7 @@ describe("BranchView transition and integration coverage", () => {
     vi.clearAllMocks();
     mockFileSelectionState.selectedFile = "preselected.ts";
     mockGetLatestTestRunForCommit.mockResolvedValue(null);
+    mockLoadGitHubContext.mockResolvedValue({ status: "empty", entries: [] });
     mockEvaluateNarrativeRollout.mockReturnValue({
       status: "healthy",
       rubric: [],
@@ -513,6 +521,21 @@ describe("BranchView transition and integration coverage", () => {
 
     expect(screen.getByTestId("test-run-id")).toHaveTextContent("run-b");
     expect(screen.getByTestId("test-run-id")).not.toHaveTextContent("run-a");
+  });
+
+  it("sets github context to error when connector context loading fails", async () => {
+    mockLoadGitHubContext.mockRejectedValueOnce(new Error("GitHub unavailable"));
+
+    const props = {
+      ...buildProps(),
+      githubConnectorEnabled: true,
+    };
+    render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("github-status")).toHaveTextContent("error");
+      expect(screen.getByTestId("github-error")).toHaveTextContent("GitHub unavailable");
+    });
   });
 
   it("supports keyboard activation for filtered-view clear action", async () => {

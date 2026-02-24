@@ -88,6 +88,10 @@ export async function refreshSessionBadges(
   }
 
   setRepoState((prev) => {
+    if (prev.meta?.repoId !== undefined && prev.meta.repoId !== repoId) {
+      return prev;
+    }
+
     const existingBadges = prev.timeline.map((node) => {
       const links = linksByCommit[node.id];
       if (!links || links.length === 0) {

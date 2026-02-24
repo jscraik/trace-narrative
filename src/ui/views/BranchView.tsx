@@ -510,10 +510,20 @@ function BranchViewInner(props: {
 
     let cancelled = false;
     setGithubContext((prev) => ({ ...prev, status: 'loading', error: undefined }));
-    loadGitHubContext(repoRoot).then((state) => {
-      if (cancelled) return;
-      setGithubContext(state);
-    });
+    loadGitHubContext(repoRoot)
+      .then((state) => {
+        if (cancelled) return;
+        setGithubContext(state);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : String(error);
+        setGithubContext({
+          status: 'error',
+          entries: [],
+          error: message,
+        });
+      });
     return () => {
       cancelled = true;
     };

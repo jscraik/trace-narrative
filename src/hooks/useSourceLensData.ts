@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import {
   exportAttributionNote,
@@ -56,6 +56,17 @@ export function useSourceLensData({
   commitSha,
   filePath
 }: UseSourceLensDataProps): UseSourceLensDataReturn {
+  const requestIdentityRef = useRef(`${repoId}:${commitSha}:${filePath}`);
+
+  useEffect(() => {
+    requestIdentityRef.current = `${repoId}:${commitSha}:${filePath}`;
+  }, [repoId, commitSha, filePath]);
+
+  const isRequestCurrent = useCallback(
+    (requestIdentity: string) => requestIdentityRef.current === requestIdentity,
+    []
+  );
+
   const [lines, setLines] = useState<SourceLine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +82,7 @@ export function useSourceLensData({
 
   const loadAttribution = useCallback(
     async (requestedOffset: number) => {
+      const requestIdentity = requestIdentityRef.current;
       setLoading(true);
       setError(null);
 
@@ -85,47 +97,60 @@ export function useSourceLensData({
           },
         });
 
+        if (!isRequestCurrent(requestIdentity)) return;
         setLines((previous) =>
           requestedOffset === 0 ? result.lines : [...previous, ...result.lines]
         );
         setHasMore(result.hasMore);
       } catch (e) {
+        if (!isRequestCurrent(requestIdentity)) return;
         setError(e instanceof Error ? e.message : String(e));
       } finally {
-        setLoading(false);
+        if (isRequestCurrent(requestIdentity)) {
+          setLoading(false);
+        }
       }
     },
-    [commitSha, filePath, repoId]
+    [commitSha, filePath, isRequestCurrent, repoId]
   );
 
   const loadStats = useCallback(async () => {
+    const requestIdentity = requestIdentityRef.current;
     setStatsError(null);
     try {
       const result = await getCommitContributionStats(repoId, commitSha);
+      if (!isRequestCurrent(requestIdentity)) return;
       setStats(result);
     } catch (e) {
+      if (!isRequestCurrent(requestIdentity)) return;
       setStatsError(e instanceof Error ? e.message : String(e));
     }
-  }, [commitSha, repoId]);
+  }, [commitSha, isRequestCurrent, repoId]);
 
   const loadNoteSummary = useCallback(async () => {
+    const requestIdentity = requestIdentityRef.current;
     setNoteSummaryError(null);
     try {
       const summary = await getAttributionNoteSummary(repoId, commitSha);
+      if (!isRequestCurrent(requestIdentity)) return;
       setNoteSummary(summary);
     } catch (e) {
+      if (!isRequestCurrent(requestIdentity)) return;
       setNoteSummaryError(e instanceof Error ? e.message : String(e));
     }
-  }, [commitSha, repoId]);
+  }, [commitSha, isRequestCurrent, repoId]);
 
   const loadPrefs = useCallback(async () => {
+    const requestIdentity = requestIdentityRef.current;
     try {
       const result = await getAttributionPrefs(repoId);
+      if (!isRequestCurrent(requestIdentity)) return;
       setPrefs(result);
     } catch (e) {
+      if (!isRequestCurrent(requestIdentity)) return;
       setSyncStatus(e instanceof Error ? e.message : String(e));
     }
-  }, [repoId]);
+  }, [isRequestCurrent, repoId]);
 
   useEffect(() => {
     setOffset(0);

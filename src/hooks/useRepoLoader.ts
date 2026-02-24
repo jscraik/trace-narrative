@@ -50,37 +50,67 @@ export function useRepoLoader(): UseRepoLoaderReturn {
   const diffCache = useRef(new Map<string, string>());
 
   const repoStateRef = useRef(repoState);
+  const attributionPrefsRequestVersionRef = useRef(0);
+  const openRepoRequestVersionRef = useRef(0);
 
   useEffect(() => {
     repoStateRef.current = repoState;
   }, [repoState]);
 
   useEffect(() => {
+    attributionPrefsRequestVersionRef.current += 1;
+    const requestVersion = attributionPrefsRequestVersionRef.current;
+
     if (repoState.status !== 'ready') {
       setAttributionPrefsState(null);
       return;
     }
-    getAttributionPrefs(repoState.repo.repoId)
-      .then((prefs) => setAttributionPrefsState(prefs))
-      .catch((e) => setActionError(e instanceof Error ? e.message : String(e)));
+
+    const repoId = repoState.repo.repoId;
+    getAttributionPrefs(repoId)
+      .then((prefs) => {
+        if (attributionPrefsRequestVersionRef.current !== requestVersion) return;
+        const current = repoStateRef.current;
+        if (current.status !== 'ready' || current.repo.repoId !== repoId) return;
+        setAttributionPrefsState(prefs);
+      })
+      .catch((e) => {
+        if (attributionPrefsRequestVersionRef.current !== requestVersion) return;
+        const current = repoStateRef.current;
+        if (current.status !== 'ready' || current.repo.repoId !== repoId) return;
+        setActionError(e instanceof Error ? e.message : String(e));
+      });
   }, [repoState]);
 
   const openRepo = useCallback(async () => {
+    const requestVersion = openRepoRequestVersionRef.current + 1;
+    openRepoRequestVersionRef.current = requestVersion;
+    const isStaleRequest = () => openRepoRequestVersionRef.current !== requestVersion;
+
     const selected = await open({ directory: true, multiple: false, title: 'Select a git repository folder' });
+    if (isStaleRequest()) return;
     if (!selected || Array.isArray(selected)) return;
 
     setRepoState({ status: 'loading', path: selected });
     setIndexingProgress({ phase: 'resolve', message: 'Preparing index…', current: 0, total: 1, percent: 0 });
     setActionError(null);
 
+    const isActiveLoadingRequestForSelectedPath = () => {
+      if (isStaleRequest()) return false;
+      const current = repoStateRef.current;
+      return current.status === 'loading' && current.path === selected;
+    };
+
     try {
       const { model, repo } = await indexRepo(selected, 60, (progress) => {
+        if (!isActiveLoadingRequestForSelectedPath()) return;
         setIndexingProgress((prev) => {
           const current = repoStateRef.current;
-          if (current.status !== 'loading') return prev;
+          if (current.status !== 'loading' || current.path !== selected) return prev;
           return progress;
         });
       });
+      if (!isActiveLoadingRequestForSelectedPath()) return;
       setRepoState({ status: 'ready', path: selected, model, repo });
       setIndexingProgress(null);
 
@@ -89,16 +119,22 @@ export function useRepoLoader(): UseRepoLoaderReturn {
 
       try {
         await setActiveRepoRoot(repo.root);
+        if (isStaleRequest()) return;
         const receiverEnabled = model.traceConfig?.codexOtelReceiverEnabled ?? false;
         await setOtelReceiverEnabled(receiverEnabled);
+        if (isStaleRequest()) return;
         const promptExport = await detectCodexOtelPromptExport();
+        if (isStaleRequest()) return;
         setCodexPromptExport(promptExport);
         const prefs = await getAttributionPrefs(repo.repoId);
+        if (isStaleRequest()) return;
         setAttributionPrefsState(prefs);
       } catch (e: unknown) {
+        if (isStaleRequest()) return;
         setActionError(e instanceof Error ? e.message : String(e));
       }
     } catch (e: unknown) {
+      if (!isActiveLoadingRequestForSelectedPath()) return;
       setRepoState({
         status: 'error',
         path: selected,
@@ -110,21 +146,31 @@ export function useRepoLoader(): UseRepoLoaderReturn {
 
   const updateAttributionPrefs = useCallback(async (update: AttributionPrefsUpdate) => {
     if (repoStateRef.current.status !== 'ready') return;
+    const repoId = repoStateRef.current.repo.repoId;
     try {
-      const prefs = await setAttributionPrefs(repoStateRef.current.repo.repoId, update);
+      const prefs = await setAttributionPrefs(repoId, update);
+      const current = repoStateRef.current;
+      if (current.status !== 'ready' || current.repo.repoId !== repoId) return;
       setAttributionPrefsState(prefs);
     } catch (e: unknown) {
+      const current = repoStateRef.current;
+      if (current.status !== 'ready' || current.repo.repoId !== repoId) return;
       setActionError(e instanceof Error ? e.message : String(e));
     }
   }, []);
 
   const purgeAttributionMetadata = useCallback(async () => {
     if (repoStateRef.current.status !== 'ready') return;
+    const repoId = repoStateRef.current.repo.repoId;
     try {
-      await purgeAttributionPromptMeta(repoStateRef.current.repo.repoId);
-      const prefs = await getAttributionPrefs(repoStateRef.current.repo.repoId);
+      await purgeAttributionPromptMeta(repoId);
+      const prefs = await getAttributionPrefs(repoId);
+      const current = repoStateRef.current;
+      if (current.status !== 'ready' || current.repo.repoId !== repoId) return;
       setAttributionPrefsState(prefs);
     } catch (e: unknown) {
+      const current = repoStateRef.current;
+      if (current.status !== 'ready' || current.repo.repoId !== repoId) return;
       setActionError(e instanceof Error ? e.message : String(e));
     }
   }, []);
