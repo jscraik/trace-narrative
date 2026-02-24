@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.12.0...firefly-narrative-v0.12.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* complete review findings and firefly cleanup ([47a0fba](https://github.com/jscraik/firefly-narrative/commit/47a0fbaa6ac3f970472bee71506cd6abe74e7d65))
+
 ## [0.12.0](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.11.0...firefly-narrative-v0.12.0) (2026-02-20)
 
 
