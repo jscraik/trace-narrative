@@ -2,11 +2,14 @@
 title: feat: Hybrid Codex-Claude Capture Reliability v2 (TDD Remediation)
 type: feat
 date: 2026-02-19
-status: planned
+status: solved
 brainstorm: /Users/jamiecraik/dev/narrative/docs/brainstorms/2026-02-19-hybrid-capture-reliability-brainstorm.md
+resolved_by: /Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md
 ---
 
 # feat: Hybrid Codex-Claude Capture Reliability v2 (TDD Remediation)
+
+> Lifecycle note (2026-02-24): This plan is completed and reconciled with solution evidence in `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`. Remaining unchecked boxes are historical implementation checkpoints.
 
 ## Table of Contents
 - [Objective](#objective)

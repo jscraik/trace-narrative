@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 priority: p3
 issue_id: CR-014
 tags:
@@ -46,18 +46,22 @@ Plan lifecycle metadata and checklist completion markers are stale/inconsistent 
 - **Approach:** Convert legacy plan checklists into historical notes and move active tasks to one canonical plan.
 
 ## Recommended Action
+Performed lifecycle sync pass across plans/solutions and added explicit checklist semantics for the active universal tracking plan.
 
 ## Technical Details
 - Affected area: docs process governance for plans/solutions.
 - Impact: lower confidence in review and rollout status.
 
 ## Acceptance Criteria
-- [ ] Plan/solution statuses are reconciled and current.
-- [ ] Superseded plans are labeled as such.
-- [ ] Active plan checklists reflect real implementation state.
+- [x] Plan/solution statuses are reconciled and current.
+- [x] Superseded plans are labeled as such.
+- [x] Active plan checklists reflect real implementation state.
 
 ## Work Log
 - 2026-02-24: Logged lifecycle/status drift across plans and solutions.
+- 2026-02-24: Reconciled hybrid reliability lifecycle by setting `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-19-feat-hybrid-codex-claude-capture-reliability-plan.md` to `status: solved` and linking `resolved_by` solution evidence.
+- 2026-02-24: Added lifecycle/checklist semantics note and normalized status fields in `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-universal-agent-tracking-plan.md`.
+- 2026-02-24: Applied superseded labels to legacy firefly-signal plans and canonical pointer to visual-system-v1 plan.
 
 ## Resources
 - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/`

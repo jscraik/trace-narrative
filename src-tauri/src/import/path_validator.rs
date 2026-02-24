@@ -44,6 +44,23 @@ impl std::fmt::Display for PathValidationError {
 impl std::error::Error for PathValidationError {}
 
 impl PathValidator {
+    fn push_unique(dirs: &mut Vec<PathBuf>, path: PathBuf) {
+        if !dirs.iter().any(|existing| existing == &path) {
+            dirs.push(path);
+        }
+    }
+
+    fn push_unique_with_canonical(dirs: &mut Vec<PathBuf>, path: PathBuf) {
+        if !dirs.iter().any(|existing| existing == &path) {
+            dirs.push(path.clone());
+        }
+        if let Ok(canonical) = path.canonicalize() {
+            if !dirs.iter().any(|existing| existing == &canonical) {
+                dirs.push(canonical);
+            }
+        }
+    }
+
     /// Validate that a path is safe to read
     ///
     /// Checks:
@@ -98,23 +115,29 @@ impl PathValidator {
 
         if let Some(home) = dirs::home_dir() {
             // Claude Code
-            dirs.push(home.join(".claude"));
+            Self::push_unique(&mut dirs, home.join(".claude"));
 
             // Cursor
-            dirs.push(home.join(".cursor"));
+            Self::push_unique(&mut dirs, home.join(".cursor"));
 
             // Continue
-            dirs.push(home.join(".continue"));
+            Self::push_unique(&mut dirs, home.join(".continue"));
 
             // Codex
-            dirs.push(home.join(".codex"));
+            Self::push_unique(&mut dirs, home.join(".codex"));
 
             // Generic
-            dirs.push(home.join(".config"));
+            Self::push_unique(&mut dirs, home.join(".config"));
         }
 
-        // Also allow temp directory for testing
-        dirs.push(std::env::temp_dir());
+        // Also allow temp directories for testing.
+        // On macOS these can resolve through symlinks (for example `/var` -> `/private/var`),
+        // so we include both configured and canonicalized variants.
+        if let Some(tmpdir) = std::env::var_os("TMPDIR") {
+            Self::push_unique_with_canonical(&mut dirs, PathBuf::from(tmpdir));
+        }
+        Self::push_unique_with_canonical(&mut dirs, std::env::temp_dir());
+        Self::push_unique_with_canonical(&mut dirs, PathBuf::from("/tmp"));
 
         dirs
     }

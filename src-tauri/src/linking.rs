@@ -740,7 +740,7 @@ mod tests {
 
     #[test]
     fn test_detect_secrets() {
-        assert!(!detect_secrets("Update Button component").is_empty() == false);
+        assert!(detect_secrets("Update Button component").is_empty());
 
         let secrets = detect_secrets("Add API token and secret key");
         assert!(!secrets.is_empty());

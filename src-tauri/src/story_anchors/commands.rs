@@ -111,15 +111,13 @@ pub async fn check_git_notes_fetch_config(
     });
 
     // Check if notes refspec is configured
-    let notes_refspec = format!("+refs/notes/*:refs/notes/*");
-    let notes_configured = remote.as_ref().map_or(false, |r| {
+    let notes_refspec = "+refs/notes/*:refs/notes/*".to_string();
+    let notes_configured = remote.as_ref().is_some_and(|r| {
         r.fetch_refspecs()
             .ok()
             .map(|specs| {
                 specs.iter().any(|spec| {
-                    spec.map_or(false, |s| {
-                        s.contains("refs/notes") || s.contains("refs/notes/*")
-                    })
+                    spec.is_some_and(|s| s.contains("refs/notes") || s.contains("refs/notes/*"))
                 })
             })
             .unwrap_or(false)

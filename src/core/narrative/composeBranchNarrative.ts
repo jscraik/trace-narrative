@@ -1,12 +1,21 @@
 import type {
   BranchNarrative,
+  NarrativeCalibrationProfile,
   BranchViewModel,
   NarrativeEvidenceLink,
   NarrativeHighlight,
   TimelineNode,
 } from '../types';
+import {
+  NARRATIVE_PROMPT_TEMPLATE_ID,
+  NARRATIVE_PROMPT_TEMPLATE_VERSION,
+} from './promptGovernance';
 
 export const BRANCH_NARRATIVE_SCHEMA_VERSION = 1;
+export const BRANCH_NARRATIVE_PROMPT_TEMPLATE = {
+  id: NARRATIVE_PROMPT_TEMPLATE_ID,
+  version: NARRATIVE_PROMPT_TEMPLATE_VERSION,
+} as const;
 
 function clamp(value: number, min = 0, max = 1): number {
   return Math.min(max, Math.max(min, value));
@@ -105,9 +114,46 @@ function buildHighlights(model: BranchViewModel, commitNodes: TimelineNode[]): N
   return highlights;
 }
 
-export function composeBranchNarrative(model: BranchViewModel): BranchNarrative {
+function applyCalibrationToHighlights(
+  highlights: NarrativeHighlight[],
+  calibration?: NarrativeCalibrationProfile | null
+): NarrativeHighlight[] {
+  if (!calibration || calibration.sampleCount <= 0) return highlights;
+
+  return [...highlights]
+    .map((highlight) => {
+      const adjustment = calibration.highlightAdjustments[highlight.id] ?? 0;
+      const rankingBiasBonus = calibration.rankingBias * 0.2;
+      const rankingScore = highlight.confidence + adjustment + rankingBiasBonus;
+
+      return {
+        ...highlight,
+        confidence: confidence(highlight.confidence + adjustment),
+        _rankingScore: rankingScore,
+      };
+    })
+    .sort((a, b) => b._rankingScore - a._rankingScore)
+    .map(({ _rankingScore: _unused, ...highlight }) => highlight);
+}
+
+function applyCalibrationToOverallConfidence(
+  overallConfidence: number,
+  calibration?: NarrativeCalibrationProfile | null
+): number {
+  if (!calibration || calibration.sampleCount <= 0) return overallConfidence;
+
+  const branchPenalty = Math.min(0.08, calibration.branchMissingDecisionCount * 0.01);
+  return confidence(overallConfidence * calibration.confidenceScale + calibration.confidenceOffset - branchPenalty);
+}
+
+export function composeBranchNarrative(
+  model: BranchViewModel,
+  options?: { calibration?: NarrativeCalibrationProfile | null }
+): BranchNarrative {
+  const calibration = options?.calibration ?? null;
   const commitNodes = model.timeline.filter((node) => node.type === 'commit');
-  const highlights = buildHighlights(model, commitNodes);
+  const baseHighlights = buildHighlights(model, commitNodes);
+  const highlights = applyCalibrationToHighlights(baseHighlights, calibration);
   const evidenceLinks = uniqueEvidence(highlights.flatMap((highlight) => highlight.evidenceLinks));
 
   const hasTrace = Boolean(model.traceSummaries && Object.keys(model.traceSummaries.byCommit).length > 0);
@@ -119,6 +165,7 @@ export function composeBranchNarrative(model: BranchViewModel): BranchNarrative 
   if (hasSessions) overallConfidence += 0.15;
   if (hasTrace) overallConfidence += 0.1;
   overallConfidence = confidence(overallConfidence);
+  overallConfidence = applyCalibrationToOverallConfidence(overallConfidence, calibration);
 
   const topIntent = model.intent[0]?.text;
   const summaryBase = `${model.stats.commits} commits touched ${model.stats.files} files (+${model.stats.added} / -${model.stats.removed}).`;
@@ -135,6 +182,7 @@ export function composeBranchNarrative(model: BranchViewModel): BranchNarrative 
       confidence: 0,
       highlights: [],
       evidenceLinks: [],
+      promptTemplate: BRANCH_NARRATIVE_PROMPT_TEMPLATE,
       fallbackReason: 'Open raw git history once commits are available.',
     };
   }
@@ -148,6 +196,7 @@ export function composeBranchNarrative(model: BranchViewModel): BranchNarrative 
       confidence: overallConfidence,
       highlights,
       evidenceLinks,
+      promptTemplate: BRANCH_NARRATIVE_PROMPT_TEMPLATE,
       fallbackReason: 'Narrative confidence is low. Verify with evidence and raw diff before relying on this summary.',
     };
   }
@@ -160,5 +209,6 @@ export function composeBranchNarrative(model: BranchViewModel): BranchNarrative 
     confidence: overallConfidence,
     highlights,
     evidenceLinks,
+    promptTemplate: BRANCH_NARRATIVE_PROMPT_TEMPLATE,
   };
 }

@@ -1,29 +1,66 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { BranchViewModel, FileChange, TraceRange } from "../../../core/types";
+import type { BranchViewModel, FileChange, TestRun, TraceRange } from "../../../core/types";
 
 const mockSelectFile = vi.hoisted(() => vi.fn());
+const mockFileSelectionState = vi.hoisted(() => ({ selectedFile: "preselected.ts" as string | null }));
+const mockTrackNarrativeEvent = vi.hoisted(() => vi.fn());
+const mockTrackQualityRenderDecision = vi.hoisted(() => vi.fn());
+const mockGetLatestTestRunForCommit = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+const mockGetNarrativeCalibrationProfile = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+const mockEvaluateNarrativeRollout = vi.hoisted(() =>
+  vi.fn(() => ({
+    status: "healthy",
+    rubric: [],
+    rules: [],
+    averageScore: 1,
+    generatedAtISO: "2026-02-18T00:00:00Z",
+  })),
+);
+const mockSubmitNarrativeFeedback = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({
+    inserted: true,
+    idempotencyKey: "mock:key",
+    verifiedActorRole: "developer",
+    profile: {
+      repoId: 1,
+      rankingBias: 0,
+      confidenceOffset: 0,
+      confidenceScale: 1,
+      sampleCount: 0,
+      actorWeightPolicyVersion: "v1",
+      branchMissingDecisionCount: 0,
+      highlightAdjustments: {},
+      updatedAtISO: "2026-02-24T00:00:00.000Z",
+    },
+  }),
+);
 
 vi.mock("../../../core/context/FileSelectionContext", () => ({
   FileSelectionProvider: ({ children }: { children: unknown }) => children,
   useFileSelection: () => ({
-    selectedFile: "preselected.ts",
+    selectedFile: mockFileSelectionState.selectedFile,
     selectFile: mockSelectFile,
   }),
 }));
 
 vi.mock("../../../core/telemetry/narrativeTelemetry", () => ({
-  trackNarrativeEvent: vi.fn(),
-  trackQualityRenderDecision: vi.fn(),
+  trackNarrativeEvent: mockTrackNarrativeEvent,
+  trackQualityRenderDecision: mockTrackQualityRenderDecision,
 }));
 
 vi.mock("../../../core/repo/testRuns", () => ({
-  getLatestTestRunForCommit: vi.fn().mockResolvedValue(null),
+  getLatestTestRunForCommit: mockGetLatestTestRunForCommit,
 }));
 
 vi.mock("../../../core/repo/githubContext", () => ({
   loadGitHubContext: vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
+}));
+
+vi.mock("../../../core/repo/narrativeFeedback", () => ({
+  getNarrativeCalibrationProfile: mockGetNarrativeCalibrationProfile,
+  submitNarrativeFeedback: mockSubmitNarrativeFeedback,
 }));
 
 vi.mock("../../../core/narrative/composeBranchNarrative", () => ({
@@ -47,13 +84,7 @@ vi.mock("../../../core/narrative/decisionArchaeology", () => ({
 }));
 
 vi.mock("../../../core/narrative/rolloutGovernance", () => ({
-  evaluateNarrativeRollout: vi.fn(() => ({
-    status: "healthy",
-    rubric: [],
-    rules: [],
-    averageScore: 1,
-    generatedAtISO: "2026-02-18T00:00:00Z",
-  })),
+  evaluateNarrativeRollout: mockEvaluateNarrativeRollout,
 }));
 
 vi.mock("../../../hooks/useFirefly", () => ({
@@ -71,7 +102,32 @@ vi.mock("../../../hooks/useTestImport", () => ({
 }));
 
 vi.mock("../../components/BranchNarrativePanel", () => ({
-  BranchNarrativePanel: () => null,
+  BranchNarrativePanel: ({
+    onSubmitFeedback,
+  }: {
+    onSubmitFeedback: (feedback: {
+      actorRole: "developer" | "reviewer";
+      feedbackType: "highlight_key" | "highlight_wrong" | "branch_missing_decision";
+      targetKind: "highlight" | "branch";
+      targetId?: string;
+      detailLevel: "summary" | "evidence" | "diff";
+    }) => void;
+  }) => (
+    <button
+      type="button"
+      onClick={() =>
+        onSubmitFeedback({
+          actorRole: "developer",
+          feedbackType: "highlight_key",
+          targetKind: "highlight",
+          targetId: "highlight:h1",
+          detailLevel: "summary",
+        })
+      }
+    >
+      submit-feedback
+    </button>
+  ),
 }));
 
 vi.mock("../../components/NarrativeGovernancePanel", () => ({
@@ -117,10 +173,25 @@ vi.mock("../../components/FilesChanged", () => ({
 }));
 
 vi.mock("../../components/RightPanelTabs", () => ({
-  RightPanelTabs: ({ diffText, traceRanges }: { diffText: string | null; traceRanges: TraceRange[] }) => (
+  RightPanelTabs: ({
+    diffText,
+    traceRanges,
+    testRun,
+    loadingTests,
+    loadingDiff,
+  }: {
+    diffText: string | null;
+    traceRanges: TraceRange[];
+    testRun?: TestRun;
+    loadingTests?: boolean;
+    loadingDiff?: boolean;
+  }) => (
     <>
       <div data-testid="diff-panel">{diffText ?? "(none)"}</div>
+      <div data-testid="diff-loading">{loadingDiff ? "loading" : "idle"}</div>
       <div data-testid="trace-panel">{traceRanges.length}</div>
+      <div data-testid="test-run-id">{testRun?.id ?? "none"}</div>
+      <div data-testid="tests-loading">{loadingTests ? "loading" : "idle"}</div>
     </>
   ),
 }));
@@ -197,6 +268,19 @@ function createModel(overrides: Partial<BranchViewModel> = {}): BranchViewModel 
   };
 }
 
+function createTestRun(id: string, commitSha: string): TestRun {
+  return {
+    id,
+    atISO: "2026-02-24T00:00:00.000Z",
+    commitSha,
+    durationSec: 12,
+    passed: 4,
+    failed: 0,
+    skipped: 0,
+    tests: [],
+  };
+}
+
 function buildProps(overrides: {
   model?: BranchViewModel;
   loadFilesForNode?: (nodeId: string) => Promise<FileChange[]>;
@@ -223,6 +307,32 @@ function buildProps(overrides: {
 describe("BranchView transition and integration coverage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFileSelectionState.selectedFile = "preselected.ts";
+    mockGetLatestTestRunForCommit.mockResolvedValue(null);
+    mockEvaluateNarrativeRollout.mockReturnValue({
+      status: "healthy",
+      rubric: [],
+      rules: [],
+      averageScore: 1,
+      generatedAtISO: "2026-02-18T00:00:00Z",
+    });
+    mockGetNarrativeCalibrationProfile.mockResolvedValue(null);
+    mockSubmitNarrativeFeedback.mockResolvedValue({
+      inserted: true,
+      idempotencyKey: "mock:key",
+      verifiedActorRole: "developer",
+      profile: {
+        repoId: 1,
+        rankingBias: 0,
+        confidenceOffset: 0,
+        confidenceScale: 1,
+        sampleCount: 0,
+        actorWeightPolicyVersion: "v1",
+        branchMissingDecisionCount: 0,
+        highlightAdjustments: {},
+        updatedAtISO: "2026-02-24T00:00:00.000Z",
+      },
+    });
   });
 
   it("ignores stale files loader completion after rapid node change", async () => {
@@ -311,6 +421,100 @@ describe("BranchView transition and integration coverage", () => {
     expect(screen.getByTestId("files-changed")).not.toHaveTextContent("src/stale-a.ts");
   });
 
+  it("resets diff loading state when selected file context is cleared", async () => {
+    const deferredDiff = createDeferred<string>();
+    const loadDiffForFile = vi.fn(async () => deferredDiff.promise);
+    const props = buildProps({ loadDiffForFile });
+
+    const { rerender } = render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(loadDiffForFile).toHaveBeenCalledWith("aaaa1111", "preselected.ts");
+    });
+    expect(screen.getByTestId("diff-loading")).toHaveTextContent("loading");
+
+    mockFileSelectionState.selectedFile = null;
+    rerender(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("diff-loading")).toHaveTextContent("idle");
+      expect(screen.getByTestId("diff-panel")).toHaveTextContent("(none)");
+    });
+
+    await act(async () => {
+      deferredDiff.resolve("stale diff content");
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("diff-loading")).toHaveTextContent("idle");
+    expect(screen.getByTestId("diff-panel")).toHaveTextContent("(none)");
+  });
+
+  it("clears files when commit selection becomes unavailable", async () => {
+    const loadFilesForNode = vi.fn(async () => [{ path: "src/old-file.ts", additions: 2, deletions: 1 }]);
+    const props = buildProps({ loadFilesForNode });
+    const { rerender } = render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("files-changed")).toHaveTextContent("src/old-file.ts");
+    });
+
+    const modelWithoutTimeline = createModel({
+      timeline: [],
+      meta: {
+        ...props.model.meta,
+        headSha: undefined,
+      },
+    });
+    rerender(<BranchView {...buildProps({ model: modelWithoutTimeline, loadFilesForNode })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("files-changed")).toHaveTextContent("");
+    });
+  });
+
+  it("ignores stale repo test-run completion after rapid commit change", async () => {
+    const deferredByCommit: Record<string, Deferred<TestRun | null>> = {
+      aaaa1111: createDeferred<TestRun | null>(),
+      bbbb2222: createDeferred<TestRun | null>(),
+    };
+
+    mockGetLatestTestRunForCommit.mockImplementation(
+      async (_repoId: number, commitSha: string): Promise<TestRun | null> => deferredByCommit[commitSha].promise,
+    );
+
+    const props = buildProps();
+    render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(mockGetLatestTestRunForCommit).toHaveBeenCalledWith(1, "aaaa1111");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Commit B" }));
+
+    await waitFor(() => {
+      expect(mockGetLatestTestRunForCommit).toHaveBeenCalledWith(1, "bbbb2222");
+    });
+
+    await act(async () => {
+      deferredByCommit.bbbb2222.resolve(createTestRun("run-b", "bbbb2222"));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("test-run-id")).toHaveTextContent("run-b");
+      expect(screen.getByTestId("tests-loading")).toHaveTextContent("idle");
+    });
+
+    await act(async () => {
+      deferredByCommit.aaaa1111.resolve(createTestRun("run-a", "aaaa1111"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("test-run-id")).toHaveTextContent("run-b");
+    expect(screen.getByTestId("test-run-id")).not.toHaveTextContent("run-a");
+  });
+
   it("supports keyboard activation for filtered-view clear action", async () => {
     const user = userEvent.setup();
     const onClearFilter = vi.fn();
@@ -356,5 +560,155 @@ describe("BranchView transition and integration coverage", () => {
     );
 
     consoleError.mockRestore();
+  });
+
+  it("does not emit feedback_submitted telemetry for idempotent duplicate submissions", async () => {
+    mockSubmitNarrativeFeedback.mockResolvedValueOnce({
+      inserted: false,
+      idempotencyKey: "mock:key",
+      verifiedActorRole: "developer",
+      profile: {
+        repoId: 1,
+        rankingBias: 0,
+        confidenceOffset: 0,
+        confidenceScale: 1,
+        sampleCount: 0,
+        actorWeightPolicyVersion: "v1",
+        branchMissingDecisionCount: 0,
+        highlightAdjustments: {},
+        updatedAtISO: "2026-02-24T00:00:00.000Z",
+      },
+    });
+
+    const props = buildProps();
+    render(<BranchView {...props} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "submit-feedback" }));
+
+    await waitFor(() => {
+      expect(mockSubmitNarrativeFeedback).toHaveBeenCalled();
+    });
+
+    const feedbackEvents = mockTrackNarrativeEvent.mock.calls.filter(
+      ([eventName]) => eventName === "feedback_submitted",
+    );
+    expect(feedbackEvents).toHaveLength(0);
+  });
+
+  it("emits narrative_viewed with effective detail level and a stable view instance id per scope", async () => {
+    mockEvaluateNarrativeRollout.mockReturnValueOnce({
+      status: "rollback",
+      rubric: [],
+      rules: [{ id: "rollback_guard", severity: "critical", triggered: true }],
+      averageScore: 0.2,
+      generatedAtISO: "2026-02-18T00:00:00Z",
+    });
+
+    const props = buildProps();
+    const { rerender } = render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      const viewedEvents = mockTrackNarrativeEvent.mock.calls.filter(
+        ([eventName]) => eventName === "narrative_viewed",
+      );
+      expect(viewedEvents).toHaveLength(1);
+    });
+
+    const firstViewedEvent = mockTrackNarrativeEvent.mock.calls.find(
+      ([eventName]) => eventName === "narrative_viewed",
+    );
+    const firstPayload = firstViewedEvent?.[1] as Record<string, unknown>;
+    expect(firstPayload.detailLevel).toBe("diff");
+    expect(firstPayload.viewInstanceId).toEqual(expect.any(String));
+
+    rerender(<BranchView {...props} />);
+    const viewedAfterSameScope = mockTrackNarrativeEvent.mock.calls.filter(
+      ([eventName]) => eventName === "narrative_viewed",
+    );
+    expect(viewedAfterSameScope).toHaveLength(1);
+
+    const nextModel = createModel({
+      meta: {
+        ...props.model.meta,
+        branchName: "feature/next-scope",
+      },
+    });
+    rerender(<BranchView {...buildProps({ model: nextModel })} />);
+
+    await waitFor(() => {
+      const viewedEvents = mockTrackNarrativeEvent.mock.calls.filter(
+        ([eventName]) => eventName === "narrative_viewed",
+      );
+      expect(viewedEvents).toHaveLength(2);
+    });
+
+    const viewedEvents = mockTrackNarrativeEvent.mock.calls.filter(
+      ([eventName]) => eventName === "narrative_viewed",
+    );
+    const secondPayload = viewedEvents[1]?.[1] as Record<string, unknown>;
+    expect(secondPayload.viewInstanceId).toEqual(expect.any(String));
+    expect(secondPayload.viewInstanceId).not.toBe(firstPayload.viewInstanceId);
+  });
+
+  it("ignores feedback submission completion after branch context changes", async () => {
+    const deferred = createDeferred<{
+      inserted: boolean;
+      idempotencyKey: string;
+      verifiedActorRole: "developer" | "reviewer";
+      profile: {
+        repoId: number;
+        rankingBias: number;
+        confidenceOffset: number;
+        confidenceScale: number;
+        sampleCount: number;
+        actorWeightPolicyVersion: string;
+        branchMissingDecisionCount: number;
+        highlightAdjustments: Record<string, number>;
+        updatedAtISO: string;
+      };
+    }>();
+    mockSubmitNarrativeFeedback.mockImplementationOnce(() => deferred.promise);
+
+    const props = buildProps();
+    const { rerender } = render(<BranchView {...props} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "submit-feedback" }));
+
+    await waitFor(() => {
+      expect(mockSubmitNarrativeFeedback).toHaveBeenCalledTimes(1);
+    });
+
+    const switchedModel = createModel({
+      meta: {
+        ...props.model.meta,
+        branchName: "feature/after-submit-switch",
+      },
+    });
+    rerender(<BranchView {...buildProps({ model: switchedModel })} />);
+
+    await act(async () => {
+      deferred.resolve({
+        inserted: true,
+        idempotencyKey: "mock:key",
+        verifiedActorRole: "developer",
+        profile: {
+          repoId: 1,
+          rankingBias: 0,
+          confidenceOffset: 0,
+          confidenceScale: 1,
+          sampleCount: 0,
+          actorWeightPolicyVersion: "v1",
+          branchMissingDecisionCount: 0,
+          highlightAdjustments: {},
+          updatedAtISO: "2026-02-24T00:00:00.000Z",
+        },
+      });
+      await Promise.resolve();
+    });
+
+    const feedbackEvents = mockTrackNarrativeEvent.mock.calls.filter(
+      ([eventName]) => eventName === "feedback_submitted",
+    );
+    expect(feedbackEvents).toHaveLength(0);
   });
 });

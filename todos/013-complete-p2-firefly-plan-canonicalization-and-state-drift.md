@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 priority: p2
 issue_id: CR-013
 tags:
@@ -50,18 +50,24 @@ Firefly planning documents conflict with each other and with implementation deta
 - **Approach:** Move unfinished ideas (anomaly/offline/off-screen) into a separate roadmap file.
 
 ## Recommended Action
+Canonicalized Firefly planning to one source of truth (`firefly-visual-system-v1-plan`) and explicitly marked legacy signal-system variants as superseded.
 
 ## Technical Details
 - Affected area: Firefly architecture docs and state-model governance.
 - Impact: onboarding confusion and potential reintroduction of abandoned patterns.
 
 ## Acceptance Criteria
-- [ ] Exactly one Firefly architecture plan is marked canonical.
-- [ ] Superseded plans are explicitly marked and linked.
-- [ ] Canonical plan state model matches `useFirefly` contract.
+- [x] Exactly one Firefly architecture plan is marked canonical.
+- [x] Superseded plans are explicitly marked and linked.
+- [x] Canonical plan state model matches `useFirefly` contract.
 
 ## Work Log
 - 2026-02-24: Consolidated multi-agent finding on Firefly plan/implementation drift.
+- 2026-02-24: Marked `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-visual-system-v1-plan.md` as canonical and added explicit `supersedes` references.
+- 2026-02-24: Marked these plans as `status: superseded` with canonical pointer notes:
+  - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-signal-system-plan.md`
+  - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-signal-system-plan-deepened.md`
+  - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-signal-system-plan-revised.md`
 
 ## Resources
 - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-signal-system-plan*.md`

@@ -1,34 +1,33 @@
 # Release Notes
 
-**Repository:** `/Users/jamiecraik/dev/firefly-narrative`
-**Since tag:** `firefly-narrative-v0.12.0`
-**Generated:** 2026-02-23 18:04 GMT
+**Repository:** `/Users/jamiecraik/dev/firefly-narrative`  
+**Since tag:** `firefly-narrative-v0.12.1`  
+**Generated:** 2026-02-24 18:13 UTC
+
+## Table of Contents
+- [Breaking Changes](#breaking-changes)
+- [Features](#features)
+- [Fixes](#fixes)
+- [Chores](#chores)
+- [Source](#source)
 
 ## Breaking Changes
 
 - None detected from commit metadata.
 
-## Documentation
+## Features
 
-- `3a4edc3` docs: add agent startup checklist for landing workflow
+- `9147f07` add truth-loop feedback calibration (SQLite persistence and telemetry).
+
+## Fixes
+
+- `547fb69` align calibration windows and feedback telemetry.
+- `547fb69` add regression coverage for rolling-window bounds and duplicate telemetry behavior.
 
 ## Chores
 
-- `af9c14c` chore(deps): bump actions/setup-python from 5 to 6 (#28)
-- `1742c49` chore(deps): bump actions/cache from 4 to 5 (#29)
-- `36d3cfc` chore(deps): bump actions/setup-node from 4 to 6 (#30)
-- `e9972a4` chore(deps): bump actions/download-artifact from 4 to 7 (#31)
-- `f99b8c3` chore: sync changes
-
-## Security
-
-- `1ab353e` [security](deps): bump react-window from 2.2.5 to 2.2.7 (#33)
-- `449d44c` [security](deps-dev): bump @tauri-apps/cli from 2.9.6 to 2.10.0 (#34)
-- `f8b5294` [security](deps-dev): bump jsdom from 27.4.0 to 28.1.0 (#35)
-
-## Other
-
-- `68cad3d` Expand gitleaks allowlist for fixtures
+- `f6aae21` deps: bump `actions/checkout` 4->6.
+- `f6aae21` fix CI docs lint and semantic button checks.
 
 ## Source
 

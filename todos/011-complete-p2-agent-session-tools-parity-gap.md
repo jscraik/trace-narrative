@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 priority: p2
 issue_id: CR-011
 tags:
@@ -42,18 +42,23 @@ The plan specifies agent session-management tools, but those tools are not prese
 - **Approach:** Ship `agent_list_sessions` + `agent_get_session` first, then link/write paths.
 
 ## Recommended Action
+Implemented the planned session-management tool surface in Rust + TypeScript wrappers and registered commands in the Tauri invoke handler.
 
 ## Technical Details
 - Affected area: planned agent API surface for session discovery/linking.
 - Impact: reduced automation and weaker agent-native feature parity.
 
 ## Acceptance Criteria
-- [ ] `agent_list_sessions` and `agent_get_session` are implemented and tested.
-- [ ] `agent_link_session_to_commit` is implemented with validation.
-- [ ] Agent docs reference live, working command names.
+- [x] `agent_list_sessions` and `agent_get_session` are implemented and tested.
+- [x] `agent_link_session_to_commit` is implemented with validation.
+- [x] Agent docs reference live, working command names.
 
 ## Work Log
 - 2026-02-24: Documented agent-session tooling gap between plan and implementation.
+- 2026-02-24: Added `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/agent_tools/session_tools.rs` with `agent_list_sessions`, `agent_get_session`, `agent_link_session_to_commit`, and `agent_link_session` commands.
+- 2026-02-24: Registered agent tools in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/lib.rs` and added wrappers in `/Users/jamiecraik/dev/firefly-narrative/src/core/repo/agentSessionTools.ts`.
+- 2026-02-24: Added Rust unit tests for listing/getting/linking sessions and validation checks (`cargo test --manifest-path src-tauri/Cargo.toml agent_tools::session_tools::tests::`).
+- 2026-02-24: Updated documentation references in `/Users/jamiecraik/dev/firefly-narrative/AGENTS.md` and `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-universal-agent-tracking-plan.md`.
 
 ## Resources
 - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-universal-agent-tracking-plan.md`

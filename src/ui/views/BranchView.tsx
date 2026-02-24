@@ -18,6 +18,10 @@ import { evaluateNarrativeRollout } from '../../core/narrative/rolloutGovernance
 import { buildStakeholderProjections } from '../../core/narrative/stakeholderProjections';
 import { loadGitHubContext } from '../../core/repo/githubContext';
 import {
+  getNarrativeCalibrationProfile,
+  submitNarrativeFeedback,
+} from '../../core/repo/narrativeFeedback';
+import {
   trackNarrativeEvent,
   trackQualityRenderDecision,
 } from '../../core/telemetry/narrativeTelemetry';
@@ -26,6 +30,9 @@ import type {
   GitHubContextState,
   DashboardFilter,
   StakeholderAudience,
+  NarrativeFeedbackActorRole,
+  NarrativeFeedbackAction,
+  NarrativeCalibrationProfile,
   FileChange,
   NarrativeDetailLevel,
   NarrativeEvidenceLink,
@@ -90,6 +97,15 @@ const PANEL = {
   finalY: 0,
   spring: { type: 'spring' as const, stiffness: 300, damping: 30 },
 };
+
+function createNarrativeViewInstanceId(repoId: number, branchName?: string): string {
+  return [
+    String(repoId),
+    branchName ?? 'unknown-branch',
+    Date.now().toString(36),
+    Math.random().toString(36).slice(2, 8),
+  ].join(':');
+}
 
 function BranchViewInner(props: {
   model: BranchViewModel;
@@ -221,6 +237,8 @@ function BranchViewInner(props: {
   const [traceRequestedForSelection, setTraceRequestedForSelection] = useState(false);
   const [trackingSettledNodeId, setTrackingSettledNodeId] = useState<string | null>(null);
   const [detailLevel, setDetailLevel] = useState<NarrativeDetailLevel>('summary');
+  const [feedbackActorRole, setFeedbackActorRole] = useState<NarrativeFeedbackActorRole>('developer');
+  const [narrativeCalibration, setNarrativeCalibration] = useState<NarrativeCalibrationProfile | null>(null);
   const activeRequestIdentityRef = useRef<string>('');
   const requestContextVersionRef = useRef(0);
   const [audience, setAudience] = useState<StakeholderAudience>('manager');
@@ -238,6 +256,10 @@ function BranchViewInner(props: {
   const killSwitchReasonRef = useRef<string | null>(null);
   const headerDecisionTelemetryKeyRef = useRef<string | null>(null);
   const headerDerivationDurationMsRef = useRef(0);
+  const narrativeViewedKeyRef = useRef<string | null>(null);
+  const narrativeViewInstanceIdRef = useRef<string | null>(null);
+  const isMountedRef = useRef(true);
+  const feedbackContextRef = useRef<string>('');
 
   const requestIdentityKey = useMemo(
     () =>
@@ -257,6 +279,32 @@ function BranchViewInner(props: {
     requestContextVersionRef.current += 1;
     activeRequestIdentityRef.current = requestContextKey;
   }, [requestContextKey]);
+
+  const createRequestGuard = useCallback(() => {
+    const requestVersion = requestContextVersionRef.current;
+    const requestIdentity = activeRequestIdentityRef.current;
+    let cancelled = false;
+
+    return {
+      isActive: () =>
+        !cancelled &&
+        requestContextVersionRef.current === requestVersion &&
+        activeRequestIdentityRef.current === requestIdentity,
+      cancel: () => {
+        cancelled = true;
+      },
+    };
+  }, []);
+
+  const feedbackContextKey = `${model.meta?.repoId ?? 'none'}:${model.meta?.branchName ?? 'unknown'}`;
+
+  useEffect(() => {
+    feedbackContextRef.current = feedbackContextKey;
+  }, [feedbackContextKey]);
+
+  useEffect(() => () => {
+    isMountedRef.current = false;
+  }, []);
 
   const headerViewModel = useMemo(() => {
     const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
@@ -303,7 +351,12 @@ function BranchViewInner(props: {
     });
   }, [headerReasonCode, headerViewModel.kind, model.meta?.branchName, model.source, requestIdentityKey]);
 
-  const narrative = useMemo(() => composeBranchNarrative(model), [model]);
+  const calibrationEnabled = (import.meta.env.VITE_NARRATIVE_CALIBRATION_V1 ?? 'true') !== 'false';
+
+  const narrative = useMemo(
+    () => composeBranchNarrative(model, { calibration: calibrationEnabled ? narrativeCalibration : null }),
+    [model, narrativeCalibration]
+  );
   const projections = useMemo(
     () =>
       buildStakeholderProjections({
@@ -371,24 +424,62 @@ function BranchViewInner(props: {
   // Repo: load latest test run from DB for the selected commit.
   const [repoTestRun, setRepoTestRun] = useState<TestRun | null>(null);
   const [loadingTests, setLoadingTests] = useState(false);
+  const testRunRequestVersionRef = useRef(0);
 
   const repoRoot = model.meta?.repoPath ?? '';
   const repoId = model.meta?.repoId ?? null;
 
+  useEffect(() => {
+    if (!calibrationEnabled || !repoId) {
+      setNarrativeCalibration(null);
+      return;
+    }
+
+    let cancelled = false;
+    const calibrationContextAtLoad = feedbackContextKey;
+    setNarrativeCalibration(null);
+    getNarrativeCalibrationProfile(repoId)
+      .then((profile) => {
+        if (cancelled) return;
+        if (feedbackContextRef.current !== calibrationContextAtLoad) return;
+        setNarrativeCalibration(profile);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        if (feedbackContextRef.current !== calibrationContextAtLoad) return;
+        setNarrativeCalibration(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [feedbackContextKey, repoId]);
+
   const refreshRepoTestRun = useCallback(async () => {
-    if (model.source !== 'git') return;
+    const requestVersion = testRunRequestVersionRef.current + 1;
+    testRunRequestVersionRef.current = requestVersion;
+
+    if (model.source !== 'git') {
+      setLoadingTests(false);
+      return;
+    }
     if (!repoId || !selectedCommitSha) {
       setRepoTestRun(null);
+      setLoadingTests(false);
       return;
     }
     setLoadingTests(true);
     try {
       const run = await getLatestTestRunForCommit(repoId, selectedCommitSha);
+      if (testRunRequestVersionRef.current !== requestVersion) return;
       setRepoTestRun(run);
     } catch {
+      if (testRunRequestVersionRef.current !== requestVersion) return;
       setRepoTestRun(null);
     } finally {
-      setLoadingTests(false);
+      if (testRunRequestVersionRef.current === requestVersion) {
+        setLoadingTests(false);
+      }
     }
   }, [model.source, repoId, selectedCommitSha]);
 
@@ -430,6 +521,7 @@ function BranchViewInner(props: {
 
   useEffect(() => {
     void branchScopeKey;
+    setFeedbackActorRole('developer');
     setObservability({
       layerSwitchedCount: 0,
       evidenceOpenedCount: 0,
@@ -437,6 +529,22 @@ function BranchViewInner(props: {
       killSwitchTriggeredCount: 0,
     });
   }, [branchScopeKey]);
+
+  useEffect(() => {
+    if (!repoId) return;
+    const key = `${repoId}:${model.meta?.branchName ?? 'unknown'}`;
+    if (narrativeViewedKeyRef.current === key) return;
+    narrativeViewedKeyRef.current = key;
+    const viewInstanceId = createNarrativeViewInstanceId(repoId, model.meta?.branchName);
+    narrativeViewInstanceIdRef.current = viewInstanceId;
+
+    trackNarrativeEvent('narrative_viewed', {
+      branch: model.meta?.branchName,
+      detailLevel: effectiveDetailLevel,
+      confidence: narrative.confidence,
+      viewInstanceId,
+    });
+  }, [effectiveDetailLevel, model.meta?.branchName, narrative.confidence, repoId]);
 
   const bumpObservability = useCallback((kind: keyof Omit<NarrativeObservabilityMetrics, 'lastEventAtISO'>) => {
     setObservability((prev) => ({
@@ -486,19 +594,20 @@ function BranchViewInner(props: {
   ]);
 
   useEffect(() => {
-    if (!selectedNodeId) return;
-    let cancelled = false;
-    const requestVersion = requestContextVersionRef.current;
-    const requestIdentity = activeRequestIdentityRef.current;
+    if (!selectedNodeId) {
+      setFiles([]);
+      selectFile(null);
+      setLoadingFiles(false);
+      return;
+    }
+    const guard = createRequestGuard();
 
     setLoadingFiles(true);
     setError(null);
 
     loadFilesForNode(selectedNodeId)
       .then((f) => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
 
         setFiles(f);
         if (!selectedFile && f[0]?.path) {
@@ -506,9 +615,7 @@ function BranchViewInner(props: {
         }
       })
       .catch((e: unknown) => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
 
         const message = e instanceof Error ? e.message : String(e);
         setError(message);
@@ -517,37 +624,31 @@ function BranchViewInner(props: {
         selectFile(null);
       })
       .finally(() => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
         setLoadingFiles(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedNodeId, loadFilesForNode, selectFile, selectedFile, setActionError]);
+    return guard.cancel;
+  }, [createRequestGuard, selectedNodeId, loadFilesForNode, selectFile, selectedFile, setActionError]);
 
   useEffect(() => {
-    if (!selectedNodeId || !selectedFile) return;
-    let cancelled = false;
-    const requestVersion = requestContextVersionRef.current;
-    const requestIdentity = activeRequestIdentityRef.current;
+    if (!selectedNodeId || !selectedFile) {
+      setLoadingDiff(false);
+      setDiffText(null);
+      return;
+    }
+    const guard = createRequestGuard();
 
     setLoadingDiff(true);
     setError(null);
 
     loadDiffForFile(selectedNodeId, selectedFile)
       .then((d) => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
         setDiffText(d || '(no diff)');
       })
       .catch((e: unknown) => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
 
         const message = e instanceof Error ? e.message : String(e);
         setError(message);
@@ -555,16 +656,12 @@ function BranchViewInner(props: {
         setDiffText(null);
       })
       .finally(() => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
         setLoadingDiff(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedNodeId, selectedFile, loadDiffForFile, setActionError]);
+    return guard.cancel;
+  }, [createRequestGuard, selectedNodeId, selectedFile, loadDiffForFile, setActionError]);
 
   useEffect(() => {
     if (!selectedNodeId || !selectedFile || !selectedCommitSha) {
@@ -573,39 +670,29 @@ function BranchViewInner(props: {
       setLoadingTrace(false);
       return;
     }
-    let cancelled = false;
-    const requestVersion = requestContextVersionRef.current;
-    const requestIdentity = activeRequestIdentityRef.current;
+    const guard = createRequestGuard();
 
     setTraceRequestedForSelection(true);
     setLoadingTrace(true);
     loadTraceRangesForFile(selectedNodeId, selectedFile)
       .then((ranges) => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
         setTraceRanges(ranges);
       })
       .catch((e: unknown) => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
 
         const message = e instanceof Error ? e.message : String(e);
         setActionError(`Unable to load trace ranges for selected file: ${message}`);
         setTraceRanges([]);
       })
       .finally(() => {
-        if (cancelled) return;
-        if (requestContextVersionRef.current !== requestVersion) return;
-        if (activeRequestIdentityRef.current !== requestIdentity) return;
+        if (!guard.isActive()) return;
         setLoadingTrace(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCommitSha, selectedNodeId, selectedFile, loadTraceRangesForFile, setActionError]);
+    return guard.cancel;
+  }, [createRequestGuard, selectedCommitSha, selectedNodeId, selectedFile, loadTraceRangesForFile, setActionError]);
 
   // Pulse commit badge once on first successful import
   useEffect(() => {
@@ -674,6 +761,7 @@ function BranchViewInner(props: {
       branch: model.meta?.branchName,
       detailLevel: 'diff',
       confidence: narrative.confidence,
+      viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
     });
   }, [bumpObservability, files, model.meta?.branchName, narrative.confidence, selectFile, selectedFile]);
 
@@ -707,6 +795,48 @@ function BranchViewInner(props: {
       confidence: narrative.confidence,
     });
   }, [audience, effectiveDetailLevel, model.meta?.branchName, narrative.confidence]);
+
+  const handleFeedbackRoleChange = useCallback((role: NarrativeFeedbackActorRole) => {
+    if (role === feedbackActorRole) return;
+    setFeedbackActorRole(role);
+  }, [feedbackActorRole]);
+
+  const handleSubmitFeedback = useCallback(async (feedback: NarrativeFeedbackAction) => {
+    if (!repoId) return;
+    const branchName = model.meta?.branchName;
+    if (!branchName) {
+      setActionError('Unable to save narrative feedback: missing branch context.');
+      return;
+    }
+    const feedbackContextAtSubmit = feedbackContextRef.current;
+    try {
+      const result = await submitNarrativeFeedback({
+        repoId,
+        branchName,
+        action: feedback,
+      });
+      if (!isMountedRef.current) return;
+      if (feedbackContextRef.current !== feedbackContextAtSubmit) return;
+      if (calibrationEnabled) {
+        setNarrativeCalibration(result.profile);
+      }
+      if (!result.inserted) return;
+      trackNarrativeEvent('feedback_submitted', {
+        branch: model.meta?.branchName,
+        detailLevel: feedback.detailLevel,
+        confidence: narrative.confidence,
+        feedbackType: feedback.feedbackType,
+        feedbackTargetKind: feedback.targetKind,
+        feedbackActorRole: result.verifiedActorRole,
+        viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
+      });
+    } catch (error) {
+      if (!isMountedRef.current) return;
+      if (feedbackContextRef.current !== feedbackContextAtSubmit) return;
+      const message = error instanceof Error ? error.message : String(error);
+      setActionError(`Unable to save narrative feedback: ${message}`);
+    }
+  }, [model.meta?.branchName, narrative.confidence, repoId, setActionError]);
 
   const handleExportAgentTrace = () => {
     if (!selectedNodeId) return;
@@ -773,10 +903,13 @@ function BranchViewInner(props: {
                 projections={projections}
                 audience={audience}
                 detailLevel={effectiveDetailLevel}
+                feedbackActorRole={feedbackActorRole}
                 killSwitchActive={killSwitchActive}
                 killSwitchReason={criticalRule?.rationale}
                 onAudienceChange={handleAudienceChange}
+                onFeedbackActorRoleChange={handleFeedbackRoleChange}
                 onDetailLevelChange={handleDetailLevelChange}
+                onSubmitFeedback={handleSubmitFeedback}
                 onOpenEvidence={handleOpenEvidence}
                 onOpenRawDiff={handleOpenRawDiff}
               />

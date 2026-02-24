@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 priority: p1
 issue_id: CR-010
 tags:
@@ -43,19 +43,26 @@ The universal agent tracking plan defines critical MCP security controls, but th
 - **Approach:** Add modules with TODO guards and tests that fail unless auth/resource-indicator paths are implemented.
 
 ## Recommended Action
+Implemented MCP auth/security scaffolding via dedicated adapters:
+- `src-tauri/src/adapters/mcp_client.rs` for RFC 8707 resource-indicator + scoped-token request construction.
+- `src-tauri/src/adapters/mcp_server.rs` for mandatory HTTP auth config validation and authenticated client admission checks.
 
 ## Technical Details
 - Affected components: planned MCP adapter/server surface for universal tracking.
 - Risk category: authn/authz + token misuse prevention.
+- Added module wiring: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/adapters/mod.rs` and `mod adapters;` in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/lib.rs`.
+- Updated plan checklist evidence in `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-universal-agent-tracking-plan.md`.
 
 ## Acceptance Criteria
-- [ ] `mcp_client` implements RFC 8707 resource-indicator flow.
-- [ ] MCP server transport rejects unauthenticated HTTP ingestion.
-- [ ] Security tests validate rejection paths and token scoping.
-- [ ] Plan checklist items for MCP security can be marked complete with evidence.
+- [x] `mcp_client` implements RFC 8707 resource-indicator flow.
+- [x] MCP server transport rejects unauthenticated HTTP ingestion.
+- [x] Security tests validate rejection paths and token scoping.
+- [x] Plan checklist items for MCP security can be marked complete with evidence.
 
 ## Work Log
 - 2026-02-24: Review identified missing MCP security implementation surface versus plan requirements.
+- 2026-02-24: Added `mcp_client` + `mcp_server` adapter modules with auth/resource-indicator validation and constant-time API key comparison.
+- 2026-02-24: Added/ran adapter unit tests via `cargo test --manifest-path src-tauri/Cargo.toml adapters::mcp_` (10 passing tests).
 
 ## Resources
 - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-universal-agent-tracking-plan.md`

@@ -2,7 +2,8 @@
 title: Universal Agent Tracking — Real-time Session Streaming, MCP, and IDE Extensions
 type: feat
 date: 2026-02-17
-status: deepened-v2
+status: in_progress
+revision: deepened-v2
 ---
 
 # Universal Agent Tracking Implementation Plan
@@ -28,6 +29,12 @@ status: deepened-v2
 2. **Performance:** Live sessions table grows indefinitely; need retention policy + archival
 3. **Architecture:** `Box<dyn StreamAdapter>` prevents monomorphization; use enum dispatch for hot paths
 4. **Agent-Native:** Plan adds UI features without corresponding agent tools for session management
+
+### Lifecycle + Checklist Semantics (2026-02-24 sync pass)
+
+- `[x]` implemented and validated with code/tests
+- `[ ]` either deferred to later phases or pending implementation
+- `status: in_progress` indicates this remains the active implementation plan (unlike superseded/solved plans)
 
 ---
 
@@ -529,8 +536,8 @@ pub async fn connect_with_resource_indicators(
 
 **Security Checklist:**
 - [ ] Validate MCP server certificate (if TLS)
-- [ ] Implement Resource Indicators for OAuth
-- [ ] Scope tokens narrowly (`sessions:read`, not `*`)
+- [x] Implement Resource Indicators for OAuth
+- [x] Scope tokens narrowly (`sessions:read`, not `*`)
 - [ ] Rotate tokens on reconnection
 
 **Research Insights:**
@@ -548,7 +555,7 @@ pub async fn connect_with_resource_indicators(
 
 **Acceptance criteria:**
 - [ ] Discovers and connects to Claude Desktop MCP
-- [ ] Implements RFC 8707 Resource Indicators
+- [x] Implements RFC 8707 Resource Indicators
 - [ ] Maps MCP events to unified `LiveSession` format
 - [ ] Handles disconnection/reconnection gracefully
 
@@ -593,8 +600,8 @@ async fn authenticate_client(
 ```
 
 **Security Checklist:**
-- [ ] Require authentication (API key or mTLS)
-- [ ] Validate client identity
+- [x] Require authentication (API key or mTLS)
+- [x] Validate client identity
 - [ ] Rate limit connections per client
 - [ ] Log all session ingestions
 - [ ] Validate session schema before storage
@@ -648,7 +655,7 @@ pub async fn start_mcp_server(
 
 **Acceptance criteria:**
 - [ ] Exposes MCP server (stdio or HTTP)
-- [ ] Requires authentication for HTTP transport
+- [x] Requires authentication for HTTP transport
 - [ ] Accepts connections from external agents
 - [ ] Validates and stores incoming sessions
 
@@ -855,6 +862,15 @@ pub async fn agent_find_sessions_for_commit(
 }
 ```
 
+**Implementation evidence (2026-02-24):**
+- `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/agent_tools/session_tools.rs`
+- `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/lib.rs` invoke registration:
+  - `agent_list_sessions`
+  - `agent_get_session`
+  - `agent_link_session_to_commit`
+  - `agent_link_session`
+- `/Users/jamiecraik/dev/firefly-narrative/src/core/repo/agentSessionTools.ts` TypeScript wrappers.
+
 **Update system prompt** in `AGENTS.md`:
 ```markdown
 ## Available Session Tools
@@ -871,10 +887,10 @@ that led to the final code. Use these tools to understand the narrative behind c
 ```
 
 **Acceptance criteria:**
-- [ ] Agent can list sessions via tool
-- [ ] Agent can read session content
-- [ ] Agent can link sessions to commits
-- [ ] Tools documented in AGENTS.md
+- [x] Agent can list sessions via tool
+- [x] Agent can read session content
+- [x] Agent can link sessions to commits
+- [x] Tools documented with live command names
 
 ---
 
@@ -1000,8 +1016,8 @@ ALTER TABLE sessions ADD COLUMN archive_reason TEXT;
 ## Security Checklist
 
 - [ ] **Git Notes:** Content is redacted before write (no raw messages)
-- [ ] **MCP Client:** Implements RFC 8707 Resource Indicators
-- [ ] **MCP Server:** Requires authentication for HTTP transport
+- [x] **MCP Client:** Implements RFC 8707 Resource Indicators
+- [x] **MCP Server:** Requires authentication for HTTP transport
 - [ ] **Session Storage:** Secrets scan before persistence
 - [ ] **Agent Tools:** Proper authorization checks
 

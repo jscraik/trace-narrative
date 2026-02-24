@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -90,92 +90,128 @@ test.describe('Firefly Visual System v1', () => {
         layoutShiftCountMax: 0,
       };
 
-    await openDemoTimeline(page);
+    const maxAttempts = 3;
+    let perfResult: {
+      frameCount: number;
+      averageFps: number;
+      p95FrameTimeMs: number;
+      layoutShiftCount: number;
+      layoutShiftValue: number;
+    } | null = null;
+    let attemptUsed = 0;
 
-    const perfResult = await page.evaluate(async ({ durationMs, stepMs, scrollActions }) => {
-      const timeline = document.querySelector('[role=\"listbox\"][aria-label=\"Commit timeline\"]');
-      if (!(timeline instanceof HTMLElement)) {
-        throw new Error('Timeline listbox not found.');
-      }
-
-      let layoutShiftCount = 0;
-      let layoutShiftValue = 0;
-
-      const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          const shift = entry as PerformanceEntry & {
-            hadRecentInput?: boolean;
-            value?: number;
-            sources?: Array<{ node?: Node | null }>;
-          };
-          if (!shift.hadRecentInput && typeof shift.value === 'number') {
-            const fireflyRelated = (shift.sources ?? []).some((source) => {
-              const node = source.node;
-              return node instanceof Element && Boolean(node.closest('[data-testid=\"firefly-signal\"]'));
-            });
-
-            if (fireflyRelated) {
-              layoutShiftCount += 1;
-              layoutShiftValue += shift.value;
-            }
-          }
-        }
-      });
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      await openDemoTimeline(page);
 
       try {
-        observer.observe({ type: 'layout-shift', buffered: true });
-      } catch {
-        // layout-shift observer may be unavailable in some environments.
-      }
+        perfResult = await page.evaluate(async ({ durationMs, stepMs, scrollActions }) => {
+          const timeline = document.querySelector('[role=\"listbox\"][aria-label=\"Commit timeline\"]');
+          if (!(timeline instanceof HTMLElement)) {
+            throw new Error('Timeline listbox not found.');
+          }
 
-      const frameTimes: number[] = [];
-      let running = true;
-      let lastFrame = performance.now();
+          let layoutShiftCount = 0;
+          let layoutShiftValue = 0;
 
-      const recordFrame = (now: number) => {
-        frameTimes.push(now - lastFrame);
-        lastFrame = now;
-        if (running) {
+          const observer = new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
+              const shift = entry as PerformanceEntry & {
+                hadRecentInput?: boolean;
+                value?: number;
+                sources?: Array<{ node?: Node | null }>;
+              };
+              if (!shift.hadRecentInput && typeof shift.value === 'number') {
+                const fireflyRelated = (shift.sources ?? []).some((source) => {
+                  const node = source.node;
+                  return node instanceof Element && Boolean(node.closest('[data-testid=\"firefly-signal\"]'));
+                });
+
+                if (fireflyRelated) {
+                  layoutShiftCount += 1;
+                  layoutShiftValue += shift.value;
+                }
+              }
+            }
+          });
+
+          try {
+            observer.observe({ type: 'layout-shift', buffered: true });
+          } catch {
+            // layout-shift observer may be unavailable in some environments.
+          }
+
+          const frameTimes: number[] = [];
+          let running = true;
+          let lastFrame = performance.now();
+
+          const recordFrame = (now: number) => {
+            frameTimes.push(now - lastFrame);
+            lastFrame = now;
+            if (running) {
+              requestAnimationFrame(recordFrame);
+            }
+          };
           requestAnimationFrame(recordFrame);
+
+          const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+          const endTime = performance.now() + durationMs;
+          let actionIndex = 0;
+
+          while (performance.now() < endTime) {
+            const key = scrollActions[actionIndex % scrollActions.length] ?? 'ArrowRight';
+            timeline.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+            actionIndex += 1;
+            await wait(stepMs);
+          }
+
+          running = false;
+          observer.disconnect();
+          await wait(50);
+
+          const validFrames = frameTimes.filter((value) => Number.isFinite(value) && value > 0);
+          const averageFrameMs = validFrames.length
+            ? validFrames.reduce((sum, value) => sum + value, 0) / validFrames.length
+            : 0;
+          const sortedFrames = [...validFrames].sort((a, b) => a - b);
+          const p95Index = sortedFrames.length > 0 ? Math.min(sortedFrames.length - 1, Math.floor(sortedFrames.length * 0.95)) : 0;
+          const p95FrameMs = sortedFrames[p95Index] ?? 0;
+
+          return {
+            frameCount: validFrames.length,
+            averageFps: averageFrameMs > 0 ? 1000 / averageFrameMs : 0,
+            p95FrameTimeMs: p95FrameMs,
+            layoutShiftCount,
+            layoutShiftValue,
+          };
+        }, fixture);
+        attemptUsed = attempt;
+        break;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const executionContextDestroyed = message.includes('Execution context was destroyed');
+        if (!executionContextDestroyed || attempt >= maxAttempts) {
+          throw error;
         }
-      };
-      requestAnimationFrame(recordFrame);
-
-      const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-      const endTime = performance.now() + durationMs;
-      let actionIndex = 0;
-
-      while (performance.now() < endTime) {
-        const key = scrollActions[actionIndex % scrollActions.length] ?? 'ArrowRight';
-        timeline.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-        actionIndex += 1;
-        await wait(stepMs);
+        await page.waitForLoadState('domcontentloaded');
       }
+    }
 
-      running = false;
-      observer.disconnect();
-      await wait(50);
-
-      const validFrames = frameTimes.filter((value) => Number.isFinite(value) && value > 0);
-      const averageFrameMs = validFrames.length
-        ? validFrames.reduce((sum, value) => sum + value, 0) / validFrames.length
-        : 0;
-      const sortedFrames = [...validFrames].sort((a, b) => a - b);
-      const p95Index = sortedFrames.length > 0 ? Math.min(sortedFrames.length - 1, Math.floor(sortedFrames.length * 0.95)) : 0;
-      const p95FrameMs = sortedFrames[p95Index] ?? 0;
-
-      return {
-        frameCount: validFrames.length,
-        averageFps: averageFrameMs > 0 ? 1000 / averageFrameMs : 0,
-        p95FrameTimeMs: p95FrameMs,
-        layoutShiftCount,
-        layoutShiftValue,
-      };
-    }, fixture);
+    if (!perfResult) {
+      throw new Error('Failed to capture Firefly perf metrics after retry attempts.');
+    }
 
     const timestamp = new Date();
     const dateStamp = timestamp.toISOString().slice(0, 10);
-    const outputPath = path.join(process.cwd(), 'docs', 'assets', 'verification', `firefly-perf-${dateStamp}.json`);
+    // Keep default artifact output outside the Vite project root.
+    // Writing under docs/ during parallel runs can trigger HMR full reloads,
+    // which destroys the page execution context mid-measurement.
+    const artifactRoot = process.env.FIREFLY_PERF_ARTIFACT_DIR
+      ? path.resolve(process.env.FIREFLY_PERF_ARTIFACT_DIR)
+      : await mkdtemp(path.join(os.tmpdir(), 'firefly-narrative-verification-'));
+    const outputPath = path.join(artifactRoot, `firefly-perf-${dateStamp}.json`);
+    const docsArtifactPath = process.env.FIREFLY_PERF_WRITE_DOCS_ARTIFACT === '1'
+      ? path.join(process.cwd(), 'docs', 'assets', 'verification', `firefly-perf-${dateStamp}.json`)
+      : null;
 
     const artifact = {
       generatedAtISO: timestamp.toISOString(),
@@ -183,14 +219,19 @@ test.describe('Firefly Visual System v1', () => {
       os: `${os.platform()} ${os.release()}`,
       runtimeMode: fixture.metadata?.runtimeMode ?? 'playwright-headless',
       browser: browserName,
-      attempt: 1,
+      attempt: attemptUsed,
       fixture: 'e2e/fixtures/firefly-large-timeline.json',
       thresholds,
       metrics: perfResult,
     };
 
     await mkdir(path.dirname(outputPath), { recursive: true });
-    await writeFile(outputPath, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
+    const serializedArtifact = `${JSON.stringify(artifact, null, 2)}\n`;
+    await writeFile(outputPath, serializedArtifact, 'utf8');
+    if (docsArtifactPath) {
+      await mkdir(path.dirname(docsArtifactPath), { recursive: true });
+      await writeFile(docsArtifactPath, serializedArtifact, 'utf8');
+    }
 
     expect(perfResult.averageFps).toBeGreaterThanOrEqual(thresholds.averageFpsMin);
     expect(perfResult.p95FrameTimeMs).toBeLessThanOrEqual(thresholds.p95FrameTimeMsMax);

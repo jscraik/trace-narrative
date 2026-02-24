@@ -1,10 +1,12 @@
 export type NarrativeTelemetrySchemaVersion = 'v1';
 
 export type NarrativeTelemetryEventName =
+  | 'narrative_viewed'
   | 'layer_switched'
   | 'audience_switched'
   | 'evidence_opened'
   | 'fallback_used'
+  | 'feedback_submitted'
   | 'rollout_scored'
   | 'kill_switch_triggered'
   | 'ui.quality.render_decision';
@@ -26,6 +28,7 @@ export type HeaderQualityReasonCode =
 export type NarrativeTelemetryPayload = {
   schemaVersion?: NarrativeTelemetrySchemaVersion;
   branch?: string;
+  viewInstanceId?: string;
   source?: 'demo' | 'git';
   detailLevel?: 'summary' | 'evidence' | 'diff';
   audience?: 'executive' | 'manager' | 'engineer';
@@ -41,6 +44,9 @@ export type NarrativeTelemetryPayload = {
   durationMs?: number;
   budgetMs?: number;
   overBudget?: boolean;
+  feedbackType?: 'highlight_key' | 'highlight_wrong' | 'branch_missing_decision';
+  feedbackTargetKind?: 'highlight' | 'branch';
+  feedbackActorRole?: 'developer' | 'reviewer';
 };
 
 export type NarrativeRenderDecisionInput = {

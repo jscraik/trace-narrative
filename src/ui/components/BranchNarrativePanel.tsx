@@ -1,8 +1,11 @@
 import type {
   BranchNarrative,
+  NarrativeFeedbackAction,
+  NarrativeFeedbackActorRole,
   NarrativeDetailLevel,
   NarrativeEvidenceLink,
   StakeholderAudience,
+  StakeholderProjection,
   StakeholderProjections,
 } from '../../core/types';
 
@@ -11,10 +14,13 @@ type BranchNarrativePanelProps = {
   projections: StakeholderProjections;
   audience: StakeholderAudience;
   detailLevel: NarrativeDetailLevel;
+  feedbackActorRole: NarrativeFeedbackActorRole;
   killSwitchActive?: boolean;
   killSwitchReason?: string;
   onAudienceChange: (audience: StakeholderAudience) => void;
+  onFeedbackActorRoleChange: (role: NarrativeFeedbackActorRole) => void;
   onDetailLevelChange: (level: NarrativeDetailLevel) => void;
+  onSubmitFeedback: (feedback: NarrativeFeedbackAction) => void;
   onOpenEvidence: (link: NarrativeEvidenceLink) => void;
   onOpenRawDiff: () => void;
 };
@@ -46,20 +52,33 @@ function DetailButton(props: {
   );
 }
 
+function projectionFallback(audience: StakeholderAudience, narrative: BranchNarrative): StakeholderProjection {
+  return {
+    audience,
+    headline: 'Narrative projection pending.',
+    bullets: [narrative.summary],
+    risks: [],
+    evidenceLinks: narrative.evidenceLinks,
+  };
+}
+
 export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
   const {
     narrative,
     projections,
     audience,
     detailLevel,
+    feedbackActorRole,
     killSwitchActive = false,
     killSwitchReason,
     onAudienceChange,
+    onFeedbackActorRoleChange,
     onDetailLevelChange,
+    onSubmitFeedback,
     onOpenEvidence,
     onOpenRawDiff,
   } = props;
-  const projection = projections[audience];
+  const projection = projections[audience] ?? projectionFallback(audience, narrative);
 
   return (
     <div className="card p-5">
@@ -115,6 +134,42 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
               </button>
             ))}
           </div>
+
+          <div className="flex flex-wrap items-center gap-1">
+            {(['developer', 'reviewer'] as const).map((role) => (
+              <button
+                key={role}
+                type="button"
+                onClick={() => onFeedbackActorRoleChange(role)}
+                className={`rounded-md border px-2.5 py-1 text-xs capitalize transition-colors ${
+                  feedbackActorRole === role
+                    ? 'border-accent-blue-light bg-accent-blue-bg text-accent-blue'
+                    : 'border-border-subtle bg-bg-primary text-text-secondary hover:border-border-light hover:bg-bg-secondary'
+                }`}
+                aria-pressed={feedbackActorRole === role}
+              >
+                {role}
+              </button>
+            ))}
+            <button
+              type="button"
+              disabled={killSwitchActive}
+              onClick={() =>
+                onSubmitFeedback({
+                  actorRole: feedbackActorRole,
+                  feedbackType: 'branch_missing_decision',
+                  targetKind: 'branch',
+                  detailLevel,
+                })
+              }
+              className={`rounded-md border border-border-subtle bg-bg-primary px-2.5 py-1 text-xs text-text-secondary transition-colors hover:border-border-light hover:bg-bg-secondary ${
+                killSwitchActive ? 'cursor-not-allowed opacity-60' : ''
+              }`}
+            >
+              Missing decision
+            </button>
+          </div>
+
           <div className="rounded-lg border border-border-subtle bg-bg-primary p-3">
             <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">{projection.audience}</div>
             <p className="mt-1 text-sm text-text-primary">{projection.headline}</p>
@@ -124,15 +179,56 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
               ))}
             </ul>
           </div>
+
           <p className="text-sm leading-relaxed text-text-secondary">{narrative.summary}</p>
+
           <ul className="space-y-2">
             {narrative.highlights.slice(0, 3).map((highlight) => (
               <li key={highlight.id} className="rounded-lg border border-border-subtle bg-bg-primary p-3">
                 <div className="text-sm font-medium text-text-primary">{highlight.title}</div>
                 <p className="mt-1 text-xs leading-relaxed text-text-tertiary">{highlight.whyThisMatters}</p>
+                <div className="mt-2 flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={killSwitchActive}
+                    onClick={() =>
+                      onSubmitFeedback({
+                        actorRole: feedbackActorRole,
+                        feedbackType: 'highlight_key',
+                        targetKind: 'highlight',
+                        targetId: highlight.id,
+                        detailLevel,
+                      })
+                    }
+                    className={`rounded-md border border-border-subtle bg-bg-primary px-2 py-1 text-[11px] text-text-secondary transition-colors hover:border-border-light hover:bg-bg-secondary ${
+                      killSwitchActive ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                  >
+                    This is key
+                  </button>
+                  <button
+                    type="button"
+                    disabled={killSwitchActive}
+                    onClick={() =>
+                      onSubmitFeedback({
+                        actorRole: feedbackActorRole,
+                        feedbackType: 'highlight_wrong',
+                        targetKind: 'highlight',
+                        targetId: highlight.id,
+                        detailLevel,
+                      })
+                    }
+                    className={`rounded-md border border-border-subtle bg-bg-primary px-2 py-1 text-[11px] text-text-secondary transition-colors hover:border-border-light hover:bg-bg-secondary ${
+                      killSwitchActive ? 'cursor-not-allowed opacity-60' : ''
+                    }`}
+                  >
+                    Wrong
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
+
           {narrative.state === 'needs_attention' && narrative.fallbackReason && (
             <div className="rounded-lg border border-accent-amber-light bg-accent-amber-bg px-3 py-2 text-xs text-accent-amber">
               {narrative.fallbackReason}

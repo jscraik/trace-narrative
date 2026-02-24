@@ -4,9 +4,13 @@ type: feat
 date: 2026-02-17
 enhanced: 2026-02-17
 revised: 2026-02-17
+status: superseded
+superseded_by: /Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-visual-system-v1-plan.md
 ---
 
 # Firefly Signal System (Revised)
+
+> **Status:** Superseded. Use `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-visual-system-v1-plan.md` as the canonical Firefly plan.
 
 ## Revision Summary
 

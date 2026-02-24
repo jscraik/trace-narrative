@@ -234,7 +234,7 @@ export default function App() {
     if (rawAgentationWebhookUrl && !normalizedAgentationWebhookUrl) {
       console.warn('[Agentation] VITE_AGENTATION_WEBHOOK_URL is invalid. Use an http(s) URL.');
     }
-  }, [isAgentationEnabled, normalizedAgentationEndpoint, normalizedAgentationWebhookUrl, rawAgentationEndpoint, rawAgentationWebhookUrl]);
+  }, [isAgentationEnabled, normalizedAgentationEndpoint, normalizedAgentationWebhookUrl]);
 
   // Clear dashboard filter when switching away from repo mode (optional UX enhancement)
   useEffect(() => {
@@ -506,9 +506,9 @@ export default function App() {
           <RepoEmptyState setRepoState={setRepoState} />
         )}
       </div>
-      {isAgentationEnabled && AgentationComponent && (
+      {isAgentationEnabled && AgentationComponent && normalizedAgentationEndpoint && (
         <AgentationComponent
-          endpoint={normalizedAgentationEndpoint!}
+          endpoint={normalizedAgentationEndpoint}
           webhookUrl={agentationWebhookUrl}
           onSessionCreated={(sessionId) => {
             console.log('Session started:', sessionId);

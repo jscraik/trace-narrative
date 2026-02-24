@@ -48,4 +48,24 @@ describe('narrativeTelemetry', () => {
 
     dispatchSpy.mockRestore();
   });
+
+  it('dispatches feedback events with typed payload fields', () => {
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+    trackNarrativeEvent('feedback_submitted', {
+      branch: 'feature/narrative-loop',
+      feedbackType: 'highlight_key',
+      feedbackTargetKind: 'highlight',
+      feedbackActorRole: 'reviewer',
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledTimes(1);
+    const event = dispatchSpy.mock.calls[0]?.[0] as CustomEvent;
+    expect(event.detail.event).toBe('feedback_submitted');
+    expect(event.detail.payload.feedbackType).toBe('highlight_key');
+    expect(event.detail.payload.feedbackTargetKind).toBe('highlight');
+    expect(event.detail.payload.feedbackActorRole).toBe('reviewer');
+
+    dispatchSpy.mockRestore();
+  });
 });

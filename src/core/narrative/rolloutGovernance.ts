@@ -6,6 +6,7 @@ import type {
   NarrativeRubricMetric,
   StakeholderProjections,
 } from '../types';
+import { evaluatePromptGovernance } from './promptGovernance';
 
 function roundScore(value: number): number {
   return Math.round(Math.max(0, Math.min(1, value)) * 100) / 100;
@@ -43,6 +44,7 @@ export function evaluateNarrativeRollout(args: {
   observability: NarrativeObservabilityMetrics;
 }): NarrativeRolloutReport {
   const { narrative, projections, githubContextState, observability } = args;
+  const promptGovernance = evaluatePromptGovernance(narrative);
 
   const confidenceMetric = toMetric({
     id: 'confidence',
@@ -151,6 +153,24 @@ export function evaluateNarrativeRollout(args: {
       severity: 'warning' as const,
       triggered: fallbackRatio > 0.4 && interactionCount >= 5,
       rationale: 'Frequent fallback usage indicates narrative trust erosion.',
+    },
+    {
+      id: 'prompt_template_unversioned',
+      label: 'Prompt template metadata missing',
+      severity: 'warning' as const,
+      triggered: !promptGovernance.isTemplateVersioned,
+      rationale:
+        'Narrative payloads should include prompt template id/version metadata for governance traceability.',
+    },
+    {
+      id: 'prompt_injection_signal',
+      label: 'Adversarial prompt-injection signal',
+      severity: 'critical' as const,
+      triggered: promptGovernance.adversarialMatches.length > 0,
+      rationale:
+        promptGovernance.adversarialMatches.length > 0
+          ? `Detected adversarial markers: ${promptGovernance.adversarialMatches.join(', ')}.`
+          : 'No adversarial prompt markers detected in narrative output.',
     },
   ];
 

@@ -1,7 +1,7 @@
 ---
 title: "feat: Narrative Truth Loop Feedback Calibration"
 type: feat
-status: active
+status: completed
 date: 2026-02-24
 origin: docs/brainstorms/2026-02-24-narrative-truth-loop-brainstorm.md
 ---
@@ -118,6 +118,10 @@ Implement a repo-local feedback loop with two layers:
    - Ranking calibration: bounded per-repo weight adjustments over existing highlight heuristics.
    - Confidence calibration: bounded offset/scaling based on observed feedback quality signals.
 
+### Locked v1 implementation decisions
+- **Persistence backend (resolved):** use `sqlite:narrative.db` as the source of truth for feedback events and derived calibration profiles.
+- **Out of scope for v1 persistence:** `.narrative/meta` may be used for future export/debug artifacts, but not as canonical storage.
+
 ### Scope boundaries (hard constraints)
 - V1 applies only to branch narrative highlight ordering and confidence value (see brainstorm origin).
 - No free-form mandatory text in v1.
@@ -138,6 +142,7 @@ Implement a repo-local feedback loop with two layers:
 - **Architecture impacts:** additive path over existing `composeBranchNarrative` and `BranchNarrativePanel` flows; no rewrite.
 - **Performance implications:** feedback write must be async and non-blocking for UI; calibration lookup should be O(1)/cached per repo session.
 - **Security/privacy:** feedback stores role + event metadata only; avoid secrets/PII by design; maintain local-first storage posture.
+- **Persistence hardening:** apply SQLite hardening PRAGMAs (`foreign_keys`, `trusted_schema`, WAL/busy timeout) and append-only calibration audit events for forensic traceability.
 - **Explainability:** expose calibration provenance in debug telemetry/logs to avoid opaque behavior.
 
 ### Research Insights
@@ -205,6 +210,10 @@ erDiagram
     real ranking_bias
     real confidence_offset
     real confidence_scale
+    int sample_count
+    text window_start
+    text window_end
+    text actor_weight_policy_version
     text updated_at
   }
 ```
@@ -216,6 +225,7 @@ erDiagram
   - `(repo_id, target_id, feedback_type)` for per-highlight aggregation.
 - Validate query plans with `EXPLAIN QUERY PLAN` and avoid over-indexing write-heavy event streams.
 - For profile upserts, use explicit conflict targets and deterministic update formulas.
+- Keep calibration profile metadata explainable (`sample_count`, active window bounds, weighting-policy version) so score changes can be audited.
 
 ## SpecFlow Analysis (Gap & Edge-Case Pass)
 ### Key user flows
@@ -245,27 +255,45 @@ erDiagram
 - Add ID drift strategy: remap by evidence-link equivalence when highlight IDs churn.
 
 ## Acceptance Criteria
-- [ ] Add feedback actions in `src/ui/components/BranchNarrativePanel.tsx` for `Wrong`, `Key`, and `Missing decision` (see brainstorm origin).
-- [ ] Add orchestration handlers in `src/ui/views/BranchView.tsx` that persist feedback and emit telemetry.
-- [ ] Add persistence contract for repo-local feedback events and calibration profile (new table(s) or equivalent local narrative metadata contract).
-- [ ] Update narrative generation path in `src/core/narrative/composeBranchNarrative.ts` to apply bounded ranking + confidence calibration (see brainstorm origin).
-- [ ] Keep rollout governance thresholds unchanged in v1; only inputs may change via confidence/evidence effects (see brainstorm origin).
-- [ ] Extend telemetry schema in `src/core/telemetry/narrativeTelemetry.ts` with feedback event names and payload fields.
-- [ ] Add/extend tests in:
+- [x] Add feedback actions in `src/ui/components/BranchNarrativePanel.tsx` for `Wrong`, `Key`, and `Missing decision` (see brainstorm origin).
+- [x] Add orchestration handlers in `src/ui/views/BranchView.tsx` that persist feedback and emit telemetry.
+- [x] Add persistence contract for repo-local feedback events and calibration profile (new table(s) or equivalent local narrative metadata contract).
+- [x] Update narrative generation path in `src/core/narrative/composeBranchNarrative.ts` to apply bounded ranking + confidence calibration (see brainstorm origin).
+- [x] Keep rollout governance thresholds unchanged in v1; only inputs may change via confidence/evidence effects (see brainstorm origin).
+- [x] Extend telemetry schema in `src/core/telemetry/narrativeTelemetry.ts` with feedback event names and payload fields.
+- [x] Add a denominator telemetry event (for example `narrative_viewed`) so fallback-rate KPI is mathematically well-defined.
+- [x] Emit and propagate `viewInstanceId` correlation fields so `narrative_viewed` and `fallback_used` can be joined deterministically.
+- [x] Document baseline eligibility rules for newly opted-in repos (shadow period + minimum denominator threshold).
+- [x] Add/extend tests in:
   - `src/ui/components/__tests__/BranchNarrativePanel.test.tsx`
   - `src/ui/views/__tests__/BranchView.test.tsx`
   - `src/core/narrative/__tests__/composeBranchNarrative.test.ts`
   - `src/core/narrative/__tests__/rolloutGovernance.test.ts`
   - new persistence tests under `src-tauri/src/...` or `src/core/repo/...` depending on storage choice.
-- [ ] Ensure failure mode: persistence/calibration errors never block baseline narrative render or raw diff fallback.
-- [ ] Enforce idempotent feedback writes (duplicate submissions do not inflate calibration).
-- [ ] Enforce cold-start neutrality (no feedback => baseline outputs).
-- [ ] Enforce calibration clamps via tests (no out-of-policy adjustments).
-- [ ] Add a calibration feature flag / kill switch path separate from baseline narrative path.
+- [x] Ensure failure mode: persistence/calibration errors never block baseline narrative render or raw diff fallback.
+- [x] Enforce idempotent feedback writes (duplicate submissions do not inflate calibration).
+- [x] Include `detailLevel` in idempotency key derivation and skip recompute on ignored duplicate writes to cap write-path load.
+- [x] Enforce cold-start neutrality (no feedback => baseline outputs).
+- [x] Enforce calibration clamps via tests (no out-of-policy adjustments).
+- [x] Add a calibration feature flag / kill switch path separate from baseline narrative path.
+- [x] Enforce retry policy for transient persistence failures (max 2 retries with bounded exponential backoff), and verify retries do not violate idempotency semantics.
+- [x] Add a Phase 1 decision gate artifact documenting SQLite schema + indexes + migration verification before calibration logic is enabled.
 
 ## Success Metrics
 Primary (from brainstorm):
 - **Fallback reduction:** decrease `fallback_used` events per narrative session after rollout (see brainstorm origin).
+
+**Primary KPI contract (locked):**
+- Metric: `fallback_rate = fallback_used / narrative_viewed`.
+- Baseline: 14-day pre-enable rolling window for opted-in repos.
+- Target: ≥20% relative reduction in `fallback_rate` by day 14 after enablement.
+- Guardrail: no >5% increase in `kill_switch_triggered` rate over the same comparison windows.
+
+**KPI operational contract (implementation-bound):**
+- `narrative_viewed` emits once per branch-view scope and includes `viewInstanceId` to anchor denominator instances.
+- `fallback_used` carries the same `viewInstanceId` for the active scope, so numerator/denominator joins are reproducible.
+- Newly opted-in repos must run a 14-day shadow baseline period (flag off, telemetry on) before eligibility for relative-reduction scoring.
+- If a repo has fewer than 50 denominator events in baseline, use cohort baseline for decisioning and mark repo-level KPI as underpowered.
 
 Secondary:
 - `Key:Wrong` feedback ratio trend by repo,
@@ -281,7 +309,7 @@ Secondary:
 ### Dependencies
 - existing narrative telemetry pipeline,
 - repo context (`repoId`, branch metadata),
-- local persistence path decision (SQLite vs `.narrative/meta` file contract).
+- SQLite migration + index rollout for feedback/calibration tables.
 
 ### Risks
 - **Overfitting to noisy feedback** → clamp updates + minimum sample threshold.
@@ -297,12 +325,13 @@ Secondary:
   - `src/ui/components/BranchNarrativePanel.tsx`
   - `src/ui/views/BranchView.tsx`
   - `src/core/telemetry/narrativeTelemetry.ts`
-  - `src-tauri/src/lib.rs` (+ migration) or `src/core/tauri/narrativeFs.ts` contract extension
+  - `src-tauri/src/lib.rs` (+ migration and indexes)
 
 **Phase 1 quality gates**
 - feedback action UX remains responsive under simulated write latency,
 - duplicate click behavior is idempotent,
 - new telemetry events conform to schema.
+- persistence decision gate passed: migration applied, indexes validated, and query plans reviewed.
 
 ### Phase 2 — Calibration application
 - Introduce bounded ranking/confidence transforms and default neutral profile.
@@ -325,12 +354,12 @@ Secondary:
   - `pnpm test:integration`
 
 **Phase 3 quality gates**
-- calibration path canary rollout enabled,
+- calibration path enabled via phased local rollout (feature flag default-off; opt-in repo cohort first, then broaden),
 - fallback trend reviewed before wider enablement,
 - kill-switch drill proves immediate return to baseline narrative behavior.
 
 ## Sources & References
-- **Origin brainstorm:** [`docs/brainstorms/2026-02-24-narrative-truth-loop-brainstorm.md`](/Users/jamiecraik/dev/firefly-narrative/docs/brainstorms/2026-02-24-narrative-truth-loop-brainstorm.md)
+- **Origin brainstorm:** [`docs/brainstorms/2026-02-24-narrative-truth-loop-brainstorm.md`](../brainstorms/2026-02-24-narrative-truth-loop-brainstorm.md)
   - Carried-forward decisions: dual-role feedback actors; ranking+confidence scope; per-repo learning only; fallback reduction as primary KPI.
 - Similar implementations:
   - `src/core/narrative/composeBranchNarrative.ts:69`
@@ -340,6 +369,8 @@ Secondary:
   - `src-tauri/src/session_links.rs:81`
 - Institutional learning:
   - `docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`
+- Phase 1 decision gate artifact:
+  - `docs/plans/2026-02-24-narrative-truth-loop-phase1-sqlite-decision-gate.md`
 
 ### External references (deepening pass)
 - React `useTransition`: [https://react.dev/reference/react/useTransition](https://react.dev/reference/react/useTransition)

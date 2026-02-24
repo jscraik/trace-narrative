@@ -765,9 +765,11 @@ mod tests {
 
     #[test]
     fn chatgpt_account_updated_sets_authenticated_when_verified() {
-        let mut status = CodexAppServerStatus::default();
-        status.state = "degraded".to_string();
-        status.stream_healthy = true;
+        let mut status = CodexAppServerStatus {
+            state: "degraded".to_string(),
+            stream_healthy: true,
+            ..CodexAppServerStatus::default()
+        };
         apply_account_updated(&mut status, "chatgpt", true);
 
         assert_eq!(status.auth_state, "authenticated");
@@ -791,8 +793,10 @@ mod tests {
 
     #[test]
     fn account_updated_unsupported_mode_preserves_crash_loop_state() {
-        let mut status = CodexAppServerStatus::default();
-        status.state = "crash_loop".to_string();
+        let mut status = CodexAppServerStatus {
+            state: "crash_loop".to_string(),
+            ..CodexAppServerStatus::default()
+        };
         apply_account_updated(&mut status, "apikey", true);
         assert_eq!(status.state, "crash_loop");
         assert_eq!(status.auth_state, "needs_login");

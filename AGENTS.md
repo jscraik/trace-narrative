@@ -37,6 +37,12 @@ Narrative is a Tauri desktop app that layers AI session narratives onto git hist
 - `pnpm agentation:autopilot`
 - `pnpm agentation:critique`
 
+## Agent session tools (Tauri commands)
+- `agent_list_sessions` — list imported sessions (optional tool filter + limit)
+- `agent_get_session` — fetch full session payload by repo/session id
+- `agent_link_session_to_commit` — manually link a session to a commit
+- `agent_link_session` — alias for manual session→commit linking
+
 ## Documentation map
 ### Table of Contents
 - [Frontend website rules](docs/agents/frontend-website-rules.md)

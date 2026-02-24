@@ -2,11 +2,18 @@
 title: "feat: Firefly Visual System v1 (commit-graph semantic signal)"
 type: feat
 date: 2026-02-17
+status: canonical
 brainstorm: "/Users/jamiecraik/dev/narrative/docs/brainstorms/2026-02-17-firefly-visual-system-brainstorm.md"
 deepened: 2026-02-17
+supersedes:
+  - /Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-signal-system-plan.md
+  - /Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-signal-system-plan-deepened.md
+  - /Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-signal-system-plan-revised.md
 ---
 
 # Firefly Visual System v1 Plan
+
+> Canonical plan for Firefly architecture and state model. Prior `firefly-signal-system` variants are superseded and retained for historical context only.
 
 ## Enhancement Summary
 

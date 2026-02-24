@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 priority: p2
 issue_id: CR-012
 tags:
@@ -43,18 +43,26 @@ Prompt/eval governance requirements in the plan are only partially implemented: 
 - **Approach:** Explicitly mark adversarial checks/versioning as deferred and track in backlog.
 
 ## Recommended Action
+Implemented prompt governance primitives with explicit template version metadata and adversarial prompt-injection detection in rollout rules + tests.
 
 ## Technical Details
 - Affected area: narrative prompt/eval safety governance.
 - Impact: reduced assurance against injection-like prompt failures.
 
 ## Acceptance Criteria
-- [ ] Prompt templates have explicit version metadata.
-- [ ] Adversarial prompt-injection tests exist and run in CI.
-- [ ] Governance docs map 1:1 to implemented checks.
+- [x] Prompt templates have explicit version metadata.
+- [x] Adversarial prompt-injection tests exist and run in CI.
+- [x] Governance docs map 1:1 to implemented checks.
 
 ## Work Log
 - 2026-02-24: Logged missing prompt-versioning and adversarial-test controls relative to plan.
+- 2026-02-24: Added `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/promptGovernance.ts` with template constants and adversarial pattern checks.
+- 2026-02-24: Added `promptTemplate` metadata to `BranchNarrative` and composer output in `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/composeBranchNarrative.ts`.
+- 2026-02-24: Extended rollout governance rules (`prompt_template_unversioned`, `prompt_injection_signal`) in `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/rolloutGovernance.ts`.
+- 2026-02-24: Added/updated tests in:
+  - `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/__tests__/rolloutGovernance.test.ts`
+  - `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/__tests__/composeBranchNarrative.test.ts`
+- 2026-02-24: Updated mapping notes in `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-18-feat-vision-parity-track-plan.md`.
 
 ## Resources
 - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-18-feat-vision-parity-track-plan.md`

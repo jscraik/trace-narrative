@@ -1,4 +1,6 @@
 mod activity;
+mod adapters;
+mod agent_tools;
 mod atlas;
 pub mod attribution;
 mod codex_app_server;
@@ -191,6 +193,18 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             sql: include_str!("../migrations/012_atlas.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 13,
+            description: "add_narrative_feedback",
+            sql: include_str!("../migrations/013_narrative_feedback.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 14,
+            description: "add_narrative_feedback_hardening",
+            sql: include_str!("../migrations/014_narrative_feedback_hardening.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
@@ -211,6 +225,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             // Linking algorithm commands
             link_commands::link_session_to_commit,
             link_commands::import_and_link_session_file,
+            agent_tools::session_tools::agent_list_sessions,
+            agent_tools::session_tools::agent_get_session,
+            agent_tools::session_tools::agent_link_session_to_commit,
+            agent_tools::session_tools::agent_link_session,
             // Import commands
             import::commands::import_session_files,
             import::commands::import_session_file,

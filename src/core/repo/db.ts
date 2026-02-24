@@ -4,10 +4,38 @@ import type { CommitDetails, CommitSummary, FileChange } from '../types';
 const yieldToMain = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 let _db: Database | null = null;
+let _dbPragmasApplied = false;
+
+async function applyDbPragmas(db: Database): Promise<void> {
+  if (_dbPragmasApplied) return;
+
+  const pragmas = [
+    'PRAGMA foreign_keys = ON',
+    'PRAGMA journal_mode = WAL',
+    'PRAGMA synchronous = NORMAL',
+    'PRAGMA busy_timeout = 5000',
+    'PRAGMA trusted_schema = OFF',
+  ] as const;
+
+  for (const pragma of pragmas) {
+    try {
+      await db.execute(pragma);
+    } catch (error) {
+      // Best-effort hardening: keep app operational even if a pragma isn't supported.
+      console.warn(`[db] Failed to apply pragma "${pragma}"`, error);
+    }
+  }
+
+  _dbPragmasApplied = true;
+}
 
 export async function getDb(): Promise<Database> {
-  if (_db) return _db;
+  if (_db) {
+    await applyDbPragmas(_db);
+    return _db;
+  }
   _db = await Database.load('sqlite:narrative.db');
+  await applyDbPragmas(_db);
   return _db;
 }
 

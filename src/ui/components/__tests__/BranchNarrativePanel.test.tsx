@@ -68,8 +68,11 @@ describe('BranchNarrativePanel', () => {
         projections={projections}
         audience="manager"
         detailLevel="summary"
+        feedbackActorRole="developer"
         onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
         onDetailLevelChange={onDetailLevelChange}
+        onSubmitFeedback={vi.fn()}
         onOpenEvidence={vi.fn()}
         onOpenRawDiff={vi.fn()}
       />
@@ -88,8 +91,11 @@ describe('BranchNarrativePanel', () => {
         projections={projections}
         audience="manager"
         detailLevel="evidence"
+        feedbackActorRole="developer"
         onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
         onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
         onOpenEvidence={onOpenEvidence}
         onOpenRawDiff={vi.fn()}
       />
@@ -97,5 +103,42 @@ describe('BranchNarrativePanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Commit abc123/i }));
     expect(onOpenEvidence).toHaveBeenCalledTimes(1);
+  });
+
+  it('submits highlight and branch feedback actions', () => {
+    const onSubmitFeedback = vi.fn();
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="reviewer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={onSubmitFeedback}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'This is key' }));
+    expect(onSubmitFeedback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorRole: 'reviewer',
+        feedbackType: 'highlight_key',
+        targetKind: 'highlight',
+      })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Missing decision' }));
+    expect(onSubmitFeedback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorRole: 'reviewer',
+        feedbackType: 'branch_missing_decision',
+        targetKind: 'branch',
+      })
+    );
   });
 });
