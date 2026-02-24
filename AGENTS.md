@@ -1,78 +1,55 @@
 schema_version: 1
 
-# AGENTS.md — Frontend Website Rules
+# AGENTS.md — Narrative Repository Guide
 
-## Agent Startup Checklist
-- Confirm task scope: check `docs/agents/landing-page-separation.md` before deciding in-app vs standalone-page workflow.
-- If standalone landing-page work: read `docs/agents/frontend-website-rules.md` before making code changes.
-- For visual work, capture required screenshots in order:
-  - `node screenshot.mjs http://localhost:2000`
-  - `node screenshot.mjs http://localhost:2000 card`
-  - `node screenshot.mjs http://localhost:2000 button`
-- Verify screenshot naming: `temporary screenshots/screenshot-<N>-<label>.png`.
-
-## Table of Contents
-- [Project Description](#project-description)
-- [Instruction Discovery Order](#instruction-discovery-order)
-- [References](#references)
-- [Tooling Essentials](#tooling-essentials)
-- [Non-Standard Commands](#non-standard-commands)
-- [Instruction Index](#instruction-index)
-- [Notes](#notes)
-
-## Project Description
 Narrative is a Tauri desktop app that layers AI session narratives onto git history.
 
-## Instruction Discovery Order
+## Mandatory workflow snippet
+1. Explore project first, then invoke skill.
+2. IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any React, Tauri, Apps-SDK-ui, Tailwind, Vite, Storybook + Chat Widget tasks.
+3. Add a Table of Contents for docs.
+
+## Instruction discovery order
 1. Global: `/Users/jamiecraik/.codex/AGENTS.md`
 2. Repo root: `AGENTS.md`
 3. Nested AGENTS/README instructions in subdirectories
+4. Precedence rule for this repo: repo-local instructions override global config-repo defaults when they differ.
 
 ## References (informational)
-- Protocol: `/Users/jamiecraik/.codex/instructions/rvcp-common.md`
+- Global protocol: `/Users/jamiecraik/.codex/instructions/rvcp-common.md`
 - Security and standards baseline: `/Users/jamiecraik/.codex/instructions/standards.md`
 - Codestyle: `/Users/jamiecraik/.codex/instructions/CODESTYLE.md`
 
-## Tooling Essentials
+## Tooling essentials
 - Package manager: `pnpm` (Node via mise)
 - Rust toolchain for Tauri features
-- Git must be available in PATH
+- Run shell commands with `zsh -lc`
+- Prefer `rg`, `fd`, and `jq`
+- Execution mode: single-threaded by default
 
-## Non-Standard Commands
+## Non-standard commands
 - `pnpm typecheck`
 - `pnpm lint`
 - `pnpm test`
 - `pnpm tauri dev`
 - `pnpm tauri build`
+- `pnpm docs:lint`
 - `pnpm agentation:autopilot`
 - `pnpm agentation:critique`
-- `pnpm docs:lint`
 
-## Instruction Index
-- [`docs/agents/frontend-website-rules.md`](docs/agents/frontend-website-rules.md) — Session-specific frontend website workflow and hard constraints
-- [`docs/agents/development.md`](docs/agents/development.md) — App setup and local development
-- [`docs/agents/testing.md`](docs/agents/testing.md) — Test and verification commands
-- [`docs/agents/tauri.md`](docs/agents/tauri.md) — Tauri integration and security
-- [`docs/agents/repo-structure.md`](docs/agents/repo-structure.md) — Codebase structure
-- [`docs/agents/repair-agent.md`](docs/agents/repair-agent.md) — Agent repair and troubleshooting workflow
-- [`docs/agents/instruction-governance.md`](docs/agents/instruction-governance.md) — Instruction conflicts and cleanup candidates
-- [`docs/agents/landing-page-separation.md`](docs/agents/landing-page-separation.md) — Landing page vs in-app UI boundary and separation workflow.
-
-## Landing Page / Frontend Verification Ops
-- For standalone landing-page work (and only then), follow `docs/agents/frontend-website-rules.md`.
-- Confirm boundary first in `docs/agents/landing-page-separation.md` before entering frontend verification mode.
-- Mandatory verification flow:
-  1. `pnpm build` (ensures `dist` is current),
-  2. Ensure no stale `node serve.mjs` process is already running, then
-  3. `node serve.mjs`,
-  4. capture at least these shots:
-     - `node screenshot.mjs http://localhost:2000`
-     - `node screenshot.mjs http://localhost:2000 card`
-     - `node screenshot.mjs http://localhost:2000 button`
-- Never start a second `serve.mjs` if port 2000 is already in use.
-- If `screenshot.mjs` fails with `ERR_CONNECTION_REFUSED`, wait/retry after server startup.
-- Use `temporary screenshots/screenshot-<N>-<label>.png` naming; avoid overwriting and keep labels descriptive (`card`, `button`, `modal`, etc.).
+## Documentation map
+### Table of Contents
+- [Frontend website rules](docs/agents/frontend-website-rules.md)
+- [Landing page separation](docs/agents/landing-page-separation.md)
+- [Development](docs/agents/development.md)
+- [Testing](docs/agents/testing.md)
+- [Tauri](docs/agents/tauri.md)
+- [Repo structure](docs/agents/repo-structure.md)
+- [Repair agent](docs/agents/repair-agent.md)
+- [Instruction governance](docs/agents/instruction-governance.md)
+- [Agentation schema](docs/agents/agentation-schema.md)
+- [Hybrid capture rollout runbook](docs/agents/hybrid-capture-rollout-runbook.md)
 
 ## Notes
-- Frontend-specific rules are in `docs/agents/frontend-website-rules.md` and are the primary reference when the website/landing page is being built or maintained separately from the Tauri shell.
-- For in-app Tauri UI changes, prefer the app-specific docs unless the task explicitly requests standalone-page workflow.
+- For standalone landing-page work, confirm boundary in `docs/agents/landing-page-separation.md` before using frontend screenshot workflows.
+- Keep root guidance minimal; detailed procedures live under `docs/agents/`.
