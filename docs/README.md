@@ -25,7 +25,6 @@ This directory contains developer documentation and operational notes for the Na
 - `docs/assets/screenshots/` — Visual assets for documentation (landing, dashboard, repo views).
 - `docs/reports/` — Audit and post-merge review reports.
 
-
 ## Agentation Quick Start
 
 - Package setup (repo-local):

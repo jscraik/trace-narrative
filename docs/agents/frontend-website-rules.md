@@ -1,8 +1,11 @@
+---
 schema_version: 1
+---
 
 # AGENTS.md — Frontend Website Rules
 
 ## Table of Contents
+
 - [Scope and when to apply](#scope-and-when-to-apply)
 - [Mandatory Workflow Snippet](#mandatory-workflow-snippet)
 - [Always Do First](#always-do-first)
@@ -16,30 +19,36 @@ schema_version: 1
 - [Instruction Governance](#instruction-governance)
 
 ## Scope and when to apply
+
 - Use these rules when the task is a **standalone frontend webpage**, such as a marketing or landing page, or when the user explicitly requests a web-page build/delta that is not embedded directly in the Tauri app UI.
 - These rules are especially for the planned landing-page separation from the Tauri app.
 - For in-app Tauri UI work, follow `docs/agents/tauri.md` and the app-level implementation docs unless the task explicitly asks for landing-page matching workflows.
 
 ## Mandatory Workflow Snippet
+
 - Explore project first, then invoke skill.
 - IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any React, Tauri, Apps-SDK-ui, Tailwind, Vite, Storybook + Chat Widget tasks.
 - Add a Table of Contents for docs.
 
 ## Always Do First
+
 - **Invoke the `$ui-ux-creative-coding` & `$interface-craft`** before writing any frontend code, every session, no exceptions.
 
 ## Reference Images
+
 - If a reference image is provided: match layout, spacing, typography, and color exactly. Swap in placeholder content (images via `https://placehold.co/`, generic copy). Do not improve or add to the design.
 - If no reference image: design from scratch with high craft (see guardrails below).
 - Screenshot your output, compare against reference, fix mismatches, re-screenshot. Do at least 2 comparison rounds. Stop only when no visible differences remain or user says so.
 
 ## Local Server
+
 - **Always serve on localhost** — never screenshot a `file:///` URL.
 - Start the dev server: `node serve.mjs` (serves the project root at `http://localhost:2000`)
 - `serve.mjs` lives in the project root. Start it in the background before taking any screenshots.
 - If the server is already running, do not start a second instance.
 
 ## Screenshot Workflow
+
 - Use `agent-browser` (via CLI/DevTools) for screenshot capture workflows.
 - **Always screenshot from localhost:** `node screenshot.mjs http://localhost:2000`
 - Screenshots are saved automatically to `./temporary screenshots/screenshot-N.png` (auto-incremented, never overwritten).
@@ -53,18 +62,21 @@ schema_version: 1
 - Check: spacing/padding, font size/weight/line-height, colors (exact hex), alignment, border-radius, shadows, image sizing
 
 ## Output Defaults
+
 - Single `index.html` file, all styles inline, unless user says otherwise.
 - Tailwind CSS via CDN: `<script src="https://cdn.tailwindcss.com"></script>`
 - Placeholder images: `https://placehold.co/WIDTHxHEIGHT`
 - Mobile-first responsive
 
 ## Brand Assets
+
 - Always check the `brand/` folder before designing. It may contain logos, color guides, style guides, or images.
 - If assets exist there, use them. Do not use placeholders where real assets are available.
 - If a logo is present, use it. If a color palette is defined, use those exact values — do not invent brand colors.
 - Always use `$design-system` for brand guidelines.
 
 ## Anti-Generic Guardrails
+
 - **Colors:** Never use default Tailwind palette (indigo-500, blue-600, etc.). Pick a custom brand color and derive from it.
 - **Shadows:** Never use flat `shadow-md`. Use layered, color-tinted shadows with low opacity.
 - **Typography:** Never use the same font for headings and body. Pair a display/serif with a clean sans. Apply tight tracking (`-0.03em`) on large headings, generous line-height (`1.7`) on body.
@@ -76,6 +88,7 @@ schema_version: 1
 - **Depth:** Surfaces should have a layering system (base → elevated → floating), not all sit at the same z-plane.
 
 ## Hard Rules
+
 - Do not add sections, features, or content not in the reference
 - Do not "improve" a reference design — match it
 - Do not stop after one screenshot pass
@@ -83,6 +96,7 @@ schema_version: 1
 - Do not use default Tailwind blue/indigo as primary color
 
 ## Instruction Governance
+
 - **Resolved items:**
   - `serve.mjs` and `screenshot.mjs` are now present in repository root and satisfy the screenshot workflow command requirements.
   - Frontend workflow applies to the separated landing page build context and is not the default mode for in-app Tauri UI edits unless explicitly requested.

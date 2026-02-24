@@ -119,7 +119,6 @@ Configure the MCP server in `~/.claude/settings.json` for Claude Code integratio
 
 ---
 
-
 ## Troubleshooting: Webhook/Websocket panel empty on startup
 
 If the Agentation panel shows no webhook URL or a blank websocket field:
@@ -130,13 +129,13 @@ If the Agentation panel shows no webhook URL or a blank websocket field:
 cp .env.agentation.example .env.local
 ```
 
-2. Ensure Vite has:
+1. Ensure Vite has:
 
 ```bash
 VITE_AGENTATION_WEBHOOK_URL=http://localhost:8787
 ```
 
-3. Start services in order:
+1. Start services in order:
 
 ```bash
 pnpm agentation:dev    # starts MCP + autopilot listener
