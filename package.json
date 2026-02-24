@@ -102,6 +102,7 @@
       "@design-studio/runtime": "file:vendor/design-studio/design-studio-runtime-2.0.0.tgz",
       "@design-studio/tokens": "file:vendor/design-studio/design-studio-tokens-2.0.0.tgz",
       "lodash": "^4.17.23",
+      "minimatch": "^10.2.1",
       "tmp": "^0.2.4"
     }
   }
