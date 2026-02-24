@@ -45,12 +45,14 @@ export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
   const { checkOnMount = false, pollIntervalMinutes = 0 } = options;
   const [status, setStatus] = useState<UpdateStatus | null>(null);
   const checkRequestVersionRef = useRef(0);
+  const installRequestVersionRef = useRef(0);
   const mountedRef = useRef(true);
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
       checkRequestVersionRef.current += 1;
+      installRequestVersionRef.current += 1;
     };
   }, []);
 
@@ -59,6 +61,8 @@ export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
     checkRequestVersionRef.current = requestVersion;
     const isStaleRequest = () =>
       !mountedRef.current || checkRequestVersionRef.current !== requestVersion;
+
+    if (isStaleRequest()) return;
 
     try {
       setStatus({ type: 'checking' });
@@ -85,12 +89,17 @@ export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
     if (status?.type !== 'available') return;
 
     const { update } = status;
+    const requestVersion = installRequestVersionRef.current + 1;
+    installRequestVersionRef.current = requestVersion;
+    const isStaleRequest = () =>
+      !mountedRef.current || installRequestVersionRef.current !== requestVersion;
 
     try {
       let downloaded = 0;
       let contentLength = 0;
 
       await update.downloadAndInstall((event) => {
+        if (isStaleRequest()) return;
         switch (event.event) {
           case 'Started':
             contentLength = event.data.contentLength ?? 0;
@@ -109,6 +118,7 @@ export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
             break;
         }
       });
+      if (isStaleRequest()) return;
 
       // Update installed, ask to restart
       const shouldRestart = await ask(
@@ -120,16 +130,19 @@ export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
           cancelLabel: 'Later'
         }
       );
+      if (isStaleRequest()) return;
 
       if (shouldRestart) {
         await relaunch();
       }
     } catch (error) {
+      if (isStaleRequest()) return;
       console.error('Failed to install update:', error);
       await message(
         `Failed to install update: ${error instanceof Error ? error.message : 'Unknown error'}`,
         { title: 'Update Error', kind: 'error' }
       );
+      if (isStaleRequest()) return;
       setStatus({ 
         type: 'error', 
         error: error instanceof Error ? error.message : 'Unknown error' 
@@ -138,6 +151,7 @@ export function useUpdater(options: UseUpdaterOptions = {}): UseUpdaterReturn {
   }, [status]);
 
   const dismiss = useCallback(() => {
+    installRequestVersionRef.current += 1;
     setStatus(null);
   }, []);
 

@@ -81,14 +81,24 @@ export function useAutoIngest(params: {
   const lastImportRef = useRef<{ source?: string; time?: string }>({});
   const idCounter = useRef(0);
   const reliabilityRefreshInFlightRef = useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const refreshActivity = useCallback(async (limit: number) => {
     try {
       const items = await getIngestActivity(repoId, limit);
+      if (!isMountedRef.current) return;
       setActivityRecent(items.slice(0, 3));
       const lastSeenAtISO = items[0]?.createdAtIso;
       if (lastSeenAtISO) {
         lastImportRef.current = { ...lastImportRef.current, time: lastSeenAtISO };
+        if (!isMountedRef.current) return;
         setStatus((prev) => ({
           ...prev,
           lastImportAt: lastSeenAtISO
@@ -115,6 +125,7 @@ export function useAutoIngest(params: {
   }, [repoRoot, repoId, model.timeline, setRepoState]);
 
   const recordIssue = useCallback((title: string, message: string, action?: IngestIssue['action']) => {
+    if (!isMountedRef.current) return;
     idCounter.current += 1;
     const id = `${Date.now()}-${idCounter.current}`;
     setIssues((prev) => {
@@ -136,6 +147,7 @@ export function useAutoIngest(params: {
         getCodexAppServerStatus(),
       ]);
 
+      if (!isMountedRef.current) return;
       setCollectorMigration(migration);
       setCaptureReliability(reliability);
       setCodexAppServerStatus(appServer);
@@ -156,8 +168,10 @@ export function useAutoIngest(params: {
   const showToast = useCallback((message: string) => {
     idCounter.current += 1;
     const id = `${Date.now()}-${idCounter.current}`;
+    if (!isMountedRef.current) return;
     setToast({ id, message });
     setTimeout(() => {
+      if (!isMountedRef.current) return;
       setToast((prev) => (prev?.id === id ? null : prev));
     }, 3500);
   }, []);
@@ -167,11 +181,15 @@ export function useAutoIngest(params: {
       if (!repoId) return;
       try {
         const result = await autoImportSessionFile(repoId, payload.path);
+        if (!isMountedRef.current) return;
         await refreshBadges();
+        if (!isMountedRef.current) return;
         await refreshActivity(3);
+        if (!isMountedRef.current) return;
 
         if (result.status === 'imported') {
           const message = `Imported ${result.tool} session (redactions: ${result.redactionCount})`;
+          if (!isMountedRef.current) return;
           showToast(message);
           lastImportRef.current = { source: result.tool, time: new Date().toISOString() };
           setStatus((prev) => ({
@@ -180,6 +198,7 @@ export function useAutoIngest(params: {
             lastSource: result.tool
           }));
         } else if (result.status === 'skipped') {
+          if (!isMountedRef.current) return;
           showToast(`Skipped duplicate ${result.tool} session`);
         }
       } catch (e) {
@@ -202,7 +221,7 @@ export function useAutoIngest(params: {
         const migration = await getCollectorMigrationStatus();
         const reliability = await getCaptureReliabilityStatus();
         const appServer = await getCodexAppServerStatus();
-        if (!mounted) return;
+        if (!mounted || !isMountedRef.current) return;
         setConfig(config);
         setOtlpKey(key);
         setSources(discovered);
@@ -217,10 +236,12 @@ export function useAutoIngest(params: {
           captureModeMessage: reliability.reasons[0],
           migrationRequired: migration.migrationRequired,
         }));
+        if (!mounted || !isMountedRef.current) return;
         await purgeExpiredSessions(repoId, config.retentionDays);
+        if (!mounted || !isMountedRef.current) return;
         await refreshActivity(3);
       } catch (e) {
-        if (!mounted) return;
+        if (!mounted || !isMountedRef.current) return;
         recordIssue('Ingest config error', e instanceof Error ? e.message : String(e));
       }
     };
@@ -235,20 +256,25 @@ export function useAutoIngest(params: {
     if (!repoRoot || !repoId) return;
     if (!config?.autoIngestEnabled) return;
     let cancelled = false;
-    let unlistenStatus: (() => void) | undefined;
+    let unlistenStatus: (() => void) | null = null;
 
     const attach = async () => {
       try {
-        unlistenStatus = await listen<CodexAppServerStatus>('codex-app-server-status', (event) => {
+        const statusUnlisten = await listen<CodexAppServerStatus>('codex-app-server-status', (event) => {
           if (cancelled) return;
           setCodexAppServerStatus(event.payload);
         });
+        if (cancelled) {
+          statusUnlisten();
+          return;
+        }
+        unlistenStatus = statusUnlisten;
       } catch {
         // optional listener
       }
     };
 
-    attach();
+    void attach();
     const interval = setInterval(() => {
       if (cancelled) return;
       void refreshReliability();
@@ -265,44 +291,61 @@ export function useAutoIngest(params: {
     if (!config?.autoIngestEnabled || watchPaths.length === 0) return;
     if (!repoRoot || !repoId) return;
 
-    let unlisten: (() => void) | undefined;
-    let unlistenOtel: (() => void) | undefined;
+    let unlisten: (() => void) | null = null;
+    let unlistenOtel: (() => void) | null = null;
     let cancelled = false;
+    const stopWatcherSafely = () => {
+      void stopFileWatcher();
+    };
 
     const start = async () => {
       try {
         await startFileWatcher(watchPaths);
+        if (cancelled) {
+          stopWatcherSafely();
+          return;
+        }
       } catch (e) {
         recordIssue('Auto-ingest disabled', e instanceof Error ? e.message : String(e));
         return;
       }
 
       try {
-        unlisten = await listen<{ path: string; tool?: string }>('session-file-changed', async (event) => {
+        const sessionUnlisten = await listen<{ path: string; tool?: string }>('session-file-changed', async (event) => {
           if (cancelled) return;
           await handleAutoImport(event.payload);
         });
+        if (cancelled) {
+          sessionUnlisten();
+          return;
+        }
+        unlisten = sessionUnlisten;
       } catch (e) {
         recordIssue('Auto-ingest listener failed', e instanceof Error ? e.message : String(e));
       }
 
       try {
-        unlistenOtel = await listen('otel-trace-ingested', async () => {
+        const otelUnlisten = await listen('otel-trace-ingested', async () => {
           if (cancelled) return;
           await refreshActivity(3);
         });
+        if (cancelled) {
+          otelUnlisten();
+          return;
+        }
+        unlistenOtel = otelUnlisten;
       } catch {
         // optional
       }
     };
 
-    start();
+    void start();
 
     return () => {
       cancelled = true;
       if (unlisten) unlisten();
       if (unlistenOtel) unlistenOtel();
-      stopFileWatcher();
+      stopWatcherSafely();
     };
   }, [config?.autoIngestEnabled, watchPaths, repoRoot, repoId, handleAutoImport, refreshActivity, recordIssue]);
 
@@ -328,6 +371,7 @@ export function useAutoIngest(params: {
             recordIssue('Failed to disable Codex receiver', e instanceof Error ? e.message : String(e));
           }
           await refreshReliability();
+          if (!isMountedRef.current) return;
           return;
         }
 
@@ -335,6 +379,7 @@ export function useAutoIngest(params: {
         showToast('Backfilling recent sessions…');
         try {
           const res = await backfillRecentSessions(repoId, 10);
+          if (!isMountedRef.current) return;
           if (res.failed && res.failed > 0) {
             showToast(`Backfilled ${res.imported} session(s) with ${res.failed} failure(s).`);
           } else if (res.imported && res.imported > 0) {
@@ -368,7 +413,9 @@ export function useAutoIngest(params: {
         if (next.codex.streamEnrichmentEnabled && !next.codex.streamKillSwitch) {
           try {
             await startCodexAppServer();
+            if (!isMountedRef.current) return;
             await codexAppServerInitialize();
+            if (!isMountedRef.current) return;
             await codexAppServerSetStreamHealth(true);
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
@@ -376,6 +423,7 @@ export function useAutoIngest(params: {
           }
         }
         await refreshReliability();
+        if (!isMountedRef.current) return;
       } catch (e) {
         recordIssue('Auto-ingest toggle failed', e instanceof Error ? e.message : String(e));
       }
@@ -386,6 +434,7 @@ export function useAutoIngest(params: {
   const updateWatchPaths = useCallback(async (paths: { claude: string[]; cursor: string[]; codexLogs: string[] }) => {
     try {
       const next = await setIngestConfig({ watchPaths: paths });
+      if (!isMountedRef.current) return;
       setConfig(next);
       await refreshReliability();
     } catch (e) {
@@ -397,12 +446,14 @@ export function useAutoIngest(params: {
     if (!config) return;
     try {
       const key = await ensureOtlpApiKey();
+      if (!isMountedRef.current) return;
       setOtlpKey(key);
       await configureCodexOtel(config.codex.endpoint);
       const receiverEnabled = key.present && config.consent.codexTelemetryGranted;
       const next = await setIngestConfig({
         codex: { ...config.codex, receiverEnabled }
       });
+      if (!isMountedRef.current) return;
       setConfig(next);
       showToast('Codex telemetry configured');
       await refreshReliability();
@@ -414,6 +465,7 @@ export function useAutoIngest(params: {
   const rotateOtlpKey = useCallback(async () => {
     try {
       const key = await resetOtlpApiKey();
+      if (!isMountedRef.current) return;
       setOtlpKey(key);
       showToast('Receiver API key rotated');
     } catch (e) {
@@ -427,6 +479,7 @@ export function useAutoIngest(params: {
       const next = await setIngestConfig({
         consent: { codexTelemetryGranted: true, grantedAtIso: now }
       });
+      if (!isMountedRef.current) return;
       setConfig(next);
     } catch (e) {
       recordIssue('Consent update failed', e instanceof Error ? e.message : String(e));
@@ -436,6 +489,7 @@ export function useAutoIngest(params: {
   const migrateCollector = useCallback(async (dryRun = false) => {
     try {
       const result = await runCollectorMigration(dryRun);
+      if (!isMountedRef.current) return result;
       setCollectorMigration(result.status);
       if (!dryRun && result.migrated) {
         showToast('Collector migration completed');
@@ -454,6 +508,7 @@ export function useAutoIngest(params: {
   const rollbackCollector = useCallback(async () => {
     try {
       const result = await rollbackCollectorMigration();
+      if (!isMountedRef.current) return result;
       setCollectorMigration(result.status);
       showToast('Collector migration rollback applied');
       await refreshReliability();

@@ -173,4 +173,214 @@ describe('useSourceLensData', () => {
 
     expect(result.current.stats?.totalLines).toBe(20);
   });
+
+  it('ignores stale import completion after commit change', async () => {
+    const staleImport = createDeferred<{ status: 'ok'; importedRanges: number }>();
+    mockImportAttributionNote.mockImplementation((_repoId: number, targetCommit: string) => {
+      if (targetCommit === 'old-sha') return staleImport.promise;
+      return Promise.resolve({ status: 'ok', importedRanges: 2 });
+    });
+
+    mockInvoke.mockImplementation((_command: string, args: { request: { commitSha: string } }) =>
+      Promise.resolve({
+        lines: [{ lineNumber: 1, content: `line-${args.request.commitSha}`, authorType: 'human' as const }],
+        totalLines: 1,
+        hasMore: false,
+      })
+    );
+
+    const { result, rerender } = renderHook(
+      ({ commitSha }) =>
+        useSourceLensData({
+          repoId: 1,
+          commitSha,
+          filePath: 'src/file.ts',
+        }),
+      { initialProps: { commitSha: 'old-sha' } }
+    );
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'get_file_source_lens',
+        expect.objectContaining({
+          request: expect.objectContaining({ commitSha: 'old-sha' }),
+        })
+      );
+    });
+
+    let pendingImport!: Promise<void>;
+    await act(async () => {
+      pendingImport = result.current.handleImportNote();
+      await Promise.resolve();
+    });
+
+    rerender({ commitSha: 'new-sha' });
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'get_file_source_lens',
+        expect.objectContaining({
+          request: expect.objectContaining({ commitSha: 'new-sha' }),
+        })
+      );
+    });
+
+    const oldShaCallsBeforeResolve = mockInvoke.mock.calls.filter(
+      (call) =>
+        ((call[1] as { request?: { commitSha?: string } } | undefined)?.request?.commitSha ?? '') ===
+        'old-sha'
+    ).length;
+
+    await act(async () => {
+      staleImport.resolve({ status: 'ok', importedRanges: 9 });
+      await staleImport.promise;
+      await pendingImport;
+      await Promise.resolve();
+    });
+
+    const oldShaCallsAfterResolve = mockInvoke.mock.calls.filter(
+      (call) =>
+        ((call[1] as { request?: { commitSha?: string } } | undefined)?.request?.commitSha ?? '') ===
+        'old-sha'
+    ).length;
+
+    expect(oldShaCallsAfterResolve).toBe(oldShaCallsBeforeResolve);
+    expect(result.current.syncing).toBe(false);
+    expect(result.current.syncStatus).toBeNull();
+  });
+
+  it('does not attempt state updates after unmount on pending attribution load', async () => {
+    const pending = createDeferred<{
+      lines: Array<{ lineNumber: number; content: string; authorType: 'human' }>;
+      totalLines: number;
+      hasMore: boolean;
+    }>();
+    mockInvoke.mockImplementation(() => pending.promise);
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { unmount } = renderHook(() =>
+      useSourceLensData({
+        repoId: 1,
+        commitSha: 'sha-1',
+        filePath: 'src/file.ts',
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+
+    await act(async () => {
+      pending.resolve({
+        lines: [{ lineNumber: 1, content: 'late-line', authorType: 'human' }],
+        totalLines: 1,
+        hasMore: false,
+      });
+      await pending.promise;
+    });
+
+    expect(consoleError).not.toHaveBeenCalledWith(
+      expect.stringContaining("Can't perform a React state update on an unmounted component")
+    );
+    consoleError.mockRestore();
+  });
+
+  it('does not attempt state updates after unmount during pending import action', async () => {
+    const pendingImport = createDeferred<{ status: 'ok'; importedRanges: number }>();
+    mockImportAttributionNote.mockReturnValue(pendingImport.promise);
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result, unmount } = renderHook(() =>
+      useSourceLensData({
+        repoId: 1,
+        commitSha: 'sha-1',
+        filePath: 'src/file.ts',
+      })
+    );
+
+    await act(async () => {
+      void result.current.handleImportNote();
+      await Promise.resolve();
+    });
+
+    unmount();
+
+    await act(async () => {
+      pendingImport.resolve({ status: 'ok', importedRanges: 3 });
+      await pendingImport.promise;
+    });
+
+    expect(consoleError).not.toHaveBeenCalledWith(
+      expect.stringContaining("Can't perform a React state update on an unmounted component")
+    );
+    consoleError.mockRestore();
+  });
+
+  it('does not attempt state updates after unmount during pending export action', async () => {
+    const pendingExport = createDeferred<{ status: 'ok'; commitSha: string }>();
+    mockExportAttributionNote.mockReturnValue(pendingExport.promise);
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result, unmount } = renderHook(() =>
+      useSourceLensData({
+        repoId: 1,
+        commitSha: 'sha-1',
+        filePath: 'src/file.ts',
+      })
+    );
+
+    await act(async () => {
+      void result.current.handleExportNote();
+      await Promise.resolve();
+    });
+
+    unmount();
+
+    await act(async () => {
+      pendingExport.resolve({ status: 'ok', commitSha: 'sha-1' });
+      await pendingExport.promise;
+    });
+
+    expect(consoleError).not.toHaveBeenCalledWith(
+      expect.stringContaining("Can't perform a React state update on an unmounted component")
+    );
+    consoleError.mockRestore();
+  });
+
+  it('does not attempt state updates after unmount during pending enable-metadata action', async () => {
+    const pendingSetPrefs = createDeferred<AttributionPrefs>();
+    mockSetAttributionPrefs.mockReturnValue(pendingSetPrefs.promise);
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { result, unmount } = renderHook(() =>
+      useSourceLensData({
+        repoId: 1,
+        commitSha: 'sha-1',
+        filePath: 'src/file.ts',
+      })
+    );
+
+    await act(async () => {
+      void result.current.handleEnableMetadata();
+      await Promise.resolve();
+    });
+
+    unmount();
+
+    await act(async () => {
+      pendingSetPrefs.resolve(createPrefs(1));
+      await pendingSetPrefs.promise;
+    });
+
+    expect(consoleError).not.toHaveBeenCalledWith(
+      expect.stringContaining("Can't perform a React state update on an unmounted component")
+    );
+    consoleError.mockRestore();
+  });
 });
