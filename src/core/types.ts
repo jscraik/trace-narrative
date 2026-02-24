@@ -214,6 +214,18 @@ export type NarrativeExecutionState = 'running' | 'ready' | 'needs_attention' | 
 
 export type NarrativeDetailLevel = 'summary' | 'evidence' | 'diff';
 
+export type NarrativeFeedbackActorRole = 'developer' | 'reviewer';
+export type NarrativeFeedbackType = 'highlight_key' | 'highlight_wrong' | 'branch_missing_decision';
+export type NarrativeFeedbackTargetKind = 'highlight' | 'branch';
+
+export type NarrativeFeedbackAction = {
+  actorRole: NarrativeFeedbackActorRole;
+  feedbackType: NarrativeFeedbackType;
+  targetKind: NarrativeFeedbackTargetKind;
+  targetId?: string;
+  detailLevel: NarrativeDetailLevel;
+};
+
 export type NarrativeEvidenceKind = 'commit' | 'session' | 'file' | 'diff';
 
 export type NarrativeEvidenceLink = {
@@ -264,6 +276,20 @@ export type BranchNarrative = {
   highlights: NarrativeHighlight[];
   evidenceLinks: NarrativeEvidenceLink[];
   fallbackReason?: string;
+};
+
+export type NarrativeCalibrationProfile = {
+  repoId: number;
+  rankingBias: number;
+  confidenceOffset: number;
+  confidenceScale: number;
+  sampleCount: number;
+  windowStartISO?: string;
+  windowEndISO?: string;
+  actorWeightPolicyVersion: string;
+  branchMissingDecisionCount: number;
+  highlightAdjustments: Record<string, number>;
+  updatedAtISO: string;
 };
 
 export type GitHubContextStatus = 'disabled' | 'loading' | 'ready' | 'partial' | 'empty' | 'error';

@@ -139,4 +139,19 @@ describe('evaluateNarrativeRollout', () => {
     expect(report.status).toBe('watch');
     expect(report.rules.some((rule) => rule.id === 'connector_error' && rule.triggered)).toBe(true);
   });
+
+  it('preserves v1 rollout thresholds while calibration is introduced elsewhere', () => {
+    const report = evaluateNarrativeRollout({
+      narrative: healthyNarrative,
+      projections,
+      githubContextState: disabledConnector,
+      observability: baselineObservability,
+    });
+
+    const confidenceMetric = report.rubric.find((metric) => metric.id === 'confidence');
+    const fallbackMetric = report.rubric.find((metric) => metric.id === 'fallback_health');
+
+    expect(confidenceMetric?.threshold).toBe(0.65);
+    expect(fallbackMetric?.threshold).toBe(0.6);
+  });
 });

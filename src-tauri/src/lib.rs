@@ -191,6 +191,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             sql: include_str!("../migrations/012_atlas.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 13,
+            description: "add_narrative_feedback",
+            sql: include_str!("../migrations/013_narrative_feedback.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

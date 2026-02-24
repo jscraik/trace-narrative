@@ -26,6 +26,25 @@ vi.mock("../../../core/repo/githubContext", () => ({
   loadGitHubContext: vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
 }));
 
+vi.mock("../../../core/repo/narrativeFeedback", () => ({
+  getNarrativeCalibrationProfile: vi.fn().mockResolvedValue(null),
+  submitNarrativeFeedback: vi.fn().mockResolvedValue({
+    inserted: true,
+    idempotencyKey: "mock:key",
+    profile: {
+      repoId: 1,
+      rankingBias: 0,
+      confidenceOffset: 0,
+      confidenceScale: 1,
+      sampleCount: 0,
+      actorWeightPolicyVersion: "v1",
+      branchMissingDecisionCount: 0,
+      highlightAdjustments: {},
+      updatedAtISO: "2026-02-24T00:00:00.000Z",
+    },
+  }),
+}));
+
 vi.mock("../../../core/narrative/composeBranchNarrative", () => ({
   composeBranchNarrative: vi.fn(() => ({
     schemaVersion: 1,
