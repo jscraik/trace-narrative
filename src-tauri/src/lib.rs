@@ -205,6 +205,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             sql: include_str!("../migrations/014_narrative_feedback_hardening.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 15,
+            description: "add_live_sessions",
+            sql: include_str!("../migrations/015_live_sessions.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
@@ -295,9 +301,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             codex_app_server::codex_app_server_account_login_completed,
             codex_app_server::codex_app_server_account_updated,
             codex_app_server::codex_app_server_account_logout,
+            // TODO(2026-02-24): deprecated internal aliases kept for one release.
             codex_app_server::codex_app_server_set_stream_health,
             codex_app_server::codex_app_server_set_stream_kill_switch,
             codex_app_server::codex_app_server_request_thread_snapshot,
+            codex_app_server::codex_app_server_receive_live_event,
+            codex_app_server::codex_app_server_submit_approval,
             codex_app_server::ingest_codex_stream_event,
             codex_app_server::get_codex_stream_dedupe_log,
             codex_app_server::get_capture_reliability_status,

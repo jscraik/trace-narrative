@@ -8,7 +8,7 @@ import {
   autoImportSessionFile,
   configureCodexOtel,
   codexAppServerInitialize,
-  codexAppServerSetStreamHealth,
+  codexAppServerInitialized,
   discoverCaptureSources,
   getCaptureReliabilityStatus,
   getCollectorMigrationStatus,
@@ -30,6 +30,7 @@ import {
   type CodexAppServerStatus,
   type CollectorMigrationStatus,
   type IngestConfig,
+  type LiveSessionEventPayload,
   type DiscoveredSources,
   type OtlpKeyStatus
 } from '../core/tauri/ingestConfig';
@@ -257,6 +258,7 @@ export function useAutoIngest(params: {
     if (!config?.autoIngestEnabled) return;
     let cancelled = false;
     let unlistenStatus: (() => void) | null = null;
+    let unlistenLiveEvents: (() => void) | null = null;
 
     const attach = async () => {
       try {
@@ -272,6 +274,24 @@ export function useAutoIngest(params: {
       } catch {
         // optional listener
       }
+
+      try {
+        const liveEventUnlisten = await listen<LiveSessionEventPayload>('session:live:event', (event) => {
+          if (cancelled) return;
+          if (event.payload.type === 'ParserValidationError') {
+            recordIssue('Codex App Server parser validation error', event.payload.reason);
+          }
+          void refreshReliability();
+        });
+
+        if (cancelled) {
+          liveEventUnlisten();
+          return;
+        }
+        unlistenLiveEvents = liveEventUnlisten;
+      } catch {
+        // optional listener
+      }
     };
 
     void attach();
@@ -284,8 +304,9 @@ export function useAutoIngest(params: {
       cancelled = true;
       clearInterval(interval);
       if (unlistenStatus) unlistenStatus();
+      if (unlistenLiveEvents) unlistenLiveEvents();
     };
-  }, [repoRoot, repoId, config?.autoIngestEnabled, refreshReliability]);
+  }, [repoRoot, repoId, config?.autoIngestEnabled, recordIssue, refreshReliability]);
 
   useEffect(() => {
     if (!config?.autoIngestEnabled || watchPaths.length === 0) return;
@@ -416,7 +437,7 @@ export function useAutoIngest(params: {
             if (!isMountedRef.current) return;
             await codexAppServerInitialize();
             if (!isMountedRef.current) return;
-            await codexAppServerSetStreamHealth(true);
+            await codexAppServerInitialized();
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             recordIssue('Codex App Server degraded', msg);

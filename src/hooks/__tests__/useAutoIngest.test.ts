@@ -37,7 +37,7 @@ vi.mock('../../core/tauri/ingestConfig', () => ({
   autoImportSessionFile: mockAutoImportSessionFile,
   backfillRecentSessions: vi.fn(),
   codexAppServerInitialize: vi.fn(),
-  codexAppServerSetStreamHealth: vi.fn(),
+  codexAppServerInitialized: vi.fn(),
   configureCodexOtel: vi.fn(),
   discoverCaptureSources: mockDiscoverCaptureSources,
   ensureOtlpApiKey: vi.fn(),

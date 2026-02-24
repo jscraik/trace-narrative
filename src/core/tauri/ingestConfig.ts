@@ -67,7 +67,7 @@ export type CollectorMigrationResult = {
 };
 
 export type CodexAppServerStatus = {
-  state: 'inactive' | 'starting' | 'healthy' | 'degraded' | 'crash_loop' | 'error';
+  state: 'inactive' | 'starting' | 'running' | 'degraded' | 'crash_loop' | 'error' | 'stopping';
   initialized: boolean;
   initializeSent: boolean;
   authState: 'needs_login' | 'authenticating' | 'authenticated' | 'logged_out';
@@ -119,6 +119,44 @@ export type CodexStreamIngestResult = {
   chosenSource: string;
   replacedSource?: string;
 };
+
+export type LiveSessionEventPayload =
+  | {
+      type: 'SessionDelta';
+      threadId: string;
+      turnId: string;
+      itemId: string;
+      eventType: string;
+      source: 'app_server_stream' | 'otel' | string;
+      sequenceId: number;
+      receivedAtIso: string;
+      payload: unknown;
+    }
+  | {
+      type: 'ApprovalRequest';
+      requestId: string;
+      threadId: string;
+      turnId: string;
+      command: string;
+      options: string[];
+      timeoutMs: number;
+    }
+  | {
+      type: 'ApprovalResult';
+      requestId: string;
+      threadId: string;
+      approved: boolean;
+      decidedAtIso: string;
+      decidedBy?: string;
+      reason?: string;
+    }
+  | {
+      type: 'ParserValidationError';
+      kind: 'schema_mismatch' | 'missing_fields' | 'protocol_violation' | string;
+      rawPreview: string;
+      reason: string;
+      occurredAtIso: string;
+    };
 
 export type AutoImportResult = {
   status: 'imported' | 'skipped' | 'failed';
@@ -215,6 +253,9 @@ export async function codexAppServerLogout(): Promise<CodexAccountStatus> {
   return await invoke<CodexAccountStatus>('codex_app_server_account_logout');
 }
 
+/**
+ * @deprecated Internal-only bridge command kept temporarily for migration safety.
+ */
 export async function codexAppServerSetStreamHealth(healthy: boolean, reason?: string): Promise<CodexAppServerStatus> {
   return await invoke<CodexAppServerStatus>('codex_app_server_set_stream_health', { healthy, reason });
 }
@@ -223,6 +264,23 @@ export async function codexAppServerSetStreamKillSwitch(enabled: boolean): Promi
   return await invoke<CodexAppServerStatus>('codex_app_server_set_stream_kill_switch', { enabled });
 }
 
+export async function codexAppServerReceiveLiveEvent(
+  payload: LiveSessionEventPayload | Record<string, unknown>,
+): Promise<CodexStreamIngestResult | null> {
+  return await invoke<CodexStreamIngestResult | null>('codex_app_server_receive_live_event', { payload });
+}
+
+export async function codexAppServerSubmitApproval(
+  requestId: string,
+  approved: boolean,
+  reason?: string,
+): Promise<LiveSessionEventPayload> {
+  return await invoke<LiveSessionEventPayload>('codex_app_server_submit_approval', { requestId, approved, reason });
+}
+
+/**
+ * @deprecated Internal-only bridge command kept temporarily for migration safety.
+ */
 export async function ingestCodexStreamEvent(event: CodexStreamEventInput): Promise<CodexStreamIngestResult> {
   return await invoke<CodexStreamIngestResult>('ingest_codex_stream_event', { event });
 }
