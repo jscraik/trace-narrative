@@ -21,6 +21,9 @@ const RESTART_COOLDOWN_MS: u64 = 500;
 const SHUTDOWN_GRACE_MS: u64 = 1_500;
 const DEFAULT_LIVE_SESSIONS_TTL_HOURS: i64 = 72;
 const DEFAULT_LIVE_SESSIONS_MAX_ROWS: i64 = 10_000;
+const RECONNECT_REASON_SCHEMA_MISMATCH: &str = "schema_version_mismatch";
+const RECONNECT_REASON_SESSION_INVALID: &str = "session_invalid";
+const RECONNECT_REASON_TOKEN_INVALID: &str = "token_invalid";
 
 pub const LIVE_SESSION_EVENT: &str = "session:live:event";
 
@@ -258,6 +261,8 @@ pub struct LiveSessionsCleanupResult {
 #[derive(Debug, Clone)]
 struct PendingApproval {
     thread_id: String,
+    created_at_epoch_ms: i64,
+    timeout_ms: u64,
 }
 
 struct SidecarProcess {
@@ -324,6 +329,10 @@ impl Default for CodexAppServerRuntime {
 
 fn now_iso() -> String {
     chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+}
+
+fn now_epoch_ms() -> i64 {
+    chrono::Utc::now().timestamp_millis()
 }
 
 fn normalize_source(input: &str) -> String {
@@ -675,6 +684,77 @@ fn parse_i64_env(key: &str, default_value: i64) -> i64 {
         .unwrap_or(default_value)
 }
 
+fn extract_repo_id(payload: &serde_json::Value) -> Option<i64> {
+    payload
+        .get("repoId")
+        .or_else(|| payload.get("repo_id"))
+        .and_then(serde_json::Value::as_i64)
+        .filter(|value| *value > 0)
+}
+
+fn validate_reconnect_payload(payload: &LiveSessionEventPayload) -> Result<(), &'static str> {
+    let LiveSessionEventPayload::SessionDelta { payload, .. } = payload else {
+        return Ok(());
+    };
+
+    let schema_version = payload
+        .get("schemaVersion")
+        .or_else(|| payload.get("schema_version"))
+        .and_then(serde_json::Value::as_str);
+    if let Some(schema_version) = schema_version {
+        if schema_version != "v1" {
+            return Err(RECONNECT_REASON_SCHEMA_MISMATCH);
+        }
+    }
+
+    let session_valid = payload
+        .get("sessionValid")
+        .or_else(|| payload.get("session_valid"))
+        .and_then(serde_json::Value::as_bool);
+    if matches!(session_valid, Some(false)) {
+        return Err(RECONNECT_REASON_SESSION_INVALID);
+    }
+
+    let token_valid = payload
+        .get("tokenValid")
+        .or_else(|| payload.get("token_valid"))
+        .and_then(serde_json::Value::as_bool);
+    let token_expired = payload
+        .get("tokenExpired")
+        .or_else(|| payload.get("token_expired"))
+        .and_then(serde_json::Value::as_bool);
+    if matches!(token_valid, Some(false)) || matches!(token_expired, Some(true)) {
+        return Err(RECONNECT_REASON_TOKEN_INVALID);
+    }
+
+    Ok(())
+}
+
+fn apply_reconnect_validation_failure(runtime: &mut CodexAppServerRuntime, reason: &'static str) {
+    runtime.status.stream_healthy = false;
+    runtime.stream_session_state = StreamSessionState::Failed;
+    if runtime.process_state != ProcessState::CrashLoop {
+        runtime.process_state = ProcessState::Degraded;
+    }
+    runtime.status.last_error = Some(format!("Reconnect validation failed: {reason}"));
+    increment_labeled_counter(&mut runtime.restart_total, reason);
+    increment_labeled_counter(&mut runtime.parse_error_total, "protocol_violation");
+    sync_status(runtime);
+}
+
+fn assert_thread_snapshot_access(runtime: &CodexAppServerRuntime) -> Result<(), String> {
+    if runtime.handshake_state != HandshakeState::Initialized {
+        return Err(
+            "Handshake incomplete: initialize + initialized required before thread requests"
+                .to_string(),
+        );
+    }
+    if runtime.auth_state != AuthState::Authenticated {
+        return Err("Authentication required before requesting thread data".to_string());
+    }
+    Ok(())
+}
+
 fn live_sessions_ttl_hours() -> i64 {
     parse_i64_env(
         "NARRATIVE_LIVE_SESSIONS_TTL_HOURS",
@@ -815,8 +895,39 @@ fn persist_live_event_blocking(
 
     tauri::async_runtime::block_on(async {
         upsert_live_session(&pool, payload).await?;
-        if let LiveSessionEventPayload::SessionDelta { event_type, .. } = payload {
+        if let LiveSessionEventPayload::SessionDelta {
+            thread_id,
+            turn_id,
+            item_id,
+            event_type,
+            source,
+            payload,
+            received_at_iso,
+            ..
+        } = payload
+        {
             if event_type.to_lowercase().contains("completed") {
+                let Some(repo_id) = extract_repo_id(payload) else {
+                    return Err(format!(
+                        "missing repoId for completed session persistence (thread_id={}, turn_id={}, item_id={})",
+                        thread_id, turn_id, item_id
+                    ));
+                };
+
+                crate::import::commands::store_codex_app_server_completed_session(
+                    &pool,
+                    repo_id,
+                    thread_id,
+                    turn_id,
+                    item_id,
+                    event_type,
+                    source,
+                    payload,
+                    received_at_iso,
+                )
+                .await
+                .map_err(|err| format!("canonical session persistence failed: {err}"))?;
+
                 let _ = cleanup_live_sessions_with_policy(
                     &pool,
                     live_sessions_ttl_hours(),
@@ -996,6 +1107,39 @@ fn apply_session_delta(
     }
 }
 
+fn expire_pending_approvals(
+    runtime: &mut CodexAppServerRuntime,
+    now_ms: i64,
+) -> Vec<LiveSessionEventPayload> {
+    let mut expired_request_ids: Vec<String> = Vec::new();
+    for (request_id, pending) in &runtime.approval_waiters {
+        let expires_at_ms = pending
+            .created_at_epoch_ms
+            .saturating_add(pending.timeout_ms as i64);
+        if now_ms >= expires_at_ms {
+            expired_request_ids.push(request_id.clone());
+        }
+    }
+
+    let mut results = Vec::new();
+    for request_id in expired_request_ids {
+        if let Some(pending) = runtime.approval_waiters.remove(&request_id) {
+            let payload = LiveSessionEventPayload::ApprovalResult {
+                request_id,
+                thread_id: pending.thread_id,
+                approved: false,
+                decided_at_iso: now_iso(),
+                decided_by: Some("system".to_string()),
+                reason: Some("Timed out waiting for approval response".to_string()),
+            };
+            increment_labeled_counter(&mut runtime.approval_result_total, "timeout");
+            results.push(payload);
+        }
+    }
+
+    results
+}
+
 fn handle_live_event_internal(
     runtime: &mut CodexAppServerRuntime,
     payload: &LiveSessionEventPayload,
@@ -1026,18 +1170,25 @@ fn handle_live_event_internal(
         LiveSessionEventPayload::ApprovalRequest {
             request_id,
             thread_id,
-            turn_id: _,
+            timeout_ms,
             ..
         } => {
             runtime.approval_waiters.insert(
                 request_id.clone(),
                 PendingApproval {
                     thread_id: thread_id.clone(),
+                    created_at_epoch_ms: now_epoch_ms(),
+                    timeout_ms: *timeout_ms,
                 },
             );
             None
         }
-        LiveSessionEventPayload::ApprovalResult { approved, .. } => {
+        LiveSessionEventPayload::ApprovalResult {
+            request_id,
+            approved,
+            ..
+        } => {
+            runtime.approval_waiters.remove(request_id);
             increment_labeled_counter(
                 &mut runtime.approval_result_total,
                 if *approved { "approved" } else { "rejected" },
@@ -1349,15 +1500,7 @@ pub fn codex_app_server_request_thread_snapshot(
     thread_id: String,
 ) -> Result<serde_json::Value, String> {
     let runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    if runtime.handshake_state != HandshakeState::Initialized {
-        return Err(
-            "Handshake incomplete: initialize + initialized required before thread requests"
-                .to_string(),
-        );
-    }
-    if runtime.auth_state != AuthState::Authenticated {
-        return Err("Authentication required before requesting thread data".to_string());
-    }
+    assert_thread_snapshot_access(&runtime)?;
     Ok(serde_json::json!({
         "threadId": thread_id,
         "status": "ok",
@@ -1383,6 +1526,25 @@ pub fn codex_app_server_receive_live_event(
     };
 
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+
+    if let Err(reason) = validate_reconnect_payload(&parsed) {
+        apply_reconnect_validation_failure(&mut runtime, reason);
+        let parser_error = LiveSessionEventPayload::ParserValidationError {
+            kind: "protocol_violation".to_string(),
+            raw_preview: "reconnect validation failed".to_string(),
+            reason: format!("Reconnect validation failed: {reason}"),
+            occurred_at_iso: now_iso(),
+        };
+        handle_live_event_internal(&mut runtime, &parser_error);
+        emit_live_session_event(&app_handle, &parser_error);
+        emit_status(&app_handle, &runtime.status);
+        return Err(format!("reconnect-validation-failed:{reason}"));
+    }
+
+    for timed_out in expire_pending_approvals(&mut runtime, now_epoch_ms()) {
+        emit_live_session_event(&app_handle, &timed_out);
+    }
+
     let result = handle_live_event_internal(&mut runtime, &parsed);
 
     emit_live_session_event(&app_handle, &parsed);
@@ -1415,6 +1577,9 @@ pub fn codex_app_server_submit_approval(
     reason: Option<String>,
 ) -> Result<LiveSessionEventPayload, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+    for timed_out in expire_pending_approvals(&mut runtime, now_epoch_ms()) {
+        emit_live_session_event(&app_handle, &timed_out);
+    }
     let Some(pending) = runtime.approval_waiters.remove(&request_id) else {
         return Err(format!("approval request not found: {request_id}"));
     };
@@ -1542,14 +1707,19 @@ pub fn ingest_codex_stream_event(
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_account_updated, cleanup_live_sessions_with_policy, command_not_exposed_error,
-        event_identity_key, handle_live_event_internal, parse_event_from_legacy_input,
+        apply_account_updated, apply_reconnect_validation_failure, assert_thread_snapshot_access,
+        cleanup_live_sessions_with_policy, command_not_exposed_error, event_identity_key,
+        expire_pending_approvals, handle_live_event_internal, parse_event_from_legacy_input,
         parse_live_payload, parser_validation_error, register_start_failure,
-        remember_dedupe_source, source_priority, AuthState, CodexAppServerRuntime,
-        CodexAppServerStatus, CodexStreamEventInput, HandshakeState, LiveSessionEventPayload,
-        MAX_DEDUPE_SOURCES, RESTART_BUDGET,
+        remember_dedupe_source, source_priority, terminate_child_with_timeout,
+        validate_reconnect_payload, AuthState, CodexAppServerRuntime, CodexAppServerStatus,
+        CodexStreamEventInput, HandshakeState, LiveSessionEventPayload, MAX_DEDUPE_SOURCES,
+        RECONNECT_REASON_SCHEMA_MISMATCH, RECONNECT_REASON_SESSION_INVALID,
+        RECONNECT_REASON_TOKEN_INVALID, RESTART_BUDGET,
     };
     use sqlx::sqlite::SqlitePoolOptions;
+    use std::process::Command;
+    use std::time::Duration;
 
     #[test]
     fn identity_key_is_stable() {
@@ -1589,6 +1759,22 @@ mod tests {
         }
         assert_eq!(runtime.status.state, "crash_loop");
         assert_eq!(runtime.status.restart_attempts_in_window, RESTART_BUDGET);
+    }
+
+    #[test]
+    fn start_failure_sets_degraded_state_before_crash_loop_threshold() {
+        let mut runtime = CodexAppServerRuntime::default();
+        register_start_failure(&mut runtime, "spawn failed".to_string(), "spawn_failed");
+
+        assert_eq!(runtime.status.state, "degraded");
+        assert_eq!(runtime.process_state, super::ProcessState::Degraded);
+        assert_eq!(runtime.restart_total.get("spawn_failed").copied(), Some(1));
+        assert!(runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains("spawn failed"));
     }
 
     #[test]
@@ -1703,6 +1889,129 @@ mod tests {
             runtime.approval_result_total.get("rejected").copied(),
             Some(1)
         );
+    }
+
+    #[test]
+    fn approval_timeout_produces_timeout_result() {
+        let mut runtime = CodexAppServerRuntime::default();
+        let request = LiveSessionEventPayload::ApprovalRequest {
+            request_id: "req_timeout".to_string(),
+            thread_id: "thread_timeout".to_string(),
+            turn_id: "turn_timeout".to_string(),
+            command: "write_file".to_string(),
+            options: vec!["allow".to_string(), "deny".to_string()],
+            timeout_ms: 1,
+        };
+        handle_live_event_internal(&mut runtime, &request);
+
+        let expired = expire_pending_approvals(&mut runtime, i64::MAX);
+        assert_eq!(expired.len(), 1);
+        assert!(matches!(
+            &expired[0],
+            LiveSessionEventPayload::ApprovalResult {
+                approved: false,
+                reason: Some(reason),
+                ..
+            } if reason.contains("Timed out")
+        ));
+        assert_eq!(runtime.approval_waiters.len(), 0);
+        assert_eq!(
+            runtime.approval_result_total.get("timeout").copied(),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn thread_snapshot_access_requires_initialized_and_authenticated() {
+        let runtime = CodexAppServerRuntime::default();
+        let err = assert_thread_snapshot_access(&runtime).expect_err("handshake gate should fail");
+        assert!(err.contains("Handshake incomplete"));
+
+        let runtime = CodexAppServerRuntime {
+            handshake_state: HandshakeState::Initialized,
+            auth_state: AuthState::NeedsLogin,
+            ..CodexAppServerRuntime::default()
+        };
+        let err = assert_thread_snapshot_access(&runtime).expect_err("auth gate should fail");
+        assert!(err.contains("Authentication required"));
+
+        let runtime = CodexAppServerRuntime {
+            handshake_state: HandshakeState::Initialized,
+            auth_state: AuthState::Authenticated,
+            ..CodexAppServerRuntime::default()
+        };
+        assert!(assert_thread_snapshot_access(&runtime).is_ok());
+    }
+
+    #[test]
+    fn reconnect_validation_rejects_invalid_schema_session_and_token() {
+        let make_payload = |payload: serde_json::Value| LiveSessionEventPayload::SessionDelta {
+            thread_id: "th".to_string(),
+            turn_id: "tu".to_string(),
+            item_id: "it".to_string(),
+            event_type: "item/delta".to_string(),
+            source: "app_server_stream".to_string(),
+            sequence_id: 1,
+            received_at_iso: "2026-02-24T00:00:00.000Z".to_string(),
+            payload,
+        };
+
+        let invalid_schema = make_payload(serde_json::json!({ "schemaVersion": "v2" }));
+        assert_eq!(
+            validate_reconnect_payload(&invalid_schema).unwrap_err(),
+            RECONNECT_REASON_SCHEMA_MISMATCH
+        );
+
+        let invalid_session = make_payload(serde_json::json!({ "sessionValid": false }));
+        assert_eq!(
+            validate_reconnect_payload(&invalid_session).unwrap_err(),
+            RECONNECT_REASON_SESSION_INVALID
+        );
+
+        let invalid_token = make_payload(serde_json::json!({ "tokenExpired": true }));
+        assert_eq!(
+            validate_reconnect_payload(&invalid_token).unwrap_err(),
+            RECONNECT_REASON_TOKEN_INVALID
+        );
+    }
+
+    #[test]
+    fn reconnect_validation_failure_updates_runtime_with_normalized_reason() {
+        let mut runtime = CodexAppServerRuntime::default();
+        apply_reconnect_validation_failure(&mut runtime, RECONNECT_REASON_TOKEN_INVALID);
+        assert_eq!(runtime.status.state, "degraded");
+        assert_eq!(
+            runtime.stream_session_state,
+            super::StreamSessionState::Failed
+        );
+        assert!(runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains(RECONNECT_REASON_TOKEN_INVALID));
+        assert_eq!(
+            runtime
+                .restart_total
+                .get(RECONNECT_REASON_TOKEN_INVALID)
+                .copied(),
+            Some(1)
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn terminate_child_with_timeout_kills_process_when_needed() {
+        let mut child = Command::new("sh")
+            .arg("-c")
+            .arg("sleep 5")
+            .spawn()
+            .expect("spawn child");
+
+        terminate_child_with_timeout(&mut child, Duration::from_millis(10))
+            .expect("terminate child");
+        let status = child.try_wait().expect("wait child status");
+        assert!(status.is_some());
     }
 
     #[test]

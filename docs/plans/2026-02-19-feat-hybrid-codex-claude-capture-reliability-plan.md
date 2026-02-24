@@ -9,7 +9,7 @@ resolved_by: /Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-
 
 # feat: Hybrid Codex-Claude Capture Reliability v2 (TDD Remediation)
 
-> Lifecycle note (2026-02-24): This plan is completed and reconciled with solution evidence in `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`. Remaining unchecked boxes are historical implementation checkpoints.
+> Lifecycle note (2026-02-24): This plan is completed and reconciled with solution evidence in `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`. Codex App Server runtime completion follow-through is captured in `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-24-feat-codex-app-server-completion-plan.md`. Remaining unchecked boxes are historical implementation checkpoints.
 
 ## Table of Contents
 - [Objective](#objective)

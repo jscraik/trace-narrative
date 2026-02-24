@@ -302,6 +302,120 @@ describe('useAutoIngest listener cleanup', () => {
     expect(mockGetIngestActivity).not.toHaveBeenCalled();
   });
 
+  it('handles all session:live:event payload variants in a synthetic sequence', async () => {
+    const listeners = new Map<string, (event: { payload: unknown }) => void | Promise<void>>();
+    mockListen.mockImplementation(
+      async (event: string, handler: (event: { payload: unknown }) => void | Promise<void>) => {
+        listeners.set(event, handler);
+        return vi.fn();
+      }
+    );
+
+    mockGetIngestConfig.mockResolvedValue(
+      makeConfig({
+        autoIngestEnabled: true,
+        watchPaths: { claude: [], cursor: [], codexLogs: [] },
+      })
+    );
+
+    const { result } = renderHook(() =>
+      useAutoIngest({
+        repoRoot: '/repo',
+        repoId: 1,
+        model: baseModel,
+        setRepoState: vi.fn(),
+      })
+    );
+
+    await waitFor(() => {
+      expect(listeners.has('session:live:event')).toBe(true);
+    });
+
+    const liveEventCallback = listeners.get('session:live:event');
+    expect(liveEventCallback).toBeDefined();
+
+    let reliabilityCalls = mockGetCaptureReliabilityStatus.mock.calls.length;
+
+    act(() => {
+      void liveEventCallback?.({
+        payload: {
+          type: 'SessionDelta',
+          threadId: 'th_1',
+          turnId: 'tu_1',
+          itemId: 'it_1',
+          eventType: 'item/delta',
+          source: 'app_server_stream',
+          sequenceId: 1,
+          receivedAtIso: '2026-02-24T00:00:00.000Z',
+          payload: { text: 'delta' },
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(mockGetCaptureReliabilityStatus.mock.calls.length).toBeGreaterThan(reliabilityCalls);
+    });
+    reliabilityCalls = mockGetCaptureReliabilityStatus.mock.calls.length;
+
+    act(() => {
+      void liveEventCallback?.({
+        payload: {
+          type: 'ApprovalRequest',
+          requestId: 'req_1',
+          threadId: 'th_1',
+          turnId: 'tu_1',
+          command: 'write_file',
+          options: ['allow', 'deny'],
+          timeoutMs: 10_000,
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(mockGetCaptureReliabilityStatus.mock.calls.length).toBeGreaterThan(reliabilityCalls);
+    });
+    reliabilityCalls = mockGetCaptureReliabilityStatus.mock.calls.length;
+
+    act(() => {
+      void liveEventCallback?.({
+        payload: {
+          type: 'ApprovalResult',
+          requestId: 'req_1',
+          threadId: 'th_1',
+          approved: false,
+          decidedAtIso: '2026-02-24T00:00:01.000Z',
+          reason: 'Denied',
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(mockGetCaptureReliabilityStatus.mock.calls.length).toBeGreaterThan(reliabilityCalls);
+    });
+    reliabilityCalls = mockGetCaptureReliabilityStatus.mock.calls.length;
+
+    act(() => {
+      void liveEventCallback?.({
+        payload: {
+          type: 'ParserValidationError',
+          kind: 'protocol_violation',
+          rawPreview: 'truncated',
+          reason: 'Reconnect validation failed',
+          occurredAtIso: '2026-02-24T00:00:02.000Z',
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(mockGetCaptureReliabilityStatus.mock.calls.length).toBeGreaterThan(reliabilityCalls);
+    });
+    await waitFor(() => {
+      expect(
+        result.current.issues.some(
+          (issue) =>
+            issue.title === 'Codex App Server parser validation error' &&
+            issue.message.includes('Reconnect validation failed')
+        )
+      ).toBe(true);
+    });
+  });
+
   it('does not refresh badges or activity after unmounting during listener-triggered auto-import', async () => {
     const importDeferred = createDeferred<{ status: 'imported'; tool: string; redactionCount: number }>();
     type SessionEvent = { payload: { path: string; tool?: string } };

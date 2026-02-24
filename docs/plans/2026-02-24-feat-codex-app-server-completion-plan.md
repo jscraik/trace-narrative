@@ -1,7 +1,7 @@
 ---
 title: feat: Complete Codex App Server runtime
 type: feat
-status: active
+status: completed
 date: 2026-02-24
 origin: /Users/jamiecraik/dev/firefly-narrative/docs/brainstorms/2026-02-24-codex-app-server-completion-brainstorm.md
 ---
@@ -192,7 +192,7 @@ type LiveSessionEventPayload =
 
 ### Updated acceptance mapping (new explicit checks)
 
-- [ ] `session:live:event` listener receives all event types above for a synthetic frame sequence in integration test.
+- [x] `session:live:event` listener receives all event types above for a synthetic frame sequence in integration test.
 - [x] No direct renderer call can mutate stream health at runtime; attempt should return explicit command-not-exposed error.
 - [x] `live_sessions` migration applied and cleanup policy is verifiable with deterministic row-count assertions.
 - [x] At least one test asserts parser error event emission and one that asserts approval-result round-trip.
@@ -416,9 +416,9 @@ In `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts` and 
       Update `stop_codex_app_server` to cancel monitor tasks, graceful-stop, timeout, hard-kill fallback, and final state cleanup.
 - [x] **P1-04** — Owner: **Protocol Owner**  
       Emit transition/status events on every lifecycle change; ensure event payload shape is stable.
-- [ ] **P1-05** — Owner: **QA Owner**  
+- [x] **P1-05** — Owner: **QA Owner**  
       Add integration tests for start failure, crash-loop, and controlled shutdown behavior.
-- [ ] **Exit gate (required):** Actor owns process lifecycle end-to-end with deterministic cleanup after stop.
+- [x] **Exit gate (required):** Actor owns process lifecycle end-to-end with deterministic cleanup after stop.
 
 ### Phase 2 — Protocol handshake and approvals
 - [x] **P2-01** — Owner: **Protocol Owner**  
@@ -429,44 +429,44 @@ In `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts` and 
       Wire `session:live:event` approval request/result handling in UI flow and remove any bypass paths.
 - [x] **P2-04** — Owner: **Runtime Owner**  
       Restrict auth promotion to valid callback state (`account_updated(auth_mode=\"chatgpt\", authenticated=true)`).
-- [ ] **P2-05** — Owner: **QA Owner**  
+- [x] **P2-05** — Owner: **QA Owner**  
       Add tests for handshake gating, approval round-trip, and denied/timeout approval paths.
-- [ ] **Exit gate (required):** Approval and handshake behavior proven by tests; no stream activation without full protocol gate.
+- [x] **Exit gate (required):** Approval and handshake behavior proven by tests; no stream activation without full protocol gate.
 
 ### Phase 3 — Stream completion + persistence
 - [x] **P3-01** — Owner: **Runtime Owner**  
       Internalize stream ingest path by removing public `#[command]` exposure for `codex_app_server_set_stream_health` and `ingest_codex_stream_event`.
 - [x] **P3-02** — Owner: **Protocol Owner**  
       Parse sidecar callback payloads into typed `ParsedSession` and emit `session:live:event` deltas/errors.
-- [ ] **P3-03** — Owner: **Data Owner**  
+- [x] **P3-03** — Owner: **Data Owner**  
       Persist completed sessions through canonical store helpers and apply dedupe keys/indexes.
 - [x] **P3-04** — Owner: **Data Owner**  
       Implement bounded `live_sessions` cleanup policy (TTL + row cap) on completion/startup/reconnect.
 - [x] **P3-05** — Owner: **QA Owner**  
       Add deterministic tests for parser error emission, dedupe outcomes (`accepted|duplicate|replaced|dropped`), and retention cleanup.
-- [ ] **Exit gate (required):** Completed stream sessions persist reliably and cleanup policy remains bounded under load tests.
+- [x] **Exit gate (required):** Completed stream sessions persist reliably and cleanup policy remains bounded under load tests.
 
 ### Phase 4 — Security and operations hardening
-- [ ] **P4-01** — Owner: **Runtime Owner**  
+- [x] **P4-01** — Owner: **Runtime Owner**  
       Tighten reconnect checks (schema/session/token validation) and normalize failure reasons.
 - [x] **P4-02** — Owner: **Protocol Owner**  
       Add explicit observability metrics/logs for parse errors, approval outcomes, restart causes, and dropped completions.
 - [x] **P4-03** — Owner: **Ops Owner**  
       Update `/Users/jamiecraik/dev/firefly-narrative/docs/agents/hybrid-capture-rollout-runbook.md` with new actor-owned verification steps and evidence capture.
-- [ ] **P4-04** — Owner: **QA Owner**  
+- [x] **P4-04** — Owner: **QA Owner**  
       Add security/regression tests for reconnect failure modes and command-surface guardrails.
-- [ ] **Exit gate (required):** Runbook and telemetry prove operational recovery paths without UI-side mutation.
+- [x] **Exit gate (required):** Runbook and telemetry prove operational recovery paths without UI-side mutation.
 
 ### Phase 5 — Verification and release gates
 - [x] **P5-01** — Owner: **QA Owner**  
       Run full validation suite (`cargo test`, `pnpm test`, stream recovery smoke) and archive results.
 - [x] **P5-02** — Owner: **Ops Owner**  
       Complete rollout checklist and mark each operational assertion verified in `/Users/jamiecraik/dev/firefly-narrative/docs/agents/hybrid-capture-rollout-runbook.md`.
-- [ ] **P5-03** — Owner: **Runtime Owner**  
+- [x] **P5-03** — Owner: **Runtime Owner**  
       Update plan status references in `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-19-feat-hybrid-codex-claude-capture-reliability-plan.md` if completion criteria are satisfied.
 - [x] **P5-04** — Owner: **Frontend Owner**  
       Validate final TS command/event contract parity with Rust exports and test mocks.
-- [ ] **Exit gate (release):** All phase gates passed, no open P0/P1 defects, runbook and tests signed off.
+- [x] **Exit gate (release):** All phase gates passed, no open P0/P1 defects, runbook and tests signed off.
 
 
 ### Research Insights
@@ -512,9 +512,9 @@ In `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts` and 
 - [x] `initialize` and `initialized` are enforced as a prerequisite for stream operations.
 - [x] `session:live:event` is emitted by server internals and consumed by frontend listener.
 - [x] Approval requests are surfaced in app flow and user can submit decision.
-- [ ] Completed stream sessions are persisted to `live_sessions`/canonical sessions path with bounded cleanup.
+- [x] Completed stream sessions are persisted to `live_sessions`/canonical sessions path with bounded cleanup.
 - [x] `codex_app_server_set_stream_health` and `ingest_codex_stream_event` are no longer public renderer commands.
-- [ ] Recovery/reconnect behavior is hardened (token/schema checks + reconnect and backoff policy).
+- [x] Recovery/reconnect behavior is hardened (token/schema checks + reconnect and backoff policy).
 - [x] Runbook checklist reflects completed checks and no false-positive placeholders remain.
 
 

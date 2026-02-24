@@ -904,6 +904,92 @@ async fn store_session_with_meta(
     Ok(session_id)
 }
 
+pub(crate) async fn store_codex_app_server_completed_session(
+    db: &sqlx::SqlitePool,
+    repo_id: i64,
+    thread_id: &str,
+    turn_id: &str,
+    item_id: &str,
+    event_type: &str,
+    source: &str,
+    payload: &serde_json::Value,
+    received_at_iso: &str,
+) -> Result<String, String> {
+    use super::parser::{ParsedSession, SessionOrigin, SessionTrace, TraceMessage};
+
+    let model = payload
+        .get("model")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string);
+
+    let files_touched = payload
+        .get("filesTouched")
+        .or_else(|| payload.get("files_touched"))
+        .and_then(serde_json::Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    let summary_text = payload
+        .get("summary")
+        .or_else(|| payload.get("text"))
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
+        .unwrap_or_else(|| payload.to_string());
+
+    let mut trace = SessionTrace::new();
+    trace.add_message(TraceMessage::Assistant {
+        text: summary_text,
+        timestamp: Some(received_at_iso.to_string()),
+    });
+
+    let session = ParsedSession {
+        origin: SessionOrigin {
+            tool: "codex_app_server".to_string(),
+            session_id: format!("{thread_id}:{turn_id}:{item_id}:{event_type}:{source}"),
+            conversation_id: thread_id.to_string(),
+            model,
+        },
+        started_at: None,
+        ended_at: None,
+        trace,
+        files_touched,
+    };
+
+    let dedupe_key = format!(
+        "live|{}|{}|{}|{}",
+        thread_id.trim(),
+        turn_id.trim(),
+        item_id.trim(),
+        event_type.trim().to_lowercase(),
+    );
+
+    let redaction = RedactionSummary {
+        total: 0,
+        hits: vec![],
+    };
+
+    match store_session_with_meta(
+        db,
+        repo_id,
+        &session,
+        Some("codex-app-server"),
+        Some(&dedupe_key),
+        &redaction,
+    )
+    .await
+    {
+        Ok(session_id) => Ok(session_id),
+        Err(StoreSessionError::Duplicate) => Ok(generate_session_id(&session.origin)),
+        Err(StoreSessionError::Db(message)) => Err(message),
+    }
+}
+
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AutoImportResult {
@@ -1255,6 +1341,7 @@ fn scan_claude_directory(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sqlx::sqlite::SqlitePoolOptions;
 
     #[test]
     fn test_generate_session_id_deterministic() {
@@ -1292,5 +1379,86 @@ mod tests {
         let id2 = generate_session_id(&origin2);
 
         assert_ne!(id1, id2);
+    }
+
+    #[test]
+    fn store_codex_app_server_completed_session_uses_canonical_dedupe() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("tokio runtime");
+
+        runtime.block_on(async {
+            let pool = SqlitePoolOptions::new()
+                .max_connections(1)
+                .connect("sqlite::memory:")
+                .await
+                .expect("memory sqlite");
+
+            sqlx::query(include_str!("../../migrations/001_init.sql"))
+                .execute(&pool)
+                .await
+                .expect("migration 001");
+            sqlx::query(include_str!("../../migrations/004_session_attribution.sql"))
+                .execute(&pool)
+                .await
+                .expect("migration 004");
+            sqlx::query(include_str!("../../migrations/005_attribution_notes.sql"))
+                .execute(&pool)
+                .await
+                .expect("migration 005");
+            sqlx::query(include_str!("../../migrations/009_auto_ingest.sql"))
+                .execute(&pool)
+                .await
+                .expect("migration 009");
+
+            sqlx::query("INSERT INTO repos (id, path) VALUES (1, '/tmp/repo')")
+                .execute(&pool)
+                .await
+                .expect("insert repo");
+
+            let payload = serde_json::json!({
+                "summary": "completed turn",
+                "model": "gpt-5",
+                "filesTouched": ["src/main.ts"]
+            });
+
+            let session_id = store_codex_app_server_completed_session(
+                &pool,
+                1,
+                "thread-1",
+                "turn-1",
+                "item-1",
+                "item/completed",
+                "app_server_stream",
+                &payload,
+                "2026-02-24T00:00:00.000Z",
+            )
+            .await
+            .expect("first persist succeeds");
+
+            let session_id_duplicate = store_codex_app_server_completed_session(
+                &pool,
+                1,
+                "thread-1",
+                "turn-1",
+                "item-1",
+                "item/completed",
+                "app_server_stream",
+                &payload,
+                "2026-02-24T00:00:01.000Z",
+            )
+            .await
+            .expect("duplicate persist is deduped");
+
+            assert_eq!(session_id, session_id_duplicate);
+
+            let rows: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM sessions WHERE repo_id = 1")
+                .fetch_one(&pool)
+                .await
+                .expect("session count");
+
+            assert_eq!(rows, 1);
+        });
     }
 }
