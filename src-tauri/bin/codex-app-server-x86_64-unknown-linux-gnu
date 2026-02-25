@@ -1,3 +1,19 @@
 #!/usr/bin/env bash
-# Placeholder sidecar for Linux builds.
-exec "$(dirname "$0")/codex-app-server" "$@"
+set -euo pipefail
+
+if [[ "${NARRATIVE_CODEX_APP_SERVER_FORCE_SHIM:-0}" == "1" ]]; then
+  while IFS= read -r line; do
+    if [[ "$line" == *"shutdown"* ]]; then
+      exit 0
+    fi
+    echo "{\"result\":{\"ok\":true},\"id\":null}"
+  done
+  exit 0
+fi
+
+if command -v codex >/dev/null 2>&1; then
+  exec codex app-server "$@"
+fi
+
+echo "codex CLI not found; install codex-cli or set NARRATIVE_CODEX_APP_SERVER_BIN." >&2
+exit 127

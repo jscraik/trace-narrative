@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
-# Narrative placeholder sidecar shim.
-# Replace with bundled Codex App Server binary for production packaging.
-if [[ "$1" == "--version" ]]; then
-  echo "narrative-codex-app-server-shim 0.1.0"
+set -euo pipefail
+
+if [[ "${NARRATIVE_CODEX_APP_SERVER_FORCE_SHIM:-0}" == "1" ]]; then
+  while IFS= read -r line; do
+    if [[ "$line" == *"shutdown"* ]]; then
+      exit 0
+    fi
+    echo "{\"result\":{\"ok\":true},\"id\":null}"
+  done
   exit 0
 fi
 
-# Keep process alive for local scaffolding tests.
-while IFS= read -r line; do
-  if [[ "$line" == *"shutdown"* ]]; then
-    exit 0
-  fi
-  # no-op JSON-RPC shim
-  echo "{\"jsonrpc\":\"2.0\",\"result\":{\"ok\":true},\"id\":null}"
-done
+if command -v codex >/dev/null 2>&1; then
+  exec codex app-server "$@"
+fi
+
+echo "codex CLI not found; install codex-cli or set NARRATIVE_CODEX_APP_SERVER_BIN." >&2
+exit 127
