@@ -575,7 +575,7 @@ fn spawn_sidecar_process(path: &Path) -> Result<SidecarProcess, String> {
     let mut command = Command::new(path);
     command
         .stdin(Stdio::piped())
-        .stdout(Stdio::null())
+        .stdout(Stdio::piped())
         .stderr(Stdio::null());
 
     let child = command
