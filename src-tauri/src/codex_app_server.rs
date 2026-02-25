@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::collections::{HashMap, VecDeque};
-use std::io::Write;
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, ChildStdout, Command, Stdio};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
@@ -25,6 +25,9 @@ const DEFAULT_LIVE_SESSIONS_MAX_ROWS: i64 = 10_000;
 const RECONNECT_REASON_SCHEMA_MISMATCH: &str = "schema_version_mismatch";
 const RECONNECT_REASON_SESSION_INVALID: &str = "session_invalid";
 const RECONNECT_REASON_TOKEN_INVALID: &str = "token_invalid";
+const RPC_ID_INITIALIZE: i64 = 1;
+const RPC_ID_ACCOUNT_READ: i64 = 2;
+const RPC_ID_ACCOUNT_LOGIN_START: i64 = 3;
 
 pub const LIVE_SESSION_EVENT: &str = "session:live:event";
 
@@ -610,6 +613,236 @@ fn send_sidecar_message(
     Ok(())
 }
 
+fn build_sidecar_live_delta(method: &str, message: &serde_json::Value) -> LiveSessionEventPayload {
+    let params = message
+        .get("params")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
+    let thread_id = params
+        .get("threadId")
+        .or_else(|| params.get("thread_id"))
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown-thread")
+        .to_string();
+    let turn_id = params
+        .get("turnId")
+        .or_else(|| params.get("turn_id"))
+        .or_else(|| params.get("turn").and_then(|turn| turn.get("id")))
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown-turn")
+        .to_string();
+    let item_id = params
+        .get("itemId")
+        .or_else(|| params.get("item_id"))
+        .or_else(|| params.get("item").and_then(|item| item.get("id")))
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown-item")
+        .to_string();
+
+    LiveSessionEventPayload::SessionDelta {
+        thread_id,
+        turn_id,
+        item_id,
+        event_type: method.to_string(),
+        source: "app_server_stream".to_string(),
+        sequence_id: 0,
+        received_at_iso: now_iso(),
+        payload: params,
+    }
+}
+
+fn apply_account_notification(
+    runtime: &mut CodexAppServerRuntime,
+    params: &serde_json::Value,
+) {
+    let auth_mode = params
+        .get("authMode")
+        .or_else(|| params.get("auth_mode"))
+        .and_then(serde_json::Value::as_str);
+
+    match auth_mode {
+        Some(mode) => apply_account_updated(runtime, mode, true),
+        None => {
+            runtime.auth_state = AuthState::NeedsLogin;
+            runtime.status.auth_mode = "chatgpt".to_string();
+            runtime.status.stream_healthy = false;
+            runtime.stream_session_state = StreamSessionState::Failed;
+            if runtime.process_state != ProcessState::CrashLoop {
+                runtime.process_state = ProcessState::Degraded;
+            }
+            runtime.status.last_error = Some("Authentication required via sidecar account update".to_string());
+            sync_status(runtime);
+        }
+    }
+}
+
+fn apply_account_read_result(runtime: &mut CodexAppServerRuntime, result: &serde_json::Value) {
+    let account = result.get("account");
+    match account {
+        Some(serde_json::Value::Object(obj)) => {
+            let auth_mode = obj
+                .get("type")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("chatgpt");
+            apply_account_updated(runtime, auth_mode, true);
+        }
+        _ => {
+            runtime.auth_state = AuthState::NeedsLogin;
+            runtime.status.auth_mode = "chatgpt".to_string();
+            runtime.status.stream_healthy = false;
+            runtime.stream_session_state = StreamSessionState::Failed;
+            if runtime.process_state != ProcessState::CrashLoop {
+                runtime.process_state = ProcessState::Degraded;
+            }
+            runtime.status.last_error = Some("No authenticated Codex account available".to_string());
+            sync_status(runtime);
+        }
+    }
+}
+
+fn process_sidecar_message(
+    app_handle: &AppHandle,
+    state: &Arc<Mutex<CodexAppServerRuntime>>,
+    message: serde_json::Value,
+) {
+    if let Some(method) = message.get("method").and_then(serde_json::Value::as_str) {
+        let mut runtime = match state.lock() {
+            Ok(guard) => guard,
+            Err(_) => return,
+        };
+
+        match method {
+            "account/updated" => {
+                let params = message
+                    .get("params")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
+                apply_account_notification(&mut runtime, &params);
+            }
+            "account/login/completed" => {
+                let params = message
+                    .get("params")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
+                let success = params
+                    .get("success")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false);
+                if success {
+                    runtime.auth_state = AuthState::Authenticating;
+                    runtime.status.last_error = None;
+                } else {
+                    runtime.auth_state = AuthState::NeedsLogin;
+                    runtime.status.stream_healthy = false;
+                    runtime.stream_session_state = StreamSessionState::Failed;
+                    if runtime.process_state != ProcessState::CrashLoop {
+                        runtime.process_state = ProcessState::Degraded;
+                    }
+                    runtime.status.last_error = Some(
+                        params
+                            .get("error")
+                            .and_then(serde_json::Value::as_str)
+                            .unwrap_or("Authentication cancelled or failed")
+                            .to_string(),
+                    );
+                }
+                sync_status(&mut runtime);
+            }
+            "item/started" | "item/completed" | "item/agentMessage/delta" | "turn/started"
+            | "turn/completed" => {
+                let event = build_sidecar_live_delta(method, &message);
+                let _ = handle_live_event_internal(&mut runtime, &event);
+                emit_live_session_event(app_handle, &event);
+            }
+            _ => {}
+        }
+
+        emit_status(app_handle, &runtime.status);
+        return;
+    }
+
+    let Some(id) = message.get("id").and_then(serde_json::Value::as_i64) else {
+        return;
+    };
+
+    let mut runtime = match state.lock() {
+        Ok(guard) => guard,
+        Err(_) => return,
+    };
+
+    if let Some(err) = message.get("error") {
+        runtime.status.last_error = Some(format!("Sidecar RPC error ({id}): {err}"));
+        if runtime.process_state != ProcessState::CrashLoop {
+            runtime.process_state = ProcessState::Degraded;
+        }
+        sync_status(&mut runtime);
+        emit_status(app_handle, &runtime.status);
+        return;
+    }
+
+    let result = message.get("result").cloned().unwrap_or(serde_json::Value::Null);
+    match id {
+        RPC_ID_INITIALIZE => {
+            runtime.status.last_error = None;
+        }
+        RPC_ID_ACCOUNT_READ => {
+            apply_account_read_result(&mut runtime, &result);
+        }
+        RPC_ID_ACCOUNT_LOGIN_START => {
+            if let Some(url) = result.get("authUrl").and_then(serde_json::Value::as_str) {
+                runtime.status.last_error = Some(format!("Complete login in browser: {url}"));
+            }
+        }
+        _ => {}
+    }
+    sync_status(&mut runtime);
+    emit_status(app_handle, &runtime.status);
+}
+
+fn spawn_sidecar_stdout_reader(
+    app_handle: AppHandle,
+    state: Arc<Mutex<CodexAppServerRuntime>>,
+    cancel: Arc<AtomicBool>,
+    stdout: ChildStdout,
+) {
+    thread::spawn(move || {
+        let reader = BufReader::new(stdout);
+        for line in reader.lines() {
+            if cancel.load(Ordering::SeqCst) {
+                break;
+            }
+            let Ok(line) = line else {
+                break;
+            };
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+            let parsed = match serde_json::from_str::<serde_json::Value>(trimmed) {
+                Ok(value) => value,
+                Err(err) => {
+                    let mut runtime = match state.lock() {
+                        Ok(guard) => guard,
+                        Err(_) => break,
+                    };
+                    let event = LiveSessionEventPayload::ParserValidationError {
+                        kind: "protocol_violation".to_string(),
+                        raw_preview: trimmed.chars().take(256).collect(),
+                        reason: format!("Failed to parse sidecar JSON: {err}"),
+                        occurred_at_iso: now_iso(),
+                    };
+                    handle_live_event_internal(&mut runtime, &event);
+                    emit_live_session_event(&app_handle, &event);
+                    emit_status(&app_handle, &runtime.status);
+                    continue;
+                }
+            };
+
+            process_sidecar_message(&app_handle, &state, parsed);
+        }
+    });
+}
+
 fn spawn_monitor_thread(
     app_handle: AppHandle,
     state: Arc<Mutex<CodexAppServerRuntime>>,
@@ -664,7 +897,20 @@ fn spawn_monitor_thread(
 
                 if let Some(path) = restart_path {
                     match spawn_sidecar_process(&path) {
-                        Ok(sidecar) => {
+                        Ok(mut sidecar) => {
+                            let Some(stdout) = sidecar.child.stdout.take() else {
+                                let mut runtime = match state.lock() {
+                                    Ok(guard) => guard,
+                                    Err(_) => break,
+                                };
+                                register_start_failure(
+                                    &mut runtime,
+                                    "Failed to capture Codex App Server stdout".to_string(),
+                                    "stdout_missing",
+                                );
+                                emit_status(&app_handle, &runtime.status);
+                                continue;
+                            };
                             let mut runtime = match state.lock() {
                                 Ok(guard) => guard,
                                 Err(_) => break,
@@ -680,6 +926,12 @@ fn spawn_monitor_thread(
                             );
                             sync_status(&mut runtime);
                             emit_status(&app_handle, &runtime.status);
+                            spawn_sidecar_stdout_reader(
+                                app_handle.clone(),
+                                state.clone(),
+                                runtime.monitor_cancel.clone(),
+                                stdout,
+                            );
                         }
                         Err(err) => {
                             let mut runtime = match state.lock() {
@@ -1312,7 +1564,16 @@ pub fn start_codex_app_server(
     };
 
     match spawn_sidecar_process(&sidecar_path) {
-        Ok(sidecar) => {
+        Ok(mut sidecar) => {
+            let Some(stdout) = sidecar.child.stdout.take() else {
+                register_start_failure(
+                    &mut runtime,
+                    "Failed to capture Codex App Server stdout".to_string(),
+                    "stdout_missing",
+                );
+                emit_status(&app_handle, &runtime.status);
+                return Ok(runtime.status.clone());
+            };
             runtime.sidecar_path = Some(sidecar_path);
             runtime.sidecar = Some(sidecar);
             runtime.process_state = ProcessState::Running;
@@ -1330,6 +1591,12 @@ pub fn start_codex_app_server(
                 state.inner.clone(),
                 cancel,
             ));
+            spawn_sidecar_stdout_reader(
+                app_handle.clone(),
+                state.inner.clone(),
+                runtime.monitor_cancel.clone(),
+                stdout,
+            );
             emit_status(&app_handle, &runtime.status);
             drop(runtime);
             schedule_cleanup_task(app_handle);
@@ -1400,7 +1667,7 @@ pub fn codex_app_server_initialize(
     }
     let initialize_request = serde_json::json!({
         "method": "initialize",
-        "id": 1,
+        "id": RPC_ID_INITIALIZE,
         "params": {
             "clientInfo": {
                 "name": "firefly-narrative",
@@ -1428,6 +1695,14 @@ pub fn codex_app_server_initialized(
         "params": {}
     });
     send_sidecar_message(&mut runtime, &initialized_notification)?;
+    let account_read_request = serde_json::json!({
+        "method": "account/read",
+        "id": RPC_ID_ACCOUNT_READ,
+        "params": {
+            "refreshToken": false
+        }
+    });
+    let _ = send_sidecar_message(&mut runtime, &account_read_request);
     runtime.handshake_state = HandshakeState::Initialized;
     runtime.stream_session_state = StreamSessionState::Expected;
     sync_status(&mut runtime);
@@ -1452,6 +1727,14 @@ pub fn codex_app_server_account_login_start(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAccountStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+    let login_start_request = serde_json::json!({
+        "method": "account/login/start",
+        "id": RPC_ID_ACCOUNT_LOGIN_START,
+        "params": {
+            "type": "chatgpt"
+        }
+    });
+    let _ = send_sidecar_message(&mut runtime, &login_start_request);
     runtime.auth_state = AuthState::Authenticating;
     sync_status(&mut runtime);
     Ok(CodexAccountStatus {

@@ -7,10 +7,8 @@ import { getIngestActivity, type ActivityEvent } from '../core/tauri/activity';
 import {
   autoImportSessionFile,
   configureCodexOtel,
-  codexAppServerAccountUpdated,
   codexAppServerInitialize,
   codexAppServerInitialized,
-  codexAppServerLoginCompleted,
   codexAppServerLoginStart,
   codexAppServerLogout,
   discoverCaptureSources,
@@ -555,10 +553,8 @@ export function useAutoIngest(params: {
       await codexAppServerInitialize();
       await codexAppServerInitialized();
       await codexAppServerLoginStart();
-      await codexAppServerLoginCompleted(true);
-      await codexAppServerAccountUpdated('chatgpt', true);
       if (!isMountedRef.current) return;
-      showToast('Codex App Server authorized for live testing');
+      showToast('Codex App Server login started (check browser flow)');
       await refreshReliability();
     } catch (e) {
       recordIssue(
