@@ -48,8 +48,8 @@ import {
   deriveBranchHeaderViewModel,
   deriveLegacyBranchHeaderViewModel,
 } from '../components/branchHeaderMapper';
-import { RightPanelTabs } from '../components/RightPanelTabs';
-import { Timeline, type FireflyTrackingSettlePayload } from '../components/Timeline';
+import type { RightPanelTabs } from '../components/RightPanelTabs';
+import type { Timeline, FireflyTrackingSettlePayload } from '../components/Timeline';
 import { BranchViewLayout } from './BranchViewLayout';
 import { TIMING, createNarrativeViewInstanceId } from './branchView.constants';
 import { useBranchSelectionData } from './branch-view/useBranchSelectionData';
@@ -326,7 +326,6 @@ function BranchViewInner(props: BranchViewProps) {
     traceRanges,
     loadingTrace,
     traceRequestedForSelection,
-    setFiles,
   } = useBranchSelectionData({
     requestContextKey,
     selectedNodeId,
@@ -552,107 +551,6 @@ function BranchViewInner(props: BranchViewProps) {
     narrative.confidence,
     rolloutReport.status,
   ]);
-
-  useEffect(() => {
-    if (!selectedNodeId) {
-      setFiles([]);
-      selectFile(null);
-      setLoadingFiles(false);
-      return;
-    }
-    const guard = createRequestGuard();
-
-    setLoadingFiles(true);
-    setError(null);
-
-    loadFilesForNode(selectedNodeId)
-      .then((f) => {
-        if (!guard.isActive()) return;
-
-        setFiles(f);
-        if (!selectedFile && f[0]?.path) {
-          selectFile(f[0].path);
-        }
-      })
-      .catch((e: unknown) => {
-        if (!guard.isActive()) return;
-
-        const message = e instanceof Error ? e.message : String(e);
-        setError(message);
-        setActionError(`Unable to load files for selected node: ${message}`);
-        setFiles([]);
-        selectFile(null);
-      })
-      .finally(() => {
-        if (!guard.isActive()) return;
-        setLoadingFiles(false);
-      });
-
-    return guard.cancel;
-  }, [createRequestGuard, selectedNodeId, loadFilesForNode, selectFile, selectedFile, setActionError]);
-
-  useEffect(() => {
-    if (!selectedNodeId || !selectedFile) {
-      setLoadingDiff(false);
-      setDiffText(null);
-      return;
-    }
-    const guard = createRequestGuard();
-
-    setLoadingDiff(true);
-    setError(null);
-
-    loadDiffForFile(selectedNodeId, selectedFile)
-      .then((d) => {
-        if (!guard.isActive()) return;
-        setDiffText(d || '(no diff)');
-      })
-      .catch((e: unknown) => {
-        if (!guard.isActive()) return;
-
-        const message = e instanceof Error ? e.message : String(e);
-        setError(message);
-        setActionError(`Unable to load diff for selected file: ${message}`);
-        setDiffText(null);
-      })
-      .finally(() => {
-        if (!guard.isActive()) return;
-        setLoadingDiff(false);
-      });
-
-    return guard.cancel;
-  }, [createRequestGuard, selectedNodeId, selectedFile, loadDiffForFile, setActionError]);
-
-  useEffect(() => {
-    if (!selectedNodeId || !selectedFile || !selectedCommitSha) {
-      setTraceRequestedForSelection(false);
-      setTraceRanges([]);
-      setLoadingTrace(false);
-      return;
-    }
-    const guard = createRequestGuard();
-
-    setTraceRequestedForSelection(true);
-    setLoadingTrace(true);
-    loadTraceRangesForFile(selectedNodeId, selectedFile)
-      .then((ranges) => {
-        if (!guard.isActive()) return;
-        setTraceRanges(ranges);
-      })
-      .catch((e: unknown) => {
-        if (!guard.isActive()) return;
-
-        const message = e instanceof Error ? e.message : String(e);
-        setActionError(`Unable to load trace ranges for selected file: ${message}`);
-        setTraceRanges([]);
-      })
-      .finally(() => {
-        if (!guard.isActive()) return;
-        setLoadingTrace(false);
-      });
-
-    return guard.cancel;
-  }, [createRequestGuard, selectedCommitSha, selectedNodeId, selectedFile, loadTraceRangesForFile, setActionError]);
 
   // Pulse commit badges when a new session-linked commit is first observed.
   useEffect(() => {
