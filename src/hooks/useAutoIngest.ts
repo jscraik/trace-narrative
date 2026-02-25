@@ -549,7 +549,10 @@ export function useAutoIngest(params: {
 
   const authorizeCodexAppServerForLiveTest = useCallback(async () => {
     try {
-      await startCodexAppServer();
+      const started = await startCodexAppServer();
+      if (started.state !== 'running') {
+        throw new Error(started.lastError ?? `Codex App Server failed to start (state: ${started.state})`);
+      }
       await codexAppServerInitialize();
       await codexAppServerInitialized();
       await codexAppServerLoginStart();
