@@ -61,6 +61,33 @@ const REVOKED_SIDECAR_SIGNER_IDS: &[&str] = &["narrative-codex-sidecar-2025q4"];
 const SIDECAR_OVERRIDE_ENV: &str = "NARRATIVE_CODEX_APP_SERVER_BIN";
 const SIDECAR_FORCE_PRODUCTION_ENV: &str = "NARRATIVE_CODEX_APP_SERVER_FORCE_PRODUCTION";
 const SIDECAR_FORCE_DEVELOPMENT_ENV: &str = "NARRATIVE_CODEX_APP_SERVER_FORCE_DEVELOPMENT";
+const METHOD_INITIALIZE: &str = "initialize";
+const METHOD_INITIALIZED: &str = "initialized";
+const METHOD_ACCOUNT_READ: &str = "account/read";
+const METHOD_ACCOUNT_LOGIN_START: &str = "account/login/start";
+const METHOD_ACCOUNT_CHATGPT_TOKENS_REFRESH: &str = "account/chatgptAuthTokens/refresh";
+const METHOD_THREAD_READ: &str = "thread/read";
+const METHOD_APPROVAL_SUBMIT: &str = "approval/submit";
+const ALLOWED_SIDECAR_NOTIFICATION_METHODS: &[&str] = &[
+    "account/updated",
+    "account/login/completed",
+    "item/commandExecution/requestApproval",
+    "item/fileChange/requestApproval",
+    "item/started",
+    "item/completed",
+    "item/agentMessage/delta",
+    "turn/started",
+    "turn/completed",
+];
+const REQUIRED_APP_SERVER_METHODS: &[&str] = &[
+    METHOD_INITIALIZE,
+    METHOD_INITIALIZED,
+    METHOD_ACCOUNT_READ,
+    METHOD_ACCOUNT_LOGIN_START,
+    METHOD_ACCOUNT_CHATGPT_TOKENS_REFRESH,
+    METHOD_THREAD_READ,
+    METHOD_APPROVAL_SUBMIT,
+];
 
 pub const LIVE_SESSION_EVENT: &str = "session:live:event";
 
@@ -1144,6 +1171,22 @@ fn handle_sidecar_exit(
     should_restart
 }
 
+fn apply_restart_reentry_state(runtime: &mut CodexAppServerRuntime) {
+    runtime.process_state = ProcessState::Running;
+    runtime.stream_session_state = StreamSessionState::Expected;
+    runtime.handshake_state = HandshakeState::NotStarted;
+    runtime.auth_state = AuthState::NeedsLogin;
+    runtime.status.stream_healthy = false;
+    runtime.approval_waiters.clear();
+    runtime.approval_window_id = generate_approval_window_id();
+    runtime.thread_read_results.clear();
+    runtime.thread_read_errors.clear();
+    runtime.status.last_error = Some(format!(
+        "Sidecar restarted; waiting for {METHOD_INITIALIZE}/{METHOD_INITIALIZED}/{METHOD_ACCOUNT_READ} re-entry sequence"
+    ));
+    sync_status(runtime);
+}
+
 fn remember_sidecar_stderr_line(runtime: &mut CodexAppServerRuntime, line: &str) {
     runtime.sidecar_stderr_ring.push_back(
         redact_sensitive_stderr_line(line)
@@ -1215,11 +1258,11 @@ fn send_sidecar_message(
 
 fn pending_rpc_kind_label(kind: PendingRpcKind) -> &'static str {
     match kind {
-        PendingRpcKind::Initialize => "initialize",
-        PendingRpcKind::AccountRead => "account/read",
-        PendingRpcKind::AccountLoginStart => "account/login/start",
-        PendingRpcKind::AccountChatgptTokensRefresh => "account/chatgptAuthTokens/refresh",
-        PendingRpcKind::ThreadRead => "thread/read",
+        PendingRpcKind::Initialize => METHOD_INITIALIZE,
+        PendingRpcKind::AccountRead => METHOD_ACCOUNT_READ,
+        PendingRpcKind::AccountLoginStart => METHOD_ACCOUNT_LOGIN_START,
+        PendingRpcKind::AccountChatgptTokensRefresh => METHOD_ACCOUNT_CHATGPT_TOKENS_REFRESH,
+        PendingRpcKind::ThreadRead => METHOD_THREAD_READ,
     }
 }
 
@@ -1670,18 +1713,7 @@ fn build_sidecar_approval_request(
 }
 
 fn is_allowed_sidecar_notification_method(method: &str) -> bool {
-    matches!(
-        method,
-        "account/updated"
-            | "account/login/completed"
-            | "item/commandExecution/requestApproval"
-            | "item/fileChange/requestApproval"
-            | "item/started"
-            | "item/completed"
-            | "item/agentMessage/delta"
-            | "turn/started"
-            | "turn/completed"
-    )
+    ALLOWED_SIDECAR_NOTIFICATION_METHODS.contains(&method)
 }
 
 fn json_depth(value: &serde_json::Value) -> usize {
@@ -2297,19 +2329,7 @@ fn spawn_monitor_thread(
                                 Err(_) => break,
                             };
                             runtime.sidecar = Some(sidecar);
-                            runtime.process_state = ProcessState::Running;
-                            runtime.stream_session_state = StreamSessionState::Expected;
-                            runtime.handshake_state = HandshakeState::NotStarted;
-                            runtime.status.stream_healthy = false;
-                            runtime.approval_waiters.clear();
-                            runtime.approval_window_id = generate_approval_window_id();
-                            runtime.thread_read_results.clear();
-                            runtime.thread_read_errors.clear();
-                            runtime.status.last_error = Some(
-                                "Sidecar restarted; waiting for initialize/auth handshake"
-                                    .to_string(),
-                            );
-                            sync_status(&mut runtime);
+                            apply_restart_reentry_state(&mut runtime);
                             emit_status(&app_handle, &runtime.status);
                             spawn_sidecar_stdout_reader(
                                 app_handle.clone(),
@@ -3198,7 +3218,7 @@ pub fn codex_app_server_initialize(
     });
     send_sidecar_request(
         &mut runtime,
-        "initialize",
+        METHOD_INITIALIZE,
         initialize_request,
         PendingRpcKind::Initialize,
     )?;
@@ -3231,14 +3251,14 @@ pub fn codex_app_server_initialized(
     }
 
     let initialized_notification = serde_json::json!({
-        "method": "initialized",
+        "method": METHOD_INITIALIZED,
         "params": {}
     });
     send_sidecar_message(&mut runtime, &initialized_notification)?;
     let account_read_request = serde_json::json!({ "refreshToken": false });
     send_sidecar_request(
         &mut runtime,
-        "account/read",
+        METHOD_ACCOUNT_READ,
         account_read_request,
         PendingRpcKind::AccountRead,
     )?;
@@ -3280,7 +3300,7 @@ pub fn codex_app_server_account_login_start(
     let login_start_request = serde_json::json!({ "type": login_type });
     send_sidecar_request(
         &mut runtime,
-        "account/login/start",
+        METHOD_ACCOUNT_LOGIN_START,
         login_start_request,
         PendingRpcKind::AccountLoginStart,
     )?;
@@ -3315,7 +3335,7 @@ pub fn codex_app_server_account_chatgpt_auth_tokens_refresh(
     });
     send_sidecar_request(
         &mut runtime,
-        "account/chatgptAuthTokens/refresh",
+        METHOD_ACCOUNT_CHATGPT_TOKENS_REFRESH,
         refresh_request,
         PendingRpcKind::AccountChatgptTokensRefresh,
     )?;
@@ -3382,7 +3402,7 @@ pub fn codex_app_server_request_thread_snapshot(
         assert_thread_snapshot_access(&runtime)?;
         send_sidecar_request(
             &mut runtime,
-            "thread/read",
+            METHOD_THREAD_READ,
             serde_json::json!({ "threadId": request_thread_id }),
             PendingRpcKind::ThreadRead,
         )?
@@ -3497,7 +3517,7 @@ pub fn codex_app_server_submit_approval(
             let runtime_error = redacted_reason.clone();
             let audit = LiveSessionEventPayload::ParserValidationError {
                 kind: "protocol_violation".to_string(),
-                raw_preview: "approval/submit".to_string(),
+                raw_preview: METHOD_APPROVAL_SUBMIT.to_string(),
                 reason: redacted_reason,
                 occurred_at_iso: now_iso(),
             };
@@ -3654,27 +3674,29 @@ pub fn ingest_codex_stream_event(
 mod tests {
     use super::{
         apply_account_updated, apply_pending_rpc_error, apply_pending_rpc_success,
-        apply_reconnect_validation_failure, apply_sidecar_stdout_read_error,
-        assert_initialized_handshake, assert_thread_snapshot_access, auth_mode_to_login_start_type,
-        bind_approval_request_token, cancel_pending_rpcs, cleanup_live_sessions_with_policy,
-        command_not_exposed_error, event_identity_key, expire_pending_approvals,
-        expire_pending_rpcs, format_redacted_json, handle_live_event_internal, handle_sidecar_exit,
-        harden_sidecar_command, has_pending_initialize_request,
-        is_allowed_sidecar_notification_method, next_rpc_id, normalize_auth_mode, now_epoch_ms,
-        now_iso, parse_event_from_legacy_input, parse_live_payload, parser_validation_error,
-        redact_sensitive_stderr_line, register_start_failure, remember_approval_decision,
-        remember_dedupe_source, remember_sidecar_stderr_line, schema_version_policy,
-        send_sidecar_request, source_priority, terminate_child_with_timeout,
-        validate_and_redact_auth_url, validate_approval_submission_context,
-        validate_reconnect_payload, validate_sidecar_jsonl_frame,
-        validate_sidecar_notification_payload, validate_sidecar_rpc_result, version_at_least,
-        wait_for_initialize_ack, wait_for_thread_read_response, AuthState, CodexAppServerRuntime,
-        CodexAppServerStatus, CodexStreamEventInput, HandshakeState, LiveSessionEventPayload,
-        PendingApproval, PendingRpcKind, PendingRpcRequest, SchemaVersionPolicy,
-        APPROVAL_TOKEN_BYTES, APP_SERVER_PROTOCOL_TARGET, BLOCKED_SIDECAR_ENV_OVERRIDES,
-        MAX_DEDUPE_SOURCES, MAX_PENDING_RPC_REQUESTS, MAX_SIDECAR_JSONL_BYTES,
-        MAX_SIDECAR_STDERR_LINES, RECONNECT_REASON_SCHEMA_MISMATCH,
-        RECONNECT_REASON_SESSION_INVALID, RECONNECT_REASON_TOKEN_INVALID, RESTART_BUDGET,
+        apply_reconnect_validation_failure, apply_restart_reentry_state,
+        apply_sidecar_stdout_read_error, assert_initialized_handshake,
+        assert_thread_snapshot_access, auth_mode_to_login_start_type, bind_approval_request_token,
+        cancel_pending_rpcs, cleanup_live_sessions_with_policy, command_not_exposed_error,
+        event_identity_key, expire_pending_approvals, expire_pending_rpcs, format_redacted_json,
+        handle_live_event_internal, handle_sidecar_exit, harden_sidecar_command,
+        has_pending_initialize_request, is_allowed_sidecar_notification_method, next_rpc_id,
+        normalize_auth_mode, now_epoch_ms, now_iso, parse_event_from_legacy_input,
+        parse_live_payload, parser_validation_error, redact_sensitive_stderr_line,
+        register_start_failure, remember_approval_decision, remember_dedupe_source,
+        remember_sidecar_stderr_line, schema_version_policy, send_sidecar_request, source_priority,
+        terminate_child_with_timeout, validate_and_redact_auth_url,
+        validate_approval_submission_context, validate_reconnect_payload,
+        validate_sidecar_jsonl_frame, validate_sidecar_notification_payload,
+        validate_sidecar_rpc_result, version_at_least, wait_for_initialize_ack,
+        wait_for_thread_read_response, AuthState, CodexAppServerRuntime, CodexAppServerStatus,
+        CodexStreamEventInput, HandshakeState, LiveSessionEventPayload, PendingApproval,
+        PendingRpcKind, PendingRpcRequest, SchemaVersionPolicy,
+        ALLOWED_SIDECAR_NOTIFICATION_METHODS, APPROVAL_TOKEN_BYTES, APP_SERVER_PROTOCOL_TARGET,
+        BLOCKED_SIDECAR_ENV_OVERRIDES, MAX_DEDUPE_SOURCES, MAX_PENDING_RPC_REQUESTS,
+        MAX_SIDECAR_JSONL_BYTES, MAX_SIDECAR_STDERR_LINES, RECONNECT_REASON_SCHEMA_MISMATCH,
+        RECONNECT_REASON_SESSION_INVALID, RECONNECT_REASON_TOKEN_INVALID,
+        REQUIRED_APP_SERVER_METHODS, RESTART_BUDGET,
     };
     use sqlx::sqlite::SqlitePoolOptions;
     use std::path::Path;
@@ -3793,6 +3815,54 @@ mod tests {
         };
         let should_restart = handle_sidecar_exit(&mut crash_loop_runtime, status);
         assert!(!should_restart);
+    }
+
+    #[test]
+    fn restart_reentry_state_resets_handshake_auth_and_pending_buffers() {
+        let mut runtime = CodexAppServerRuntime {
+            process_state: super::ProcessState::Degraded,
+            handshake_state: HandshakeState::Initialized,
+            auth_state: AuthState::Authenticated,
+            stream_session_state: super::StreamSessionState::Alive,
+            ..CodexAppServerRuntime::default()
+        };
+        runtime.status.stream_healthy = true;
+        runtime.approval_waiters.insert(
+            "req_1".to_string(),
+            PendingApproval {
+                thread_id: "th_1".to_string(),
+                created_at_epoch_ms: 1,
+                timeout_ms: 30_000,
+                decision_token: "token_1".to_string(),
+                approval_window_id: runtime.approval_window_id,
+            },
+        );
+        runtime
+            .thread_read_results
+            .insert(100, serde_json::json!({ "threadId": "th_1" }));
+        runtime
+            .thread_read_errors
+            .insert(101, "thread/read failed".to_string());
+
+        apply_restart_reentry_state(&mut runtime);
+
+        assert_eq!(runtime.process_state, super::ProcessState::Running);
+        assert_eq!(runtime.handshake_state, HandshakeState::NotStarted);
+        assert_eq!(runtime.auth_state, AuthState::NeedsLogin);
+        assert_eq!(
+            runtime.stream_session_state,
+            super::StreamSessionState::Expected
+        );
+        assert!(!runtime.status.stream_healthy);
+        assert!(runtime.approval_waiters.is_empty());
+        assert!(runtime.thread_read_results.is_empty());
+        assert!(runtime.thread_read_errors.is_empty());
+        assert!(runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains("re-entry sequence"));
     }
 
     #[test]
@@ -4361,6 +4431,16 @@ mod tests {
         assert!(is_allowed_sidecar_notification_method("account/updated"));
         assert!(is_allowed_sidecar_notification_method("turn/completed"));
         assert!(!is_allowed_sidecar_notification_method("thread/read"));
+        assert_eq!(
+            ALLOWED_SIDECAR_NOTIFICATION_METHODS.len(),
+            9,
+            "notification allowlist changed; update schema drift contract"
+        );
+        assert!(
+            REQUIRED_APP_SERVER_METHODS.contains(&"thread/read")
+                && REQUIRED_APP_SERVER_METHODS.contains(&"approval/submit"),
+            "required app-server method contract changed unexpectedly"
+        );
     }
 
     #[test]

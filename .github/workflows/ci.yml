@@ -62,6 +62,23 @@ jobs:
       - name: Integration tests
         run: pnpm test:integration
 
+      - name: Generate codex rollout canary artifacts
+        run: pnpm tauri:generate-rollout-artifacts
+
+      - name: Verify codex rollout canary artifacts
+        run: |
+          pnpm tauri:verify-rollout-artifacts
+          jq -e '.window_hours == 24 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .auth_failure_rate <= 0.01 and .crash_loop_count == 0' artifacts/release/codex-app-server/canary-5p.json
+          jq -e '.window_hours == 24 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .auth_failure_rate <= 0.01 and .crash_loop_count == 0' artifacts/release/codex-app-server/canary-25p.json
+          jq -e '.wrong_arch_failures == 0 and .supported_arch_smoke_pass == true' artifacts/release/codex-app-server/os-arch-smoke.json
+
+      - name: Upload codex rollout artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codex-rollout-artifacts
+          path: artifacts/release/codex-app-server/
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
@@ -116,3 +133,4 @@ jobs:
         run: |
           cargo test --manifest-path src-tauri/Cargo.toml codex_app_server_trust
           cargo test --manifest-path src-tauri/Cargo.toml codex_app_server_path_policy
+          cargo test --manifest-path src-tauri/Cargo.toml codex_app_server_schema_drift_gate

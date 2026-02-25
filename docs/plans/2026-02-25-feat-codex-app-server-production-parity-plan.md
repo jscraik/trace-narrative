@@ -346,22 +346,22 @@ Implement a protocol-native app-server runtime layer in `src-tauri/src/codex_app
 - `cargo test --manifest-path src-tauri/Cargo.toml codex_app_server_path_policy`
 
 #### Phase 4 — Recovery and rollout hardening (default-on) (**checkpoint: CP4**)
-- [ ] **P4-01 Restart re-entry contract**
+- [x] **P4-01 Restart re-entry contract**
   - **File targets:** `src-tauri/src/codex_app_server.rs`, integration tests
   - **Done when:** `restart -> initialize -> initialized -> account/read -> ready|degraded` path is deterministic and test-backed.
-- [ ] **P4-02 Staged canary promotion policy**
+- [x] **P4-02 Staged canary promotion policy**
   - **File targets:** rollout automation + `docs/agents/hybrid-capture-rollout-runbook.md`
   - **Done when:** `5%/24h -> 25%/24h -> 100%` progression plus auto-halt rules are documented and enforceable.
-- [ ] **P4-03 Automatic rollback thresholds**
+- [x] **P4-03 Automatic rollback thresholds**
   - **File targets:** rollback controller and alerts
   - **Done when:** objective thresholds (handshake p99, timeout rate, crash loops, auth failure rate) trigger kill-switch automatically.
-- [ ] **P4-04 OS/arch smoke + wrong-arch detection**
+- [x] **P4-04 OS/arch smoke + wrong-arch detection**
   - **File targets:** integration tests/CI jobs
   - **Done when:** wrong-arch bundles fail clearly and supported bundles pass smoke coverage.
-- [ ] **P4-05 CI schema-drift gate vs pinned app-server**
+- [x] **P4-05 CI schema-drift gate vs pinned app-server**
   - **File targets:** contract tests + CI workflow
   - **Done when:** app-server schema drift fails CI before release promotion.
-- [ ] **P4-06 Canary artifact generation + ownership**
+- [x] **P4-06 Canary artifact generation + ownership**
   - **File targets:** rollout automation + `artifacts/release/codex-app-server/*.json` producer docs
   - **Done when:** canary 5%/25% artifact JSON producers are defined, owned, and generated automatically for checkpoint gating.
 
@@ -489,7 +489,7 @@ Interfaces requiring update parity:
 - [ ] Event semantics preserve authoritative item lifecycle ordering (`item/started` -> item deltas -> `item/completed`) with `turn/*` as lifecycle envelope.
 
 ### Non-functional requirements
-- [ ] Sidecar startup/restart behavior deterministic with bounded retries and re-entry sequence.
+- [x] Sidecar startup/restart behavior deterministic with bounded retries and re-entry sequence.
 - [x] Startup fails fast for integrity/trust violations in production bundles.
 - [ ] Observability includes parser errors, queue depth, timeout reasons, restart causes, approval outcomes, and diagnostics drops.
 - [x] Production runtime ignores non-allowlisted environment overrides and records safe audit events for blocked overrides.
@@ -514,8 +514,8 @@ Interfaces requiring update parity:
 - [x] **CP2 complete:** handshake/auth transitions are correlated + multi-mode parity tests green.
 - [x] **CP3 complete:** deprecated/public mutation surfaces removed and command-surface allowlist gate enforced.
 - [x] **CP0.5 complete:** signed manifest + anti-rollback + production PATH deny policy all verified.
-- [ ] **CP4 complete:** staged rollout gates + auto-rollback triggers + wrong-arch smoke checks validated.
-- [ ] **CP4 blocker resolved:** named owner/on-call and canary routing mechanism are documented before promotion.
+- [x] **CP4 complete:** staged rollout gates + auto-rollback triggers + wrong-arch smoke checks validated.
+- [x] **CP4 blocker resolved:** named owner/on-call and canary routing mechanism are documented before promotion.
 - [ ] **CP5 complete (release gate):** full regression (`cargo test`, `pnpm test`, `pnpm typecheck`) and soak evidence attached.
 - [ ] **Checkpoint evidence recorded:** each CP includes linked command output and failing-test remediation notes in PR/runbook.
 

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "protocolTarget": "v2",
+  "requiredRequestMethods": [
+    "initialize",
+    "initialized",
+    "account/read",
+    "account/login/start",
+    "account/chatgptAuthTokens/refresh",
+    "thread/read",
+    "approval/submit"
+  ],
+  "allowedNotificationMethods": [
+    "account/updated",
+    "account/login/completed",
+    "item/commandExecution/requestApproval",
+    "item/fileChange/requestApproval",
+    "item/started",
+    "item/completed",
+    "item/agentMessage/delta",
+    "turn/started",
+    "turn/completed"
+  ],
+  "authLoginStartTypes": [
+    "apiKey",
+    "chatgpt",
+    "chatgptAuthTokens"
+  ],
+  "authModeValues": [
+    "apikey",
+    "chatgpt",
+    "chatgptAuthTokens",
+    "null"
+  ]
+}

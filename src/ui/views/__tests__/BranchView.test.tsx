@@ -740,7 +740,14 @@ describe("BranchView transition and integration coverage", () => {
 
   it("pulses each newly session-linked commit in order", async () => {
     vi.useFakeTimers();
+    let unmount: (() => void) | undefined;
     try {
+      const pendingFileLoad = new Promise<FileChange[]>(() => {});
+      const pendingDiffLoad = new Promise<string>(() => {});
+      const pendingTraceLoad = new Promise<TraceRange[]>(() => {});
+      const pendingTestRunLoad = new Promise<TestRun | null>(() => {});
+      mockGetLatestTestRunForCommit.mockImplementation(() => pendingTestRunLoad);
+
       const props = buildProps({
         model: createModel({
           timeline: [
@@ -749,9 +756,14 @@ describe("BranchView transition and integration coverage", () => {
             { id: "cccc3333", type: "commit", label: "Commit C" },
           ],
         }),
+        loadFilesForNode: vi.fn(() => pendingFileLoad),
+        loadDiffForFile: vi.fn(() => pendingDiffLoad),
+        loadTraceRangesForFile: vi.fn(() => pendingTraceLoad),
       });
 
-      render(<BranchView {...props} />);
+      await act(async () => {
+        ({ unmount } = render(<BranchView {...props} />));
+      });
 
       expect(screen.getByTestId("timeline-pulse-id")).toHaveTextContent("");
 
@@ -770,6 +782,13 @@ describe("BranchView transition and integration coverage", () => {
       });
       expect(screen.getByTestId("timeline-pulse-id")).toHaveTextContent("");
     } finally {
+      await act(() => {
+        vi.runOnlyPendingTimers();
+      });
+      unmount?.();
+      await act(() => {
+        vi.runOnlyPendingTimers();
+      });
       vi.useRealTimers();
     }
   });
