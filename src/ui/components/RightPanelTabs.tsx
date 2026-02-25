@@ -100,6 +100,8 @@ interface RightPanelTabsProps {
   onConfigureCodex?: () => void;
   onRotateOtlpKey?: () => void;
   onGrantCodexConsent?: () => void;
+  onAuthorizeCodexAppServerForLiveTest?: () => Promise<void>;
+  onLogoutCodexAppServerAccount?: () => Promise<void>;
   githubConnectorEnabled?: boolean;
   onToggleGitHubConnector?: (enabled: boolean) => void;
   githubConnectorState?: GitHubContextState;
@@ -550,6 +552,8 @@ interface SettingsTabPanelProps {
   onConfigureCodex?: () => void;
   onRotateOtlpKey?: () => void;
   onGrantCodexConsent?: () => void;
+  onAuthorizeCodexAppServerForLiveTest?: () => Promise<void>;
+  onLogoutCodexAppServerAccount?: () => Promise<void>;
   githubConnectorEnabled?: boolean;
   onToggleGitHubConnector?: (enabled: boolean) => void;
   githubConnectorState?: GitHubContextState;
@@ -585,6 +589,8 @@ function SettingsTabPanel({
   onConfigureCodex,
   onRotateOtlpKey,
   onGrantCodexConsent,
+  onAuthorizeCodexAppServerForLiveTest,
+  onLogoutCodexAppServerAccount,
   githubConnectorEnabled = false,
   onToggleGitHubConnector,
   githubConnectorState,
@@ -620,6 +626,8 @@ function SettingsTabPanel({
         onMigrateCollector={onMigrateCollector}
         onRollbackCollector={onRollbackCollector}
         onRefreshReliability={onRefreshCaptureReliability}
+        onAuthorizeCodexAppServerForLiveTest={onAuthorizeCodexAppServerForLiveTest}
+        onLogoutCodexAppServerAccount={onLogoutCodexAppServerAccount}
       />
       <TelemetrySettingsPanel
         traceConfig={traceConfig}
@@ -737,6 +745,8 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
     onConfigureCodex,
     onRotateOtlpKey,
     onGrantCodexConsent,
+    onAuthorizeCodexAppServerForLiveTest,
+    onLogoutCodexAppServerAccount,
     githubConnectorEnabled,
     onToggleGitHubConnector,
     githubConnectorState,
@@ -854,6 +864,8 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
             onConfigureCodex={onConfigureCodex}
             onRotateOtlpKey={onRotateOtlpKey}
             onGrantCodexConsent={onGrantCodexConsent}
+            onAuthorizeCodexAppServerForLiveTest={onAuthorizeCodexAppServerForLiveTest}
+            onLogoutCodexAppServerAccount={onLogoutCodexAppServerAccount}
             githubConnectorEnabled={githubConnectorEnabled}
             onToggleGitHubConnector={onToggleGitHubConnector}
             githubConnectorState={githubConnectorState}

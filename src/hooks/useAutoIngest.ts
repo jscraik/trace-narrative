@@ -7,8 +7,12 @@ import { getIngestActivity, type ActivityEvent } from '../core/tauri/activity';
 import {
   autoImportSessionFile,
   configureCodexOtel,
+  codexAppServerAccountUpdated,
   codexAppServerInitialize,
   codexAppServerInitialized,
+  codexAppServerLoginCompleted,
+  codexAppServerLoginStart,
+  codexAppServerLogout,
   discoverCaptureSources,
   getCaptureReliabilityStatus,
   getCollectorMigrationStatus,
@@ -545,6 +549,39 @@ export function useAutoIngest(params: {
     setIssues((prev) => prev.filter((issue) => issue.id !== id));
   }, []);
 
+  const authorizeCodexAppServerForLiveTest = useCallback(async () => {
+    try {
+      await startCodexAppServer();
+      await codexAppServerInitialize();
+      await codexAppServerInitialized();
+      await codexAppServerLoginStart();
+      await codexAppServerLoginCompleted(true);
+      await codexAppServerAccountUpdated('chatgpt', true);
+      if (!isMountedRef.current) return;
+      showToast('Codex App Server authorized for live testing');
+      await refreshReliability();
+    } catch (e) {
+      recordIssue(
+        'Codex App Server authorization failed',
+        e instanceof Error ? e.message : String(e),
+      );
+    }
+  }, [recordIssue, refreshReliability, showToast]);
+
+  const logoutCodexAppServerAccount = useCallback(async () => {
+    try {
+      await codexAppServerLogout();
+      if (!isMountedRef.current) return;
+      showToast('Codex App Server account logged out');
+      await refreshReliability();
+    } catch (e) {
+      recordIssue(
+        'Codex App Server logout failed',
+        e instanceof Error ? e.message : String(e),
+      );
+    }
+  }, [recordIssue, refreshReliability, showToast]);
+
   return {
     ingestConfig: config,
     otlpEnvStatus: null,
@@ -563,6 +600,8 @@ export function useAutoIngest(params: {
     configureCodexTelemetry,
     rotateOtlpKey,
     grantCodexConsent,
+    authorizeCodexAppServerForLiveTest,
+    logoutCodexAppServerAccount,
     migrateCollector,
     rollbackCollector,
     refreshCaptureReliability: refreshReliability,

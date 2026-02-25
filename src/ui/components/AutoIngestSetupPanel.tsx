@@ -20,6 +20,8 @@ export function AutoIngestSetupPanel(props: {
   onMigrateCollector?: (dryRun?: boolean) => Promise<unknown>;
   onRollbackCollector?: () => Promise<unknown>;
   onRefreshReliability?: () => Promise<unknown>;
+  onAuthorizeCodexAppServerForLiveTest?: () => Promise<void>;
+  onLogoutCodexAppServerAccount?: () => Promise<void>;
 }) {
   const {
     config,
@@ -31,6 +33,8 @@ export function AutoIngestSetupPanel(props: {
     onMigrateCollector,
     onRollbackCollector,
     onRefreshReliability,
+    onAuthorizeCodexAppServerForLiveTest,
+    onLogoutCodexAppServerAccount,
   } = props;
   const [claudePaths, setClaudePaths] = useState('');
   const [cursorPaths, setCursorPaths] = useState('');
@@ -40,7 +44,9 @@ export function AutoIngestSetupPanel(props: {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [hasAutoDetectedOnLoad, setHasAutoDetectedOnLoad] = useState(false);
   const [migrationBusy, setMigrationBusy] = useState(false);
+  const [authBusy, setAuthBusy] = useState(false);
   const captureMode = captureReliability?.mode ?? 'UNKNOWN';
+  const appServerStatus = captureReliability?.appServer;
 
   useEffect(() => {
     if (!config) return;
@@ -174,6 +180,50 @@ export function AutoIngestSetupPanel(props: {
               <span className="text-[11px] text-text-tertiary">Reliability status not yet available.</span>
             )}
           </div>
+          {appServerStatus ? (
+            <div className="mt-3 rounded-md border border-border-subtle bg-bg-tertiary p-2">
+              <div className="text-[11px] font-semibold text-text-secondary">Codex App Server</div>
+              <div className="mt-1 text-[11px] text-text-tertiary">
+                state: <span className="font-mono">{appServerStatus.state}</span> · auth:{' '}
+                <span className="font-mono">{appServerStatus.authState}</span> · initialized:{' '}
+                <span className="font-mono">{appServerStatus.initialized ? 'yes' : 'no'}</span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary-soft inline-flex items-center rounded-md px-2 py-1 text-[11px] font-semibold disabled:opacity-50"
+                  disabled={authBusy}
+                  onClick={async () => {
+                    if (!onAuthorizeCodexAppServerForLiveTest) return;
+                    setAuthBusy(true);
+                    try {
+                      await onAuthorizeCodexAppServerForLiveTest();
+                    } finally {
+                      setAuthBusy(false);
+                    }
+                  }}
+                >
+                  {authBusy ? 'Authorizing…' : 'Authorize for live test'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary-soft inline-flex items-center rounded-md px-2 py-1 text-[11px] font-semibold disabled:opacity-50"
+                  disabled={authBusy}
+                  onClick={async () => {
+                    if (!onLogoutCodexAppServerAccount) return;
+                    setAuthBusy(true);
+                    try {
+                      await onLogoutCodexAppServerAccount();
+                    } finally {
+                      setAuthBusy(false);
+                    }
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="rounded-lg border border-border-subtle bg-bg-secondary p-3">

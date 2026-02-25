@@ -504,6 +504,8 @@ export default function App() {
             onConfigureCodex={autoIngest.configureCodexTelemetry}
             onRotateOtlpKey={autoIngest.rotateOtlpKey}
             onGrantCodexConsent={autoIngest.grantCodexConsent}
+            onAuthorizeCodexAppServerForLiveTest={autoIngest.authorizeCodexAppServerForLiveTest}
+            onLogoutCodexAppServerAccount={autoIngest.logoutCodexAppServerAccount}
             githubConnectorEnabled={githubConnectorEnabled}
             onToggleGitHubConnector={handleToggleGitHubConnector}
           />

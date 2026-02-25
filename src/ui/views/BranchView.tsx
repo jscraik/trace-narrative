@@ -148,6 +148,8 @@ function BranchViewInner(props: {
   onConfigureCodex?: () => void;
   onRotateOtlpKey?: () => void;
   onGrantCodexConsent?: () => void;
+  onAuthorizeCodexAppServerForLiveTest?: () => Promise<void>;
+  onLogoutCodexAppServerAccount?: () => Promise<void>;
   githubConnectorEnabled?: boolean;
   onToggleGitHubConnector?: (enabled: boolean) => void;
   branchHeaderParityEnabled?: boolean;
@@ -193,6 +195,8 @@ function BranchViewInner(props: {
     onConfigureCodex,
     onRotateOtlpKey,
     onGrantCodexConsent,
+    onAuthorizeCodexAppServerForLiveTest,
+    onLogoutCodexAppServerAccount,
     githubConnectorEnabled = false,
     onToggleGitHubConnector,
     branchHeaderParityEnabled = (import.meta.env.VITE_BRANCH_HEADER_PARITY_V1 ?? 'true') !== 'false',
@@ -1077,6 +1081,8 @@ function BranchViewInner(props: {
               onConfigureCodex={onConfigureCodex}
               onRotateOtlpKey={onRotateOtlpKey}
               onGrantCodexConsent={onGrantCodexConsent}
+              onAuthorizeCodexAppServerForLiveTest={onAuthorizeCodexAppServerForLiveTest}
+              onLogoutCodexAppServerAccount={onLogoutCodexAppServerAccount}
               githubConnectorEnabled={githubConnectorEnabled}
               onToggleGitHubConnector={onToggleGitHubConnector}
               githubConnectorState={githubContext}
@@ -1163,6 +1169,8 @@ export function BranchView(props: {
   onConfigureCodex?: () => void;
   onRotateOtlpKey?: () => void;
   onGrantCodexConsent?: () => void;
+  onAuthorizeCodexAppServerForLiveTest?: () => Promise<void>;
+  onLogoutCodexAppServerAccount?: () => Promise<void>;
   githubConnectorEnabled?: boolean;
   onToggleGitHubConnector?: (enabled: boolean) => void;
   branchHeaderParityEnabled?: boolean;
