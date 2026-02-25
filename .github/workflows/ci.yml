@@ -72,6 +72,15 @@ jobs:
           jq -e '.window_hours == 24 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .auth_failure_rate <= 0.01 and .crash_loop_count == 0' artifacts/release/codex-app-server/canary-25p.json
           jq -e '.wrong_arch_failures == 0 and .supported_arch_smoke_pass == true' artifacts/release/codex-app-server/os-arch-smoke.json
 
+      - name: Generate codex release gate artifacts
+        run: pnpm tauri:generate-release-artifacts
+
+      - name: Verify codex release gate artifacts
+        run: |
+          pnpm tauri:verify-release-artifacts
+          jq -e '.window_hours >= 168 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .parser_error_rate <= 0.001 and .event_lag_p95_ms <= 250' artifacts/release/codex-app-server/soak-100p.json
+          jq -e '.dashboards_live == true and .alerts_routed_owner != null and (.sli_definitions | length) >= 6' artifacts/release/codex-app-server/telemetry-readiness.json
+
       - name: Upload codex rollout artifacts
         uses: actions/upload-artifact@v4
         if: always()

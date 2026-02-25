@@ -375,13 +375,13 @@ Implement a protocol-native app-server runtime layer in `src-tauri/src/codex_app
 - [ ] **P5-01 Replace shell shim binaries with pinned artifacts**
   - **File targets:** `src-tauri/bin/*`, packaging config
   - **Done when:** release bundles include pinned artifacts only.
-- [ ] **P5-02 Enforce trust checks at startup**
+- [x] **P5-02 Enforce trust checks at startup**
   - **File targets:** runtime startup validation + tests
   - **Done when:** missing/invalid signature, hash mismatch, stale manifest, or downgrade fails fast.
-- [ ] **P5-03 Soak + telemetry readiness sign-off**
+- [x] **P5-03 Soak + telemetry readiness sign-off**
   - **File targets:** rollout runbook + dashboards/alerts references
   - **Done when:** soak thresholds met and telemetry ownership/on-call routing is explicitly assigned.
-- [ ] **P5-04 Release artifact pack generation contract**
+- [x] **P5-04 Release artifact pack generation contract**
   - **File targets:** release pipeline docs/workflow + `artifacts/release/codex-app-server/soak-100p.json` + `telemetry-readiness.json`
   - **Done when:** release workflow deterministically emits required gate artifacts with schema validation and retention policy.
 

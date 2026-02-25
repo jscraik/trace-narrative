@@ -144,6 +144,8 @@ jobs:
     env:
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
     steps:
+      - uses: actions/checkout@v6
+
       - name: Verify required assets exist on the tag release
         uses: actions/github-script@v7
         env:
@@ -172,3 +174,39 @@ jobs:
             }
 
             core.info(`Release ${tag} has DMG + latest.json. Asset count: ${names.size}`);
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Generate release gate artifacts
+        run: |
+          pnpm tauri:generate-rollout-artifacts
+          pnpm tauri:generate-release-artifacts
+
+      - name: Verify release gate artifacts
+        run: |
+          pnpm tauri:verify-rollout-artifacts
+          pnpm tauri:verify-release-artifacts
+          jq -e '.window_hours == 24 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .auth_failure_rate <= 0.01 and .crash_loop_count == 0' artifacts/release/codex-app-server/canary-5p.json
+          jq -e '.window_hours == 24 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .auth_failure_rate <= 0.01 and .crash_loop_count == 0' artifacts/release/codex-app-server/canary-25p.json
+          jq -e '.wrong_arch_failures == 0 and .supported_arch_smoke_pass == true' artifacts/release/codex-app-server/os-arch-smoke.json
+          jq -e '.window_hours >= 168 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .parser_error_rate <= 0.001 and .event_lag_p95_ms <= 250' artifacts/release/codex-app-server/soak-100p.json
+          jq -e '.dashboards_live == true and .alerts_routed_owner != null and (.sli_definitions | length) >= 6' artifacts/release/codex-app-server/telemetry-readiness.json
+
+      - name: Upload release gate artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codex-release-gate-artifacts
+          path: artifacts/release/codex-app-server/
