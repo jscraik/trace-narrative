@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::collections::{HashMap, VecDeque};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{
@@ -580,6 +581,33 @@ fn spawn_sidecar_process(path: &Path) -> Result<SidecarProcess, String> {
 
     let _ = child.id();
     Ok(SidecarProcess { child })
+}
+
+fn send_sidecar_message(
+    runtime: &mut CodexAppServerRuntime,
+    message: &serde_json::Value,
+) -> Result<(), String> {
+    let Some(sidecar) = runtime.sidecar.as_mut() else {
+        return Err("Codex App Server sidecar is not running".to_string());
+    };
+
+    let Some(stdin) = sidecar.child.stdin.as_mut() else {
+        return Err("Codex App Server stdin is unavailable".to_string());
+    };
+
+    let encoded =
+        serde_json::to_vec(message).map_err(|e| format!("failed to encode sidecar message: {e}"))?;
+    stdin
+        .write_all(&encoded)
+        .map_err(|e| format!("failed to write sidecar message: {e}"))?;
+    stdin
+        .write_all(b"\n")
+        .map_err(|e| format!("failed to write sidecar message delimiter: {e}"))?;
+    stdin
+        .flush()
+        .map_err(|e| format!("failed to flush sidecar message: {e}"))?;
+
+    Ok(())
 }
 
 fn spawn_monitor_thread(
@@ -1370,6 +1398,18 @@ pub fn codex_app_server_initialize(
     {
         return Err("App Server is not running; cannot send initialize handshake".to_string());
     }
+    let initialize_request = serde_json::json!({
+        "method": "initialize",
+        "id": 1,
+        "params": {
+            "clientInfo": {
+                "name": "firefly-narrative",
+                "title": "Firefly Narrative",
+                "version": env!("CARGO_PKG_VERSION")
+            }
+        }
+    });
+    send_sidecar_message(&mut runtime, &initialize_request)?;
     runtime.handshake_state = HandshakeState::InitializeSent;
     sync_status(&mut runtime);
     Ok(runtime.status.clone())
@@ -1383,6 +1423,11 @@ pub fn codex_app_server_initialized(
     if runtime.handshake_state != HandshakeState::InitializeSent {
         return Err("initialize must be called before initialized".to_string());
     }
+    let initialized_notification = serde_json::json!({
+        "method": "initialized",
+        "params": {}
+    });
+    send_sidecar_message(&mut runtime, &initialized_notification)?;
     runtime.handshake_state = HandshakeState::Initialized;
     runtime.stream_session_state = StreamSessionState::Expected;
     sync_status(&mut runtime);
