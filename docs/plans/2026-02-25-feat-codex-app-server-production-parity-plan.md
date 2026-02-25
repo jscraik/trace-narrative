@@ -308,7 +308,7 @@ Implement a protocol-native app-server runtime layer in `src-tauri/src/codex_app
 - [x] **P3-05 Public API surface freeze**
   - **File targets:** `src/core/tauri/ingestConfig.ts`, `src/hooks/useAutoIngest.ts`, tests
   - **Done when:** external API is limited to lifecycle/status/read/approved-user-decision safe controls.
-- [ ] **P3-06 Capability-level command lockdown**
+- [x] **P3-06 Capability-level command lockdown**
   - **File targets:** `src-tauri/capabilities/default.json`, CI security gate
   - **Done when:** only intended lifecycle/read/approval commands are capability-allowed for `main`; internal/removed commands are capability-denied and permission widening fails CI.
 - [x] **P3-07 Event targeting + listener lifecycle hygiene**
@@ -506,7 +506,7 @@ Interfaces requiring update parity:
 - [x] Redaction regression suite passes (no token/API key material appears in logs, events, crash diagnostics, or persisted stores).
 - [ ] Fuzz/property hardening suite passes for parser + lifecycle invariants.
 - [x] Static command-surface allowlist CI gate passes (no unauthorized `#[tauri::command]` additions).
-- [ ] Tauri capability policy CI gate passes (no unintended permission widening on codex command surfaces).
+- [x] Tauri capability policy CI gate passes (no unintended permission widening on codex command surfaces).
 
 ### Phase exit checkpoints
 - [ ] **CP0 complete:** Phase 0 tasks done, verification commands green, and auth-scope decision record updated.
