@@ -3,7 +3,8 @@ use std::fs;
 use std::path::PathBuf;
 
 fn read_default_capability() -> Value {
-    let capability_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("capabilities/default.json");
+    let capability_path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("capabilities/default.json");
     let raw = fs::read_to_string(&capability_path).expect("default capability should be readable");
     serde_json::from_str(&raw).expect("default capability should be valid json")
 }
@@ -16,7 +17,11 @@ fn default_capability_is_scoped_to_main_window() {
         .and_then(Value::as_array)
         .expect("capability.windows should be an array");
 
-    assert_eq!(windows.len(), 1, "default capability should target only main window");
+    assert_eq!(
+        windows.len(),
+        1,
+        "default capability should target only main window"
+    );
     assert_eq!(windows[0].as_str(), Some("main"));
 }
 
@@ -30,7 +35,9 @@ fn default_capability_shell_scope_is_explicit_and_minimal() {
 
     let execute_scope = permissions
         .iter()
-        .find(|entry| entry.get("identifier").and_then(Value::as_str) == Some("shell:allow-execute"))
+        .find(|entry| {
+            entry.get("identifier").and_then(Value::as_str) == Some("shell:allow-execute")
+        })
         .expect("shell:allow-execute scoped entry is required");
 
     let allowed = execute_scope
@@ -85,4 +92,3 @@ fn default_capability_does_not_reference_removed_codex_mutation_surfaces() {
         );
     }
 }
-

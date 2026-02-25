@@ -545,6 +545,7 @@ function BranchViewInner(props: {
   }, [branchScopeKey]);
 
   useEffect(() => {
+    void branchScopeKey;
     pulsedCommits.current.clear();
     setPulseCommitId(null);
   }, [branchScopeKey]);

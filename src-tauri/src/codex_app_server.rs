@@ -1,5 +1,6 @@
 use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use sqlx::SqlitePool;
 use std::collections::{HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
@@ -47,8 +48,63 @@ const BLOCKED_SIDECAR_ENV_OVERRIDES: &[&str] = &[
     "DYLD_FRAMEWORK_PATH",
     "DYLD_FALLBACK_LIBRARY_PATH",
 ];
+const SIDECAR_MANIFEST_FILE: &str = "codex-app-server-manifest.json";
+const SIDECAR_MANIFEST_SIGNATURE_SALT: &str = "narrative-codex-sidecar-signature-v1";
+const SIDECAR_MANIFEST_SCHEMA_VERSION: u64 = 1;
+const SIDECAR_MANIFEST_MIN_VERSION_FLOOR: u64 = 2026022501;
+const SIDECAR_MINIMUM_VERSION_FLOOR: &str = "0.97.0";
+const TRUSTED_SIDECAR_SIGNER_IDS: &[&str] = &[
+    "narrative-codex-sidecar-2026q1",
+    "narrative-codex-sidecar-2026q2",
+];
+const REVOKED_SIDECAR_SIGNER_IDS: &[&str] = &["narrative-codex-sidecar-2025q4"];
+const SIDECAR_OVERRIDE_ENV: &str = "NARRATIVE_CODEX_APP_SERVER_BIN";
+const SIDECAR_FORCE_PRODUCTION_ENV: &str = "NARRATIVE_CODEX_APP_SERVER_FORCE_PRODUCTION";
+const SIDECAR_FORCE_DEVELOPMENT_ENV: &str = "NARRATIVE_CODEX_APP_SERVER_FORCE_DEVELOPMENT";
 
 pub const LIVE_SESSION_EVENT: &str = "session:live:event";
+
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+const SIDECAR_TARGET_TRIPLE: &str = "aarch64-apple-darwin";
+#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+const SIDECAR_TARGET_TRIPLE: &str = "x86_64-apple-darwin";
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+const SIDECAR_TARGET_TRIPLE: &str = "x86_64-unknown-linux-gnu";
+#[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+const SIDECAR_TARGET_TRIPLE: &str = "aarch64-unknown-linux-gnu";
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+const SIDECAR_TARGET_TRIPLE: &str = "x86_64-pc-windows-msvc";
+#[cfg(not(any(
+    all(target_os = "macos", target_arch = "aarch64"),
+    all(target_os = "macos", target_arch = "x86_64"),
+    all(target_os = "linux", target_arch = "x86_64"),
+    all(target_os = "linux", target_arch = "aarch64"),
+    all(target_os = "windows", target_arch = "x86_64")
+)))]
+const SIDECAR_TARGET_TRIPLE: &str = "unsupported-target";
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SidecarArtifactManifest {
+    target: String,
+    file: String,
+    sha256: String,
+    sidecar_version: String,
+    minimum_sidecar_version: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SidecarBinaryManifest {
+    schema_version: u64,
+    manifest_version: u64,
+    minimum_manifest_version: u64,
+    minimum_sidecar_version: String,
+    active_signer: String,
+    payload_hash: String,
+    signature: String,
+    artifacts: Vec<SidecarArtifactManifest>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum SchemaVersionPolicy {
@@ -634,12 +690,256 @@ fn emit_live_session_event(app_handle: &AppHandle, payload: &LiveSessionEventPay
     let _ = app_handle.emit_to(MAIN_WINDOW_LABEL, LIVE_SESSION_EVENT, payload.clone());
 }
 
-fn detect_sidecar_path(app_handle: &AppHandle) -> Option<PathBuf> {
-    if let Ok(override_path) = std::env::var("NARRATIVE_CODEX_APP_SERVER_BIN") {
-        let path = PathBuf::from(override_path);
-        if path.exists() && is_executable_candidate(&path) {
-            return Some(path);
+fn is_truthy_env(key: &str) -> bool {
+    matches!(
+        std::env::var(key)
+            .ok()
+            .map(|value| value.trim().to_ascii_lowercase())
+            .as_deref(),
+        Some("1" | "true" | "yes" | "on")
+    )
+}
+
+fn sidecar_is_production_mode() -> bool {
+    if is_truthy_env(SIDECAR_FORCE_DEVELOPMENT_ENV) {
+        return false;
+    }
+    if is_truthy_env(SIDECAR_FORCE_PRODUCTION_ENV) {
+        return true;
+    }
+    !cfg!(debug_assertions)
+}
+
+fn sidecar_override_matches(path: &Path) -> bool {
+    let Ok(override_path) = std::env::var(SIDECAR_OVERRIDE_ENV) else {
+        return false;
+    };
+    if override_path.trim().is_empty() {
+        return false;
+    }
+    PathBuf::from(override_path.trim()) == path
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut digest = Sha256::new();
+    digest.update(bytes);
+    format!("{:x}", digest.finalize())
+}
+
+fn parse_version_tuple(value: &str) -> Option<(u64, u64, u64)> {
+    let mut parts = value.trim().split('.');
+    let major = parts
+        .next()?
+        .chars()
+        .take_while(|ch| ch.is_ascii_digit())
+        .collect::<String>()
+        .parse()
+        .ok()?;
+    let minor = parts
+        .next()?
+        .chars()
+        .take_while(|ch| ch.is_ascii_digit())
+        .collect::<String>()
+        .parse()
+        .ok()?;
+    let patch = parts
+        .next()?
+        .chars()
+        .take_while(|ch| ch.is_ascii_digit())
+        .collect::<String>()
+        .parse()
+        .ok()?;
+    Some((major, minor, patch))
+}
+
+fn version_at_least(current: &str, minimum: &str) -> bool {
+    match (parse_version_tuple(current), parse_version_tuple(minimum)) {
+        (Some(current_parts), Some(minimum_parts)) => current_parts >= minimum_parts,
+        _ => false,
+    }
+}
+
+fn compute_manifest_payload_hash(manifest: &SidecarBinaryManifest) -> String {
+    let mut artifact_rows = manifest
+        .artifacts
+        .iter()
+        .map(|artifact| {
+            format!(
+                "{}|{}|{}|{}|{}",
+                artifact.target,
+                artifact.file,
+                artifact.sha256.to_ascii_lowercase(),
+                artifact.sidecar_version,
+                artifact
+                    .minimum_sidecar_version
+                    .as_deref()
+                    .unwrap_or_default(),
+            )
+        })
+        .collect::<Vec<_>>();
+    artifact_rows.sort_unstable();
+
+    let payload = format!(
+        "schemaVersion={}\nmanifestVersion={}\nminimumManifestVersion={}\nminimumSidecarVersion={}\nactiveSigner={}\n{}\n",
+        manifest.schema_version,
+        manifest.manifest_version,
+        manifest.minimum_manifest_version,
+        manifest.minimum_sidecar_version,
+        manifest.active_signer,
+        artifact_rows.join("\n"),
+    );
+    sha256_hex(payload.as_bytes())
+}
+
+fn compute_manifest_signature(payload_hash: &str, signer: &str) -> String {
+    let raw = format!(
+        "payloadHash={payload_hash}|signer={signer}|salt={SIDECAR_MANIFEST_SIGNATURE_SALT}"
+    );
+    sha256_hex(raw.as_bytes())
+}
+
+fn verify_sidecar_manifest_for_path(sidecar_path: &Path) -> Result<(), String> {
+    let Some(bin_dir) = sidecar_path.parent() else {
+        return Err("Sidecar path has no parent directory".to_string());
+    };
+    let manifest_path = bin_dir.join(SIDECAR_MANIFEST_FILE);
+    let raw_manifest = std::fs::read_to_string(&manifest_path).map_err(|error| {
+        format!(
+            "Failed to read sidecar manifest at {}: {error}",
+            manifest_path.display()
+        )
+    })?;
+
+    let manifest: SidecarBinaryManifest = serde_json::from_str(&raw_manifest).map_err(|error| {
+        format!(
+            "Failed to parse sidecar manifest at {}: {error}",
+            manifest_path.display()
+        )
+    })?;
+
+    if manifest.schema_version != SIDECAR_MANIFEST_SCHEMA_VERSION {
+        return Err(format!(
+            "Unsupported sidecar manifest schema: {}",
+            manifest.schema_version
+        ));
+    }
+    if manifest.manifest_version < SIDECAR_MANIFEST_MIN_VERSION_FLOOR {
+        return Err(format!(
+            "Sidecar manifest version {} is below build floor {}",
+            manifest.manifest_version, SIDECAR_MANIFEST_MIN_VERSION_FLOOR
+        ));
+    }
+    if manifest.manifest_version < manifest.minimum_manifest_version {
+        return Err(format!(
+            "Sidecar manifest version {} is below minimum {}",
+            manifest.manifest_version, manifest.minimum_manifest_version
+        ));
+    }
+    if !TRUSTED_SIDECAR_SIGNER_IDS.contains(&manifest.active_signer.as_str()) {
+        return Err(format!(
+            "Active sidecar signer is not trusted: {}",
+            manifest.active_signer
+        ));
+    }
+    if REVOKED_SIDECAR_SIGNER_IDS.contains(&manifest.active_signer.as_str()) {
+        return Err(format!(
+            "Active sidecar signer is revoked: {}",
+            manifest.active_signer
+        ));
+    }
+
+    let payload_hash = compute_manifest_payload_hash(&manifest);
+    if payload_hash != manifest.payload_hash {
+        return Err("Manifest payload hash mismatch".to_string());
+    }
+    let expected_signature = compute_manifest_signature(&payload_hash, &manifest.active_signer);
+    if expected_signature != manifest.signature {
+        return Err("Manifest signature mismatch".to_string());
+    }
+
+    let file_name = sidecar_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| "Sidecar file name is invalid UTF-8".to_string())?;
+
+    let artifact = manifest
+        .artifacts
+        .iter()
+        .find(|artifact| artifact.target == SIDECAR_TARGET_TRIPLE && artifact.file == file_name)
+        .or_else(|| {
+            manifest
+                .artifacts
+                .iter()
+                .find(|artifact| artifact.file == file_name)
+        })
+        .ok_or_else(|| {
+            format!(
+                "Sidecar manifest missing artifact entry for target {SIDECAR_TARGET_TRIPLE} and file {file_name}"
+            )
+        })?;
+
+    if !version_at_least(&artifact.sidecar_version, &manifest.minimum_sidecar_version) {
+        return Err(format!(
+            "Sidecar version {} is below manifest minimum {}",
+            artifact.sidecar_version, manifest.minimum_sidecar_version
+        ));
+    }
+    if let Some(minimum_artifact_version) = artifact.minimum_sidecar_version.as_deref() {
+        if !version_at_least(&artifact.sidecar_version, minimum_artifact_version) {
+            return Err(format!(
+                "Sidecar version {} is below artifact minimum {}",
+                artifact.sidecar_version, minimum_artifact_version
+            ));
         }
+    }
+    if !version_at_least(&artifact.sidecar_version, SIDECAR_MINIMUM_VERSION_FLOOR) {
+        return Err(format!(
+            "Sidecar version {} is below build floor {}",
+            artifact.sidecar_version, SIDECAR_MINIMUM_VERSION_FLOOR
+        ));
+    }
+
+    let sidecar_bytes = std::fs::read(sidecar_path).map_err(|error| {
+        format!(
+            "Failed to read sidecar binary at {}: {error}",
+            sidecar_path.display()
+        )
+    })?;
+    let sidecar_sha = sha256_hex(&sidecar_bytes);
+    if artifact.sha256.to_ascii_lowercase() != sidecar_sha {
+        return Err(format!(
+            "Sidecar checksum mismatch for {}",
+            sidecar_path.display()
+        ));
+    }
+    Ok(())
+}
+
+fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
+    if let Ok(override_path) = std::env::var(SIDECAR_OVERRIDE_ENV) {
+        if sidecar_is_production_mode() {
+            return Err(format!(
+                "{SIDECAR_OVERRIDE_ENV} override is blocked in production mode"
+            ));
+        }
+        let override_path = override_path.trim();
+        if override_path.is_empty() {
+            return Err(format!("{SIDECAR_OVERRIDE_ENV} override is empty"));
+        }
+        let path = PathBuf::from(override_path);
+        if !path.exists() {
+            return Err(format!(
+                "{SIDECAR_OVERRIDE_ENV} override does not exist: {}",
+                path.display()
+            ));
+        }
+        if !is_executable_candidate(&path) {
+            return Err(format!(
+                "{SIDECAR_OVERRIDE_ENV} override is not executable: {}",
+                path.display()
+            ));
+        }
+        return Ok(path);
     }
 
     let mut candidates: Vec<PathBuf> = Vec::new();
@@ -655,9 +955,28 @@ fn detect_sidecar_path(app_handle: &AppHandle) -> Option<PathBuf> {
         candidates.push(cwd.join("bin/codex-app-server"));
     }
 
-    candidates
-        .into_iter()
-        .find(|p| p.exists() && is_executable_candidate(p))
+    let mut trust_errors = Vec::new();
+
+    for candidate in candidates {
+        if !candidate.exists() || !is_executable_candidate(&candidate) {
+            continue;
+        }
+        match verify_sidecar_manifest_for_path(&candidate) {
+            Ok(()) => return Ok(candidate),
+            Err(error) => {
+                trust_errors.push(format!("{} => {error}", candidate.display()));
+            }
+        }
+    }
+
+    if !trust_errors.is_empty() {
+        return Err(format!(
+            "Sidecar trust policy rejected all candidates: {}",
+            trust_errors.join("; ")
+        ));
+    }
+
+    Err("Codex App Server sidecar binary not found (expected bin/codex-app-server)".to_string())
 }
 
 fn is_executable_candidate(path: &Path) -> bool {
@@ -788,7 +1107,11 @@ fn emit_mode_transition(
         runtime.transitions.pop_back();
     }
 
-    let _ = app_handle.emit_to(MAIN_WINDOW_LABEL, "capture-reliability-transition", transition);
+    let _ = app_handle.emit_to(
+        MAIN_WINDOW_LABEL,
+        "capture-reliability-transition",
+        transition,
+    );
 }
 
 fn handle_sidecar_exit(
@@ -1930,6 +2253,17 @@ fn spawn_monitor_thread(
                 }
 
                 if let Some(path) = restart_path {
+                    if sidecar_is_production_mode() || !sidecar_override_matches(&path) {
+                        if let Err(error) = verify_sidecar_manifest_for_path(&path) {
+                            let mut runtime = match state.lock() {
+                                Ok(guard) => guard,
+                                Err(_) => break,
+                            };
+                            register_start_failure(&mut runtime, error, "restart_path_untrusted");
+                            emit_status(&app_handle, &runtime.status);
+                            continue;
+                        }
+                    }
                     match spawn_sidecar_process(&path) {
                         Ok(mut sidecar) => {
                             let Some(stdout) = sidecar.child.stdout.take() else {
@@ -2707,14 +3041,22 @@ pub fn start_codex_app_server(
         return Ok(runtime.status.clone());
     }
 
-    let Some(sidecar_path) = detect_sidecar_path(&app_handle) else {
-        register_start_failure(
-            &mut runtime,
-            "Codex App Server sidecar binary not found (expected bin/codex-app-server)".to_string(),
-            "spawn_path_missing",
-        );
-        emit_status(&app_handle, &runtime.status);
-        return Ok(runtime.status.clone());
+    let sidecar_path = match detect_sidecar_path(&app_handle) {
+        Ok(path) => path,
+        Err(error) => {
+            let cause = if error.contains("trust policy")
+                || error.contains("checksum")
+                || error.contains("signature")
+                || error.contains("override is blocked")
+            {
+                "spawn_path_untrusted"
+            } else {
+                "spawn_path_missing"
+            };
+            register_start_failure(&mut runtime, error, cause);
+            emit_status(&app_handle, &runtime.status);
+            return Ok(runtime.status.clone());
+        }
     };
 
     match spawn_sidecar_process(&sidecar_path) {
@@ -3325,7 +3667,7 @@ mod tests {
         send_sidecar_request, source_priority, terminate_child_with_timeout,
         validate_and_redact_auth_url, validate_approval_submission_context,
         validate_reconnect_payload, validate_sidecar_jsonl_frame,
-        validate_sidecar_notification_payload, validate_sidecar_rpc_result,
+        validate_sidecar_notification_payload, validate_sidecar_rpc_result, version_at_least,
         wait_for_initialize_ack, wait_for_thread_read_response, AuthState, CodexAppServerRuntime,
         CodexAppServerStatus, CodexStreamEventInput, HandshakeState, LiveSessionEventPayload,
         PendingApproval, PendingRpcKind, PendingRpcRequest, SchemaVersionPolicy,
@@ -3510,6 +3852,14 @@ mod tests {
             Some("chatgptAuthTokens")
         );
         assert_eq!(auth_mode_to_login_start_type("unsupported"), None);
+    }
+
+    #[test]
+    fn sidecar_version_floor_comparison_handles_prerelease_suffixes() {
+        assert!(version_at_least("0.97.0", "0.97.0"));
+        assert!(version_at_least("0.97.1-alpha.1", "0.97.0"));
+        assert!(!version_at_least("0.96.9", "0.97.0"));
+        assert!(!version_at_least("invalid", "0.97.0"));
     }
 
     #[test]

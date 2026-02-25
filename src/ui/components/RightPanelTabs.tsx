@@ -1,6 +1,6 @@
 import { useTheme } from '@design-studio/tokens';
 import { Activity, ChevronDown, FileCode, MessageSquare, Minimize2, PictureInPicture2, Search, Settings, TestTube } from 'lucide-react';
-import { Fragment, type KeyboardEvent, useEffect, useState } from 'react';
+import { Fragment, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import type { AttributionPrefs, AttributionPrefsUpdate } from '../../core/attribution-api';
 import type {
   CaptureReliabilityStatus,
@@ -320,6 +320,68 @@ function DiffDock({
   onTogglePip,
   onDock,
 }: DiffDockProps) {
+  const pipDialogRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!diffExpanded || !diffPip) return;
+    const dialogEl = pipDialogRef.current;
+    if (!dialogEl) return;
+
+    const previousActiveElement = document.activeElement as HTMLElement | null;
+    const focusableSelector = [
+      'button:not([disabled])',
+      'a[href]',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(', ');
+    const getFocusableElements = () =>
+      Array.from(dialogEl.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+        (el) => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true'
+      );
+
+    const initialFocusTarget = getFocusableElements()[0] ?? dialogEl;
+    initialFocusTarget.focus();
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onDock();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusableElements();
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialogEl.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const isShiftTab = event.shiftKey;
+
+      if (isShiftTab && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!isShiftTab && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    dialogEl.addEventListener('keydown', handleKeyDown);
+    return () => {
+      dialogEl.removeEventListener('keydown', handleKeyDown);
+      if (previousActiveElement?.isConnected) {
+        previousActiveElement.focus();
+      }
+    };
+  }, [diffExpanded, diffPip, onDock]);
+
   return (
     <>
       <div className="card flex-none overflow-hidden">
@@ -359,15 +421,23 @@ function DiffDock({
 
       {diffExpanded && diffPip && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/25 p-4">
-          <div className="h-[min(70vh,680px)] w-[min(92vw,860px)] sm:h-[min(74vh,740px)] sm:w-[min(94vw,940px)] xl:h-[min(78vh,820px)] xl:w-[min(96vw,1080px)] overflow-hidden rounded-xl border border-border-light bg-bg-secondary shadow-lg">
+          <div
+            ref={pipDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="diff-dock-dialog-title"
+            tabIndex={-1}
+            className="h-[min(70vh,680px)] w-[min(92vw,860px)] sm:h-[min(74vh,740px)] sm:w-[min(94vw,940px)] xl:h-[min(78vh,820px)] xl:w-[min(96vw,1080px)] overflow-hidden rounded-xl border border-border-light bg-bg-secondary shadow-lg"
+          >
             <div className="flex items-center justify-between border-b border-border-subtle px-3 py-2 text-xs text-text-secondary">
-              <span className="min-w-0 truncate font-medium">
+              <span id="diff-dock-dialog-title" className="min-w-0 truncate font-medium">
                 {selectedFile ? selectedFile.split('/').pop() : 'Diff'}
               </span>
               <button
                 type="button"
                 className="btn-secondary-soft inline-flex items-center rounded-md px-2 py-1 text-[10px]"
                 onClick={onDock}
+                aria-label="Close diff dialog and dock panel"
               >
                 Dock
               </button>

@@ -13,6 +13,8 @@ function read(cmd, args, options = {}) {
 const repoRoot = process.cwd();
 const tauriDir = path.join(repoRoot, 'src-tauri');
 const outDir = path.join(tauriDir, 'bin');
+const sidecarManifestPath = path.join(tauriDir, 'bin', 'codex-app-server-manifest.json');
+const sidecarVerifyScriptPath = path.join(repoRoot, 'scripts', 'verify-codex-sidecar-manifest.mjs');
 
 // Determine host triple (used by Tauri bundle.externalBin naming convention).
 const rustcInfo = read('rustc', ['-vV']);
@@ -39,3 +41,12 @@ fs.chmodSync(destPath, 0o755);
 
 console.log(`[prepare-narrative-cli] Wrote ${destPath}`);
 
+run('node', [
+  sidecarVerifyScriptPath,
+  '--manifest',
+  sidecarManifestPath,
+  '--require-signature',
+  '--require-checksum',
+  '--enforce-min-version',
+]);
+console.log('[prepare-narrative-cli] Verified codex sidecar manifest integrity');

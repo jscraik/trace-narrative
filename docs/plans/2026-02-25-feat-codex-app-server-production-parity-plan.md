@@ -321,22 +321,22 @@ Implement a protocol-native app-server runtime layer in `src-tauri/src/codex_app
 - `pnpm typecheck`
 
 #### Phase 0.5 — Supply-chain prerequisites (**checkpoint: CP0.5, rollout blocking**)
-- [ ] **P0.5-01 Pinned OS/arch sidecar manifest + signature trust root**
+- [x] **P0.5-01 Pinned OS/arch sidecar manifest + signature trust root**
   - **File targets:** `src-tauri/bin/*`, manifest/provenance verification code/tests
   - **Done when:** manifest maps every shipped target to pinned artifact + signature metadata.
-- [ ] **P0.5-02 CI verification for checksum/signature**
+- [x] **P0.5-02 CI verification for checksum/signature**
   - **File targets:** CI workflow + verification tests/scripts
   - **Done when:** CI fails closed on checksum/signature mismatch.
-- [ ] **P0.5-03 Anti-rollback policy**
+- [x] **P0.5-03 Anti-rollback policy**
   - **File targets:** runtime startup checks + tests
   - **Done when:** stale manifests and below-minimum versions are rejected.
-- [ ] **P0.5-04 Production PATH deny policy**
+- [x] **P0.5-04 Production PATH deny policy**
   - **File targets:** runtime launch path + tests
   - **Done when:** `NARRATIVE_CODEX_APP_SERVER_BIN` override remains dev-only; production bundle ignores PATH fallback.
-- [ ] **P0.5-05 Signing-key rotation + revocation policy**
+- [x] **P0.5-05 Signing-key rotation + revocation policy**
   - **File targets:** trust policy docs + verification runtime/tests
   - **Done when:** trust root supports planned key rotation and emergency revocation; revoked signers are rejected in CI/runtime checks.
-- [ ] **P0.5-06 Verification tooling/tasks materialized**
+- [x] **P0.5-06 Verification tooling/tasks materialized**
   - **File targets:** `scripts/verify-codex-sidecar-manifest.mjs`, `src-tauri/tests/*trust*`, `src-tauri/tests/*path_policy*`
   - **Done when:** all Phase 0.5 verification commands exist, are executable in CI, and fail closed on policy violations.
 
@@ -490,10 +490,10 @@ Interfaces requiring update parity:
 
 ### Non-functional requirements
 - [ ] Sidecar startup/restart behavior deterministic with bounded retries and re-entry sequence.
-- [ ] Startup fails fast for integrity/trust violations in production bundles.
+- [x] Startup fails fast for integrity/trust violations in production bundles.
 - [ ] Observability includes parser errors, queue depth, timeout reasons, restart causes, approval outcomes, and diagnostics drops.
-- [ ] Production runtime ignores non-allowlisted environment overrides and records safe audit events for blocked overrides.
-- [ ] Release build fails closed on missing/invalid signature, hash mismatch, stale manifest, or downgraded artifact version.
+- [x] Production runtime ignores non-allowlisted environment overrides and records safe audit events for blocked overrides.
+- [x] Release build fails closed on missing/invalid signature, hash mismatch, stale manifest, or downgraded artifact version.
 - [ ] Stop/restart/error paths guarantee child-process reap semantics (`wait`/kill+wait), with no orphan sidecar process left running.
 - [x] Privileged backend events are target-scoped; no broad global broadcast for auth/approval internals.
 
@@ -513,7 +513,7 @@ Interfaces requiring update parity:
 - [ ] **CP1 complete:** parser bounds/backpressure/diagnostics hardening merged with harness proof.
 - [x] **CP2 complete:** handshake/auth transitions are correlated + multi-mode parity tests green.
 - [x] **CP3 complete:** deprecated/public mutation surfaces removed and command-surface allowlist gate enforced.
-- [ ] **CP0.5 complete:** signed manifest + anti-rollback + production PATH deny policy all verified.
+- [x] **CP0.5 complete:** signed manifest + anti-rollback + production PATH deny policy all verified.
 - [ ] **CP4 complete:** staged rollout gates + auto-rollback triggers + wrong-arch smoke checks validated.
 - [ ] **CP4 blocker resolved:** named owner/on-call and canary routing mechanism are documented before promotion.
 - [ ] **CP5 complete (release gate):** full regression (`cargo test`, `pnpm test`, `pnpm typecheck`) and soak evidence attached.

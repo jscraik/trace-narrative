@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fileExists } from '../core/tauri/narrativeFs';
 
 /**
@@ -15,11 +15,11 @@ export function useRepoFileExistence(repoRoot: string, paths: string[]) {
   const FAILED_PATH_TTL_MS = 5_000;
   const failedPathsRef = useRef(new Map<string, number>());
 
-  const canRetryFailedPath = (path: string, now: number) => {
+  const canRetryFailedPath = useCallback((path: string, now: number) => {
     const retryAfter = failedPathsRef.current.get(path);
     if (retryAfter === undefined) return true;
     return now >= retryAfter;
-  };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +57,7 @@ export function useRepoFileExistence(repoRoot: string, paths: string[]) {
     return () => {
       cancelled = true;
     };
-  }, [repoRoot, unique, existsMap]);
+  }, [repoRoot, unique, existsMap, canRetryFailedPath]);
 
   return existsMap;
 }

@@ -8,6 +8,8 @@
 - [Go / No-Go Thresholds](#go--no-go-thresholds)
 - [Release Phases](#release-phases)
 - [Command Compatibility Matrix (2026-02-25)](#command-compatibility-matrix-2026-02-25)
+- [Sidecar Supply-Chain Controls](#sidecar-supply-chain-controls)
+- [Signer Rotation and Revocation Policy](#signer-rotation-and-revocation-policy)
 - [Emergency OTEL-Only Fallback](#emergency-otel-only-fallback)
 - [Recovery Back to Hybrid](#recovery-back-to-hybrid)
 - [Migration Operations](#migration-operations)
@@ -68,6 +70,32 @@ Use these gates before widening release:
 | Event injection (renderer) | `codex_app_server_receive_live_event` | Removed from invoke surface. Live events are backend-internal only. | ✅ Complete |
 | Approval decision | `codex_app_server_submit_approval(requestId, approved, reason?)` | `codex_app_server_submit_approval(requestId, threadId, decisionToken, approved, reason?)` | ✅ Complete |
 | Thread snapshot | local stub response | protocol-backed `thread/read` request with RPC correlation/timeout handling | ✅ Complete |
+
+## Sidecar Supply-Chain Controls
+
+- Sidecar binaries are pinned in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/bin/` and validated against `/Users/jamiecraik/dev/firefly-narrative/src-tauri/bin/codex-app-server-manifest.json`.
+- Verification command (required in CI/build):  
+  `node scripts/verify-codex-sidecar-manifest.mjs --manifest src-tauri/bin/codex-app-server-manifest.json --require-signature --require-checksum --enforce-min-version`
+- Production runtime policy:
+  - ignores `NARRATIVE_CODEX_APP_SERVER_BIN` overrides;
+  - requires manifest validation (schema, anti-rollback version floor, signer trust, checksum);
+  - fails sidecar startup if trust checks fail.
+- Development policy:
+  - allows `NARRATIVE_CODEX_APP_SERVER_BIN` override for local testing only.
+
+## Signer Rotation and Revocation Policy
+
+- **Trusted signer set:** `narrative-codex-sidecar-2026q1`, `narrative-codex-sidecar-2026q2`.
+- **Revoked signer set:** `narrative-codex-sidecar-2025q4`.
+- Rotation workflow:
+  1. Add new signer ID to trusted set.
+  2. Generate new manifest signature with new signer ID.
+  3. Update CI gate to require signature/checksum pass.
+  4. Promote rollout only after canary pass.
+- Emergency revocation workflow:
+  1. Add compromised signer to revoked set.
+  2. Re-sign manifest with healthy signer.
+  3. Ship hotfix; production runtime rejects revoked signer immediately.
 
 ## Emergency OTEL-Only Fallback
 

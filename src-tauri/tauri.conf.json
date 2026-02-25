@@ -5,7 +5,7 @@
   "identifier": "com.jamie.firefly-narrative",
   "build": {
     "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build && pnpm tauri:prepare-cli",
+    "beforeBuildCommand": "pnpm build && pnpm tauri:prepare-cli && pnpm tauri:verify-sidecar-manifest",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
@@ -29,6 +29,9 @@
     "createUpdaterArtifacts": true,
     "externalBin": [
       "bin/codex-app-server"
+    ],
+    "resources": [
+      "bin/codex-app-server-manifest.json"
     ],
     "icon": [
       "icons/32x32.png",

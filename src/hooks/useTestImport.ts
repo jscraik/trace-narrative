@@ -47,11 +47,11 @@ export function useTestImport({
     };
   }, []);
 
-  const isActiveRequest = (expectedRepoId: number, expectedRepoRoot: string, requestVersion: number) =>
+  const isActiveRequest = useCallback((expectedRepoId: number, expectedRepoRoot: string, requestVersion: number) =>
     isMountedRef.current &&
     repoIdRef.current === expectedRepoId &&
     repoRootRef.current === expectedRepoRoot &&
-    requestVersionRef.current === requestVersion;
+    requestVersionRef.current === requestVersion, []);
 
   const importJUnitForCommit = useCallback(
     async (commitSha: string) => {
@@ -131,7 +131,7 @@ export function useTestImport({
         setActionError(e instanceof Error ? e.message : String(e));
       }
     },
-    [repoRoot, setActionError, setRepoState]
+    [isActiveRequest, setActionError, setRepoState]
   );
 
   return { importJUnitForCommit };

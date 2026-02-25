@@ -49,5 +49,8 @@ fn codex_app_server_command_surface_is_allowlisted() {
         "stop_codex_app_server".to_string(),
     ]);
 
-    assert_eq!(actual, expected, "Codex command surface drifted; update allowlist intentionally");
+    assert_eq!(
+        actual, expected,
+        "Codex command surface drifted; update allowlist intentionally"
+    );
 }

@@ -64,8 +64,7 @@ export function SessionImportPanel({ repoId }: SessionImportPanelProps) {
       if (isStaleRequest()) return;
       setError(e instanceof Error ? e.message : 'Scan failed');
     } finally {
-      if (!isMountedRef.current) return;
-      if (!isStaleRequest()) {
+      if (isMountedRef.current && !isStaleRequest()) {
         setScanning(false);
       }
     }
@@ -104,8 +103,7 @@ export function SessionImportPanel({ repoId }: SessionImportPanelProps) {
       if (isStaleRequest()) return;
       setError(e instanceof Error ? e.message : 'Import failed');
     } finally {
-      if (!isMountedRef.current) return;
-      if (!isStaleRequest()) {
+      if (isMountedRef.current && !isStaleRequest()) {
         setImporting(false);
       }
     }
@@ -132,8 +130,7 @@ export function SessionImportPanel({ repoId }: SessionImportPanelProps) {
       if (isStaleRequest()) return;
       setError(e instanceof Error ? e.message : 'Import failed');
     } finally {
-      if (!isMountedRef.current) return;
-      if (!isStaleRequest()) {
+      if (isMountedRef.current && !isStaleRequest()) {
         setImporting(false);
       }
     }

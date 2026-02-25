@@ -51,6 +51,8 @@ export function StoryAnchorsPanel(props: {
     repoRootRef.current = repoRoot;
     selectedCommitShaRef.current = selectedCommitSha;
     indexedCommitShasRef.current = indexedCommitShas ?? null;
+    setBusy(false);
+    setExportProgress(null);
   }, [repoId, repoRoot, selectedCommitSha, indexedCommitShas]);
 
   useEffect(() => {
@@ -146,11 +148,6 @@ export function StoryAnchorsPanel(props: {
   useEffect(() => {
     refresh();
   }, [refresh]);
-
-  useEffect(() => {
-    setBusy(false);
-    setExportProgress(null);
-  }, [repoId, repoRoot, indexedCommitShas, selectedCommitSha]);
 
   return (
     <div className="mt-6 flex flex-col gap-3 rounded-lg border border-border-light bg-bg-secondary p-4">
