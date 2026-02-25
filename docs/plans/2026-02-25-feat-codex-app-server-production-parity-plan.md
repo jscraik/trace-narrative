@@ -311,7 +311,7 @@ Implement a protocol-native app-server runtime layer in `src-tauri/src/codex_app
 - [ ] **P3-06 Capability-level command lockdown**
   - **File targets:** `src-tauri/capabilities/default.json`, CI security gate
   - **Done when:** only intended lifecycle/read/approval commands are capability-allowed for `main`; internal/removed commands are capability-denied and permission widening fails CI.
-- [ ] **P3-07 Event targeting + listener lifecycle hygiene**
+- [x] **P3-07 Event targeting + listener lifecycle hygiene**
   - **File targets:** `src-tauri/src/codex_app_server.rs`, `src/hooks/useAutoIngest.ts`, frontend listener tests
   - **Done when:** privileged events are target-scoped (avoid broad global emit) and every frontend listener has explicit unlisten cleanup on teardown.
 
@@ -495,7 +495,7 @@ Interfaces requiring update parity:
 - [ ] Production runtime ignores non-allowlisted environment overrides and records safe audit events for blocked overrides.
 - [ ] Release build fails closed on missing/invalid signature, hash mismatch, stale manifest, or downgraded artifact version.
 - [ ] Stop/restart/error paths guarantee child-process reap semantics (`wait`/kill+wait), with no orphan sidecar process left running.
-- [ ] Privileged backend events are target-scoped; no broad global broadcast for auth/approval internals.
+- [x] Privileged backend events are target-scoped; no broad global broadcast for auth/approval internals.
 
 ### Quality gates
 - [x] `cargo test --manifest-path /Users/jamiecraik/dev/firefly-narrative/src-tauri/Cargo.toml codex_app_server`

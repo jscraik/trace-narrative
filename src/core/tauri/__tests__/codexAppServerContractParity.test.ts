@@ -9,7 +9,7 @@ const rustRuntimePath = path.join(repoRoot, 'src-tauri/src/codex_app_server.rs')
 const autoIngestPath = path.join(repoRoot, 'src/hooks/useAutoIngest.ts');
 
 const codexCommandFilter =
-  /^(get_codex_app_server_status|start_codex_app_server|stop_codex_app_server|get_capture_reliability_status|codex_app_server_|ingest_codex_stream_event)/;
+  /^(get_codex_app_server_status|start_codex_app_server|stop_codex_app_server|get_capture_reliability_status|codex_app_server_)/;
 
 function extractTsInvokeCommands(source: string): Set<string> {
   const commands = new Set<string>();
@@ -48,8 +48,10 @@ describe('codex app-server Rust↔TS command and event parity', () => {
     const rustRuntime = fs.readFileSync(rustRuntimePath, 'utf8');
     const autoIngest = fs.readFileSync(autoIngestPath, 'utf8');
 
+    expect(rustRuntime).toContain('const MAIN_WINDOW_LABEL: &str = "main"');
     expect(rustRuntime).toContain('pub const LIVE_SESSION_EVENT: &str = "session:live:event"');
-    expect(rustRuntime).toContain('app_handle.emit("codex-app-server-status"');
+    expect(rustRuntime).toContain('app_handle.emit_to(MAIN_WINDOW_LABEL, "codex-app-server-status"');
+    expect(rustRuntime).toContain('app_handle.emit_to(MAIN_WINDOW_LABEL, LIVE_SESSION_EVENT');
     expect(autoIngest).toContain("listen<LiveSessionEventPayload>('session:live:event'");
     expect(autoIngest).toContain("listen<CodexAppServerStatus>('codex-app-server-status'");
   });

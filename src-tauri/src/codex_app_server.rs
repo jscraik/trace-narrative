@@ -37,6 +37,7 @@ const MAX_SIDECAR_JSON_DEPTH: usize = 32;
 const MAX_SIDECAR_STDERR_LINES: usize = 256;
 const MAX_APPROVAL_DECISIONS: usize = 1_000;
 const APPROVAL_TOKEN_BYTES: usize = 32;
+const MAIN_WINDOW_LABEL: &str = "main";
 const SUPPORTED_AUTH_MODES: &[&str] = &["apikey", "chatgpt", "chatgptAuthTokens"];
 const BLOCKED_SIDECAR_ENV_OVERRIDES: &[&str] = &[
     "LD_PRELOAD",
@@ -626,11 +627,11 @@ fn set_process_state(
 }
 
 fn emit_status(app_handle: &AppHandle, status: &CodexAppServerStatus) {
-    let _ = app_handle.emit("codex-app-server-status", status.clone());
+    let _ = app_handle.emit_to(MAIN_WINDOW_LABEL, "codex-app-server-status", status.clone());
 }
 
 fn emit_live_session_event(app_handle: &AppHandle, payload: &LiveSessionEventPayload) {
-    let _ = app_handle.emit(LIVE_SESSION_EVENT, payload.clone());
+    let _ = app_handle.emit_to(MAIN_WINDOW_LABEL, LIVE_SESSION_EVENT, payload.clone());
 }
 
 fn detect_sidecar_path(app_handle: &AppHandle) -> Option<PathBuf> {
@@ -787,7 +788,7 @@ fn emit_mode_transition(
         runtime.transitions.pop_back();
     }
 
-    let _ = app_handle.emit("capture-reliability-transition", transition);
+    let _ = app_handle.emit_to(MAIN_WINDOW_LABEL, "capture-reliability-transition", transition);
 }
 
 fn handle_sidecar_exit(
