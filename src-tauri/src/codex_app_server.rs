@@ -1,9 +1,11 @@
+use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::collections::{HashMap, VecDeque};
+use std::hash::{Hash, Hasher};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Child, ChildStdout, Command, Stdio};
+use std::process::{Child, ChildStderr, ChildStdout, Command, Stdio};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
@@ -25,11 +27,34 @@ const DEFAULT_LIVE_SESSIONS_MAX_ROWS: i64 = 10_000;
 const RECONNECT_REASON_SCHEMA_MISMATCH: &str = "schema_version_mismatch";
 const RECONNECT_REASON_SESSION_INVALID: &str = "session_invalid";
 const RECONNECT_REASON_TOKEN_INVALID: &str = "token_invalid";
-const RPC_ID_INITIALIZE: i64 = 1;
-const RPC_ID_ACCOUNT_READ: i64 = 2;
-const RPC_ID_ACCOUNT_LOGIN_START: i64 = 3;
+const APP_SERVER_PROTOCOL_TARGET: &str = "v2";
+const APP_SERVER_SCHEMA_SUPPORTED: &[&str] = &["v1"];
+const APP_SERVER_SCHEMA_DEPRECATED: &[&str] = &[];
+const RPC_REQUEST_TIMEOUT_MS: u64 = 30_000;
+const MAX_PENDING_RPC_REQUESTS: usize = 256;
+const MAX_SIDECAR_JSONL_BYTES: usize = 256 * 1024;
+const MAX_SIDECAR_JSON_DEPTH: usize = 32;
+const MAX_SIDECAR_STDERR_LINES: usize = 256;
+const MAX_APPROVAL_DECISIONS: usize = 1_000;
+const APPROVAL_TOKEN_BYTES: usize = 32;
+const SUPPORTED_AUTH_MODES: &[&str] = &["apikey", "chatgpt", "chatgptAuthTokens"];
+const BLOCKED_SIDECAR_ENV_OVERRIDES: &[&str] = &[
+    "LD_PRELOAD",
+    "LD_LIBRARY_PATH",
+    "DYLD_INSERT_LIBRARIES",
+    "DYLD_LIBRARY_PATH",
+    "DYLD_FRAMEWORK_PATH",
+    "DYLD_FALLBACK_LIBRARY_PATH",
+];
 
 pub const LIVE_SESSION_EVENT: &str = "session:live:event";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SchemaVersionPolicy {
+    Supported,
+    Deprecated,
+    Rejected,
+}
 
 #[derive(Clone, Default)]
 pub struct CodexAppServerState {
@@ -189,6 +214,15 @@ pub struct CaptureReliabilityMetrics {
     pub stream_events_duplicates: u64,
     pub stream_events_dropped: u64,
     pub stream_events_replaced: u64,
+    pub parser_validation_errors_total: u64,
+    pub rpc_timeouts_total: u64,
+    pub approval_timeouts_total: u64,
+    pub restart_events_total: u64,
+    pub pending_rpcs: usize,
+    pub pending_approvals: usize,
+    pub sidecar_stderr_buffered: usize,
+    pub sidecar_stderr_dropped: u64,
+    pub time_since_last_stream_event_ms: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -235,6 +269,8 @@ pub enum LiveSessionEventPayload {
         command: String,
         options: Vec<String>,
         timeout_ms: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        decision_token: Option<String>,
     },
     #[serde(rename_all = "camelCase")]
     ApprovalResult {
@@ -267,6 +303,30 @@ struct PendingApproval {
     thread_id: String,
     created_at_epoch_ms: i64,
     timeout_ms: u64,
+    decision_token: String,
+    approval_window_id: u64,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum PendingRpcKind {
+    Initialize,
+    AccountRead,
+    AccountLoginStart,
+    AccountChatgptTokensRefresh,
+    ThreadRead,
+}
+
+#[derive(Debug, Clone)]
+struct PendingRpcRequest {
+    kind: PendingRpcKind,
+    sent_at_epoch_ms: i64,
+    timeout_ms: u64,
+}
+
+#[derive(Debug, Clone)]
+struct ApprovalDecisionRecord {
+    decision_token_hash: String,
+    approval_window_id: u64,
 }
 
 struct SidecarProcess {
@@ -294,10 +354,20 @@ struct CodexAppServerRuntime {
     transitions: VecDeque<CaptureModeTransition>,
     last_mode: Option<String>,
     approval_waiters: HashMap<String, PendingApproval>,
+    approval_decisions: HashMap<String, ApprovalDecisionRecord>,
+    approval_decision_order: VecDeque<String>,
     parse_error_total: HashMap<String, u64>,
     approval_result_total: HashMap<String, u64>,
     restart_total: HashMap<String, u64>,
     event_sequence_id: u64,
+    next_rpc_id: i64,
+    pending_rpcs: HashMap<i64, PendingRpcRequest>,
+    sidecar_stderr_ring: VecDeque<String>,
+    sidecar_stderr_dropped: u64,
+    last_stream_event_at_epoch_ms: Option<i64>,
+    approval_window_id: u64,
+    thread_read_results: HashMap<i64, serde_json::Value>,
+    thread_read_errors: HashMap<i64, String>,
 }
 
 impl Default for CodexAppServerRuntime {
@@ -323,10 +393,20 @@ impl Default for CodexAppServerRuntime {
             transitions: VecDeque::new(),
             last_mode: None,
             approval_waiters: HashMap::new(),
+            approval_decisions: HashMap::new(),
+            approval_decision_order: VecDeque::new(),
             parse_error_total: HashMap::new(),
             approval_result_total: HashMap::new(),
             restart_total: HashMap::new(),
             event_sequence_id: 0,
+            next_rpc_id: 1,
+            pending_rpcs: HashMap::new(),
+            sidecar_stderr_ring: VecDeque::new(),
+            sidecar_stderr_dropped: 0,
+            last_stream_event_at_epoch_ms: None,
+            approval_window_id: rand::thread_rng().gen(),
+            thread_read_results: HashMap::new(),
+            thread_read_errors: HashMap::new(),
         }
     }
 }
@@ -349,7 +429,141 @@ fn normalize_source(input: &str) -> String {
 }
 
 fn normalize_auth_mode(input: &str) -> String {
-    input.trim().to_lowercase()
+    let normalized = input.trim().to_lowercase();
+    match normalized.as_str() {
+        "" | "none" | "null" => "none".to_string(),
+        "api_key" | "apikey" => "apikey".to_string(),
+        "chatgpt" => "chatgpt".to_string(),
+        "chatgptauthtokens" | "chatgpt_auth_tokens" => "chatgptAuthTokens".to_string(),
+        _ => normalized,
+    }
+}
+
+fn is_sensitive_key(key: &str) -> bool {
+    let normalized = key.to_lowercase();
+    normalized.contains("token")
+        || normalized.contains("secret")
+        || normalized.contains("authorization")
+        || normalized.contains("apikey")
+        || normalized.contains("api_key")
+        || normalized.contains("authurl")
+}
+
+fn redact_sensitive_json(value: &serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Array(items) => serde_json::Value::Array(
+            items
+                .iter()
+                .map(redact_sensitive_json)
+                .collect::<Vec<serde_json::Value>>(),
+        ),
+        serde_json::Value::Object(map) => {
+            let mut redacted = serde_json::Map::new();
+            for (key, value) in map {
+                if is_sensitive_key(key) {
+                    redacted.insert(
+                        key.clone(),
+                        serde_json::Value::String("[REDACTED]".to_string()),
+                    );
+                } else {
+                    redacted.insert(key.clone(), redact_sensitive_json(value));
+                }
+            }
+            serde_json::Value::Object(redacted)
+        }
+        _ => value.clone(),
+    }
+}
+
+fn format_redacted_json(value: &serde_json::Value) -> String {
+    serde_json::to_string(&redact_sensitive_json(value))
+        .unwrap_or_else(|_| "<unserializable>".to_string())
+}
+
+fn redact_sensitive_stderr_line(line: &str) -> String {
+    let normalized = line.to_lowercase();
+    if normalized.contains("token")
+        || normalized.contains("authorization")
+        || normalized.contains("api_key")
+        || normalized.contains("apikey")
+        || normalized.contains("secret")
+    {
+        "[REDACTED STDERR LINE: potential credential material]".to_string()
+    } else {
+        line.to_string()
+    }
+}
+
+fn validate_and_redact_auth_url(url: &str) -> Result<String, String> {
+    let trimmed = url.trim();
+    if !trimmed.starts_with("https://") {
+        return Err("authUrl must use https scheme".to_string());
+    }
+
+    let host_and_path = &trimmed["https://".len()..];
+    let host = host_and_path
+        .split(['/', '?', '#'])
+        .next()
+        .unwrap_or_default()
+        .trim();
+    if host.is_empty() {
+        return Err("authUrl missing host".to_string());
+    }
+
+    let host_lc = host.to_lowercase();
+    let host_allowed = matches!(
+        host_lc.as_str(),
+        "openai.com" | "chatgpt.com" | "auth.openai.com" | "chat.openai.com"
+    ) || host_lc.ends_with(".openai.com")
+        || host_lc.ends_with(".chatgpt.com");
+    if !host_allowed {
+        return Err(format!("authUrl host is not allowlisted: {host}"));
+    }
+
+    let without_fragment = trimmed.split('#').next().unwrap_or(trimmed);
+    let without_query = without_fragment
+        .split('?')
+        .next()
+        .unwrap_or(without_fragment);
+    Ok(without_query.to_string())
+}
+
+fn generate_approval_window_id() -> u64 {
+    rand::thread_rng().gen()
+}
+
+fn generate_approval_decision_token() -> String {
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(APPROVAL_TOKEN_BYTES)
+        .map(char::from)
+        .collect()
+}
+
+fn hash_opaque_token(value: &str) -> String {
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    value.hash(&mut hasher);
+    format!("{:016x}", hasher.finish())
+}
+
+fn auth_mode_to_login_start_type(auth_mode: &str) -> Option<&'static str> {
+    match auth_mode {
+        "apikey" => Some("apiKey"),
+        "chatgpt" => Some("chatgpt"),
+        "chatgptAuthTokens" => Some("chatgptAuthTokens"),
+        _ => None,
+    }
+}
+
+fn supported_auth_modes() -> Vec<String> {
+    SUPPORTED_AUTH_MODES
+        .iter()
+        .map(|mode| mode.to_string())
+        .collect()
+}
+
+fn is_supported_auth_mode(auth_mode: &str) -> bool {
+    SUPPORTED_AUTH_MODES.contains(&auth_mode)
 }
 
 fn event_identity_key(input: &CodexStreamEventInput) -> String {
@@ -385,6 +599,10 @@ fn source_priority(event_type: &str, source: &str) -> i32 {
 fn increment_labeled_counter(counter: &mut HashMap<String, u64>, key: &str) {
     let entry = counter.entry(key.to_string()).or_insert(0);
     *entry += 1;
+}
+
+fn counter_total(counter: &HashMap<String, u64>) -> u64 {
+    counter.values().copied().sum()
 }
 
 fn sync_status(runtime: &mut CodexAppServerRuntime) {
@@ -510,7 +728,7 @@ fn apply_account_updated(
     authenticated: bool,
 ) {
     let mode = normalize_auth_mode(auth_mode);
-    if mode != "chatgpt" {
+    if mode != "none" && !is_supported_auth_mode(&mode) {
         runtime.status.auth_mode = mode.clone();
         runtime.auth_state = AuthState::NeedsLogin;
         runtime.status.stream_healthy = false;
@@ -518,7 +736,8 @@ fn apply_account_updated(
             runtime.process_state = ProcessState::Degraded;
         }
         runtime.status.last_error = Some(format!(
-            "Unsupported auth mode for v1: {mode}. Expected chatgpt",
+            "Unsupported auth mode for v1: {mode}. Expected one of {}",
+            SUPPORTED_AUTH_MODES.join(", ")
         ));
         sync_status(runtime);
         return;
@@ -571,12 +790,69 @@ fn emit_mode_transition(
     let _ = app_handle.emit("capture-reliability-transition", transition);
 }
 
+fn handle_sidecar_exit(
+    runtime: &mut CodexAppServerRuntime,
+    exit_status: std::process::ExitStatus,
+) -> bool {
+    let was_crash_loop = runtime.process_state == ProcessState::CrashLoop;
+    let cancelled = cancel_pending_rpcs(runtime, "rpc_cancelled_process_exit");
+    runtime.sidecar = None;
+    runtime.next_rpc_id = 1;
+    runtime.status.stream_healthy = false;
+    runtime.stream_session_state = StreamSessionState::Failed;
+    register_start_failure(
+        runtime,
+        format!("Codex App Server sidecar exited: {exit_status}"),
+        "process_exit",
+    );
+
+    let should_restart = !was_crash_loop
+        && runtime.process_state != ProcessState::CrashLoop
+        && !runtime.status.stream_kill_switch;
+
+    if cancelled > 0 {
+        runtime.status.last_error = Some(format!(
+            "Codex App Server sidecar exited: {exit_status}; cancelled {cancelled} pending RPC(s)"
+        ));
+        sync_status(runtime);
+    }
+
+    should_restart
+}
+
+fn remember_sidecar_stderr_line(runtime: &mut CodexAppServerRuntime, line: &str) {
+    runtime.sidecar_stderr_ring.push_back(
+        redact_sensitive_stderr_line(line)
+            .trim()
+            .chars()
+            .take(1_024)
+            .collect(),
+    );
+    while runtime.sidecar_stderr_ring.len() > MAX_SIDECAR_STDERR_LINES {
+        runtime.sidecar_stderr_ring.pop_front();
+        runtime.sidecar_stderr_dropped = runtime.sidecar_stderr_dropped.saturating_add(1);
+    }
+}
+
+fn harden_sidecar_command(command: &mut Command, sidecar_path: &Path) {
+    if let Some(parent) = sidecar_path.parent() {
+        command.current_dir(parent);
+    } else if let Ok(cwd) = std::env::current_dir() {
+        command.current_dir(cwd);
+    }
+
+    for env_key in BLOCKED_SIDECAR_ENV_OVERRIDES {
+        command.env_remove(env_key);
+    }
+}
+
 fn spawn_sidecar_process(path: &Path) -> Result<SidecarProcess, String> {
     let mut command = Command::new(path);
+    harden_sidecar_command(&mut command, path);
     command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null());
+        .stderr(Stdio::piped());
 
     let child = command
         .spawn()
@@ -598,8 +874,8 @@ fn send_sidecar_message(
         return Err("Codex App Server stdin is unavailable".to_string());
     };
 
-    let encoded =
-        serde_json::to_vec(message).map_err(|e| format!("failed to encode sidecar message: {e}"))?;
+    let encoded = serde_json::to_vec(message)
+        .map_err(|e| format!("failed to encode sidecar message: {e}"))?;
     stdin
         .write_all(&encoded)
         .map_err(|e| format!("failed to write sidecar message: {e}"))?;
@@ -611,6 +887,362 @@ fn send_sidecar_message(
         .map_err(|e| format!("failed to flush sidecar message: {e}"))?;
 
     Ok(())
+}
+
+fn pending_rpc_kind_label(kind: PendingRpcKind) -> &'static str {
+    match kind {
+        PendingRpcKind::Initialize => "initialize",
+        PendingRpcKind::AccountRead => "account/read",
+        PendingRpcKind::AccountLoginStart => "account/login/start",
+        PendingRpcKind::AccountChatgptTokensRefresh => "account/chatgptAuthTokens/refresh",
+        PendingRpcKind::ThreadRead => "thread/read",
+    }
+}
+
+fn next_rpc_id(runtime: &mut CodexAppServerRuntime) -> i64 {
+    let id = runtime.next_rpc_id;
+    runtime.next_rpc_id = runtime.next_rpc_id.saturating_add(1);
+    id
+}
+
+fn cancel_pending_rpcs(runtime: &mut CodexAppServerRuntime, reason: &str) -> usize {
+    if runtime.pending_rpcs.is_empty() {
+        return 0;
+    }
+    let cancelled_requests: Vec<(i64, PendingRpcKind)> = runtime
+        .pending_rpcs
+        .iter()
+        .map(|(id, request)| (*id, request.kind))
+        .collect();
+    let cancelled = cancelled_requests.len();
+    for (id, kind) in cancelled_requests {
+        if matches!(kind, PendingRpcKind::ThreadRead) {
+            runtime
+                .thread_read_errors
+                .insert(id, "thread/read request cancelled".to_string());
+        }
+    }
+    runtime.pending_rpcs.clear();
+    increment_labeled_counter(&mut runtime.parse_error_total, reason);
+    cancelled
+}
+
+fn remember_approval_decision(
+    runtime: &mut CodexAppServerRuntime,
+    payload: &LiveSessionEventPayload,
+    decision_token: Option<&str>,
+    approval_window_id: Option<u64>,
+) {
+    let LiveSessionEventPayload::ApprovalResult { request_id, .. } = payload else {
+        return;
+    };
+
+    runtime.approval_decisions.insert(
+        request_id.clone(),
+        ApprovalDecisionRecord {
+            decision_token_hash: decision_token
+                .map(hash_opaque_token)
+                .unwrap_or_else(|| "none".to_string()),
+            approval_window_id: approval_window_id.unwrap_or(runtime.approval_window_id),
+        },
+    );
+
+    if let Some(existing_idx) = runtime
+        .approval_decision_order
+        .iter()
+        .position(|existing| existing == request_id)
+    {
+        runtime.approval_decision_order.remove(existing_idx);
+    }
+    runtime
+        .approval_decision_order
+        .push_back(request_id.clone());
+    while runtime.approval_decision_order.len() > MAX_APPROVAL_DECISIONS {
+        if let Some(evicted) = runtime.approval_decision_order.pop_front() {
+            runtime.approval_decisions.remove(&evicted);
+        }
+    }
+}
+
+fn bind_approval_request_token(payload: LiveSessionEventPayload) -> LiveSessionEventPayload {
+    match payload {
+        LiveSessionEventPayload::ApprovalRequest {
+            request_id,
+            thread_id,
+            turn_id,
+            command,
+            options,
+            timeout_ms,
+            decision_token,
+        } => LiveSessionEventPayload::ApprovalRequest {
+            request_id,
+            thread_id,
+            turn_id,
+            command,
+            options,
+            timeout_ms,
+            decision_token: Some(decision_token.unwrap_or_else(generate_approval_decision_token)),
+        },
+        _ => payload,
+    }
+}
+
+fn apply_pending_rpc_success(
+    runtime: &mut CodexAppServerRuntime,
+    id: i64,
+    request: PendingRpcRequest,
+    result: &serde_json::Value,
+) {
+    match request.kind {
+        PendingRpcKind::Initialize => {
+            runtime.handshake_state = HandshakeState::InitializeSent;
+            runtime.status.last_error = None;
+        }
+        PendingRpcKind::AccountRead => {
+            apply_account_read_result(runtime, result);
+        }
+        PendingRpcKind::AccountLoginStart => {
+            if let Some(url) = result.get("authUrl").and_then(serde_json::Value::as_str) {
+                match validate_and_redact_auth_url(url) {
+                    Ok(redacted_url) => {
+                        runtime.status.last_error =
+                            Some(format!("Complete login in browser: {redacted_url}"));
+                    }
+                    Err(reason) => {
+                        runtime.status.last_error =
+                            Some(format!("Rejected sidecar auth URL: {reason}"));
+                        if runtime.process_state != ProcessState::CrashLoop {
+                            runtime.process_state = ProcessState::Degraded;
+                        }
+                    }
+                }
+            } else {
+                runtime.status.last_error = None;
+            }
+        }
+        PendingRpcKind::AccountChatgptTokensRefresh => {
+            runtime.status.auth_mode = "chatgptAuthTokens".to_string();
+            runtime.auth_state = AuthState::Authenticated;
+            runtime.status.last_error = None;
+        }
+        PendingRpcKind::ThreadRead => {
+            runtime.thread_read_errors.remove(&id);
+            runtime.thread_read_results.insert(id, result.clone());
+            runtime.status.last_error = None;
+        }
+    }
+}
+
+fn apply_pending_rpc_error(
+    runtime: &mut CodexAppServerRuntime,
+    id: i64,
+    request: PendingRpcRequest,
+    error: &serde_json::Value,
+) {
+    let method = pending_rpc_kind_label(request.kind);
+    runtime.status.last_error = Some(format!(
+        "Sidecar RPC error ({id}, {method}): {}",
+        format_redacted_json(error)
+    ));
+    if runtime.process_state != ProcessState::CrashLoop {
+        runtime.process_state = ProcessState::Degraded;
+    }
+    if matches!(request.kind, PendingRpcKind::Initialize) {
+        runtime.handshake_state = HandshakeState::NotStarted;
+    }
+    if matches!(
+        request.kind,
+        PendingRpcKind::AccountRead
+            | PendingRpcKind::AccountLoginStart
+            | PendingRpcKind::AccountChatgptTokensRefresh
+    ) {
+        runtime.auth_state = AuthState::NeedsLogin;
+        runtime.status.stream_healthy = false;
+        runtime.stream_session_state = StreamSessionState::Failed;
+    }
+    if matches!(request.kind, PendingRpcKind::ThreadRead) {
+        runtime.thread_read_results.remove(&id);
+        runtime.thread_read_errors.insert(
+            id,
+            format!(
+                "thread/read request failed: {}",
+                format_redacted_json(error)
+            ),
+        );
+    }
+}
+
+fn send_sidecar_request(
+    runtime: &mut CodexAppServerRuntime,
+    method: &str,
+    params: serde_json::Value,
+    kind: PendingRpcKind,
+) -> Result<i64, String> {
+    if runtime.pending_rpcs.len() >= MAX_PENDING_RPC_REQUESTS {
+        increment_labeled_counter(&mut runtime.parse_error_total, "rpc_overload");
+        if runtime.process_state != ProcessState::CrashLoop {
+            runtime.process_state = ProcessState::Degraded;
+        }
+        let message =
+            format!("Too many pending sidecar RPC requests (limit: {MAX_PENDING_RPC_REQUESTS})");
+        runtime.status.last_error = Some(message.clone());
+        sync_status(runtime);
+        return Err(message);
+    }
+    let id = next_rpc_id(runtime);
+    let message = serde_json::json!({
+        "method": method,
+        "id": id,
+        "params": params,
+    });
+    send_sidecar_message(runtime, &message)?;
+    runtime.pending_rpcs.insert(
+        id,
+        PendingRpcRequest {
+            kind,
+            sent_at_epoch_ms: now_epoch_ms(),
+            timeout_ms: RPC_REQUEST_TIMEOUT_MS,
+        },
+    );
+    Ok(id)
+}
+
+fn expire_pending_rpcs(runtime: &mut CodexAppServerRuntime, now_ms: i64) -> usize {
+    let mut expired: Vec<(i64, PendingRpcKind)> = Vec::new();
+    for (id, request) in &runtime.pending_rpcs {
+        let expires_at = request
+            .sent_at_epoch_ms
+            .saturating_add(request.timeout_ms as i64);
+        if now_ms >= expires_at {
+            expired.push((*id, request.kind));
+        }
+    }
+
+    for (id, _) in &expired {
+        let _ = runtime.pending_rpcs.remove(id);
+    }
+
+    for (id, kind) in &expired {
+        if matches!(kind, PendingRpcKind::ThreadRead) {
+            runtime.thread_read_results.remove(id);
+            runtime
+                .thread_read_errors
+                .insert(*id, "thread/read request timed out".to_string());
+        }
+    }
+
+    if !expired.is_empty() {
+        increment_labeled_counter(&mut runtime.parse_error_total, "rpc_timeout");
+        if runtime.process_state != ProcessState::CrashLoop {
+            runtime.process_state = ProcessState::Degraded;
+        }
+        runtime.status.last_error = Some(format!(
+            "Timed out waiting for {} sidecar request(s): {}",
+            expired.len(),
+            expired
+                .iter()
+                .map(|(id, kind)| format!("{id}:{}", pending_rpc_kind_label(*kind)))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+        if expired
+            .iter()
+            .any(|(_, kind)| matches!(kind, PendingRpcKind::Initialize))
+        {
+            runtime.handshake_state = HandshakeState::NotStarted;
+        }
+        if expired.iter().any(|(_, kind)| {
+            matches!(
+                kind,
+                PendingRpcKind::AccountRead
+                    | PendingRpcKind::AccountLoginStart
+                    | PendingRpcKind::AccountChatgptTokensRefresh
+            )
+        }) {
+            runtime.auth_state = AuthState::NeedsLogin;
+            runtime.status.stream_healthy = false;
+            runtime.stream_session_state = StreamSessionState::Failed;
+        }
+        sync_status(runtime);
+    }
+
+    expired.len()
+}
+
+fn has_pending_initialize_request(runtime: &CodexAppServerRuntime) -> bool {
+    runtime
+        .pending_rpcs
+        .values()
+        .any(|request| matches!(request.kind, PendingRpcKind::Initialize))
+}
+
+fn wait_for_initialize_ack(
+    state: &Arc<Mutex<CodexAppServerRuntime>>,
+    timeout: Duration,
+) -> Result<(), String> {
+    let started = Instant::now();
+    loop {
+        {
+            let runtime = state.lock().map_err(|e| e.to_string())?;
+            if runtime.handshake_state == HandshakeState::InitializeSent {
+                return Ok(());
+            }
+            if runtime.handshake_state == HandshakeState::Initialized {
+                return Err("Already initialized".to_string());
+            }
+            if runtime.process_state == ProcessState::Inactive
+                || runtime.process_state == ProcessState::CrashLoop
+            {
+                return Err("Not initialized: app server is not running".to_string());
+            }
+            if !has_pending_initialize_request(&runtime)
+                && runtime.handshake_state != HandshakeState::InitializeSent
+            {
+                return Err("Not initialized: initialize response not received".to_string());
+            }
+        }
+
+        if started.elapsed() >= timeout {
+            return Err("Not initialized: timed out waiting for initialize response".to_string());
+        }
+        thread::sleep(Duration::from_millis(25));
+    }
+}
+
+fn wait_for_thread_read_response(
+    state: &Arc<Mutex<CodexAppServerRuntime>>,
+    request_id: i64,
+    timeout: Duration,
+) -> Result<serde_json::Value, String> {
+    let started = Instant::now();
+    loop {
+        {
+            let mut runtime = state.lock().map_err(|e| e.to_string())?;
+            if let Some(result) = runtime.thread_read_results.remove(&request_id) {
+                return Ok(result);
+            }
+            if let Some(error) = runtime.thread_read_errors.remove(&request_id) {
+                return Err(error);
+            }
+            if runtime.process_state == ProcessState::Inactive
+                || runtime.process_state == ProcessState::CrashLoop
+            {
+                return Err("thread/read aborted: app server is not running".to_string());
+            }
+            if !runtime.pending_rpcs.contains_key(&request_id) {
+                return Err(format!(
+                    "thread/read response missing for request id {request_id}"
+                ));
+            }
+        }
+
+        if started.elapsed() >= timeout {
+            return Err(format!(
+                "thread/read timed out waiting for sidecar response ({request_id})"
+            ));
+        }
+        thread::sleep(Duration::from_millis(25));
+    }
 }
 
 fn build_sidecar_live_delta(method: &str, message: &serde_json::Value) -> LiveSessionEventPayload {
@@ -651,10 +1283,255 @@ fn build_sidecar_live_delta(method: &str, message: &serde_json::Value) -> LiveSe
     }
 }
 
-fn apply_account_notification(
-    runtime: &mut CodexAppServerRuntime,
-    params: &serde_json::Value,
-) {
+fn build_sidecar_approval_request(
+    method: &str,
+    message: &serde_json::Value,
+) -> LiveSessionEventPayload {
+    let params = message
+        .get("params")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
+    let request_id = params
+        .get("requestId")
+        .or_else(|| params.get("request_id"))
+        .or_else(|| message.get("id"))
+        .and_then(serde_json::Value::as_str)
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| format!("approval_{}", now_epoch_ms()));
+    let thread_id = params
+        .get("threadId")
+        .or_else(|| params.get("thread_id"))
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown-thread")
+        .to_string();
+    let turn_id = params
+        .get("turnId")
+        .or_else(|| params.get("turn_id"))
+        .or_else(|| params.get("turn").and_then(|turn| turn.get("id")))
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown-turn")
+        .to_string();
+    let command = params
+        .get("command")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or(method)
+        .to_string();
+    let options = params
+        .get("options")
+        .and_then(serde_json::Value::as_array)
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(ToOwned::to_owned)
+                .collect::<Vec<String>>()
+        })
+        .filter(|entries| !entries.is_empty())
+        .unwrap_or_else(|| vec!["approve".to_string(), "deny".to_string()]);
+    let timeout_ms = params
+        .get("timeoutMs")
+        .or_else(|| params.get("timeout_ms"))
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(30_000);
+
+    LiveSessionEventPayload::ApprovalRequest {
+        request_id,
+        thread_id,
+        turn_id,
+        command,
+        options,
+        timeout_ms,
+        decision_token: None,
+    }
+}
+
+fn is_allowed_sidecar_notification_method(method: &str) -> bool {
+    matches!(
+        method,
+        "account/updated"
+            | "account/login/completed"
+            | "item/commandExecution/requestApproval"
+            | "item/fileChange/requestApproval"
+            | "item/started"
+            | "item/completed"
+            | "item/agentMessage/delta"
+            | "turn/started"
+            | "turn/completed"
+    )
+}
+
+fn json_depth(value: &serde_json::Value) -> usize {
+    match value {
+        serde_json::Value::Array(values) => 1 + values.iter().map(json_depth).max().unwrap_or(0),
+        serde_json::Value::Object(map) => 1 + map.values().map(json_depth).max().unwrap_or(0),
+        _ => 1,
+    }
+}
+
+fn reject_unknown_fields(
+    object: &serde_json::Map<String, serde_json::Value>,
+    allowed_fields: &[&str],
+) -> Result<(), String> {
+    for key in object.keys() {
+        if !allowed_fields.iter().any(|allowed| allowed == key) {
+            return Err(format!("Unsupported field in sidecar payload: {key}"));
+        }
+    }
+    Ok(())
+}
+
+fn require_any_string_field(
+    object: &serde_json::Map<String, serde_json::Value>,
+    candidates: &[&str],
+    label: &str,
+) -> Result<(), String> {
+    let has_value = candidates.iter().any(|field| {
+        object
+            .get(*field)
+            .and_then(serde_json::Value::as_str)
+            .is_some()
+    });
+    if has_value {
+        Ok(())
+    } else {
+        Err(format!("Missing required sidecar field: {label}"))
+    }
+}
+
+fn validate_sidecar_notification_payload(
+    method: &str,
+    message: &serde_json::Value,
+) -> Result<(), String> {
+    if json_depth(message) > MAX_SIDECAR_JSON_DEPTH {
+        return Err(format!(
+            "Sidecar payload exceeded max depth ({MAX_SIDECAR_JSON_DEPTH})"
+        ));
+    }
+
+    let params = message
+        .get("params")
+        .ok_or_else(|| "Missing params for sidecar notification".to_string())?;
+    let params_object = params
+        .as_object()
+        .ok_or_else(|| "Sidecar notification params must be an object".to_string())?;
+
+    match method {
+        "account/updated" => {
+            reject_unknown_fields(
+                params_object,
+                &["authMode", "auth_mode", "authenticated", "account"],
+            )?;
+            if let Some(mode) = params_object
+                .get("authMode")
+                .or_else(|| params_object.get("auth_mode"))
+            {
+                if !mode.is_string() && !mode.is_null() {
+                    return Err("account/updated.authMode must be string or null".to_string());
+                }
+            }
+        }
+        "account/login/completed" => {
+            reject_unknown_fields(params_object, &["success", "error"])?;
+            if params_object
+                .get("success")
+                .and_then(serde_json::Value::as_bool)
+                .is_none()
+            {
+                return Err("account/login/completed.success must be boolean".to_string());
+            }
+            if let Some(error) = params_object.get("error") {
+                if !error.is_string() && !error.is_null() {
+                    return Err("account/login/completed.error must be string or null".to_string());
+                }
+            }
+        }
+        "turn/started" | "turn/completed" => {
+            require_any_string_field(params_object, &["threadId", "thread_id"], "threadId")?;
+            require_any_string_field(params_object, &["turnId", "turn_id"], "turnId")?;
+        }
+        "item/commandExecution/requestApproval" | "item/fileChange/requestApproval" => {
+            require_any_string_field(params_object, &["requestId", "request_id"], "requestId")?;
+            require_any_string_field(params_object, &["threadId", "thread_id"], "threadId")?;
+            require_any_string_field(params_object, &["turnId", "turn_id"], "turnId")?;
+            require_any_string_field(params_object, &["command"], "command")?;
+            if let Some(options) = params_object.get("options") {
+                let Some(values) = options.as_array() else {
+                    return Err("approval request options must be an array".to_string());
+                };
+                if !values.iter().all(|value| value.is_string()) {
+                    return Err(
+                        "approval request options must contain only string values".to_string()
+                    );
+                }
+            }
+            if let Some(timeout) = params_object.get("timeoutMs") {
+                if timeout.as_u64().is_none() {
+                    return Err("approval request timeoutMs must be u64".to_string());
+                }
+            }
+        }
+        "item/started" | "item/completed" | "item/agentMessage/delta" => {
+            require_any_string_field(params_object, &["threadId", "thread_id"], "threadId")?;
+            require_any_string_field(params_object, &["turnId", "turn_id"], "turnId")?;
+            require_any_string_field(params_object, &["itemId", "item_id"], "itemId")?;
+        }
+        _ => {}
+    }
+
+    Ok(())
+}
+
+fn validate_sidecar_rpc_result(
+    kind: PendingRpcKind,
+    result: &serde_json::Value,
+) -> Result<(), String> {
+    if json_depth(result) > MAX_SIDECAR_JSON_DEPTH {
+        return Err(format!(
+            "Sidecar RPC result exceeded max depth ({MAX_SIDECAR_JSON_DEPTH})"
+        ));
+    }
+
+    match kind {
+        PendingRpcKind::Initialize => {
+            if !result.is_object() {
+                return Err("initialize result must be an object".to_string());
+            }
+        }
+        PendingRpcKind::AccountRead => {
+            if !result.is_object() {
+                return Err("account/read result must be an object".to_string());
+            }
+        }
+        PendingRpcKind::AccountLoginStart => {
+            let object = result
+                .as_object()
+                .ok_or_else(|| "account/login/start result must be an object".to_string())?;
+            if let Some(auth_url) = object.get("authUrl") {
+                let Some(auth_url) = auth_url.as_str() else {
+                    return Err("account/login/start.authUrl must be a string".to_string());
+                };
+                validate_and_redact_auth_url(auth_url)
+                    .map_err(|reason| format!("account/login/start.authUrl invalid: {reason}"))?;
+            }
+        }
+        PendingRpcKind::AccountChatgptTokensRefresh => {
+            if !result.is_object() {
+                return Err(
+                    "account/chatgptAuthTokens/refresh result must be an object".to_string()
+                );
+            }
+        }
+        PendingRpcKind::ThreadRead => {
+            if !result.is_object() {
+                return Err("thread/read result must be an object".to_string());
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn apply_account_notification(runtime: &mut CodexAppServerRuntime, params: &serde_json::Value) {
     let auth_mode = params
         .get("authMode")
         .or_else(|| params.get("auth_mode"))
@@ -670,7 +1547,8 @@ fn apply_account_notification(
             if runtime.process_state != ProcessState::CrashLoop {
                 runtime.process_state = ProcessState::Degraded;
             }
-            runtime.status.last_error = Some("Authentication required via sidecar account update".to_string());
+            runtime.status.last_error =
+                Some("Authentication required via sidecar account update".to_string());
             sync_status(runtime);
         }
     }
@@ -694,7 +1572,8 @@ fn apply_account_read_result(runtime: &mut CodexAppServerRuntime, result: &serde
             if runtime.process_state != ProcessState::CrashLoop {
                 runtime.process_state = ProcessState::Degraded;
             }
-            runtime.status.last_error = Some("No authenticated Codex account available".to_string());
+            runtime.status.last_error =
+                Some("No authenticated Codex account available".to_string());
             sync_status(runtime);
         }
     }
@@ -710,6 +1589,26 @@ fn process_sidecar_message(
             Ok(guard) => guard,
             Err(_) => return,
         };
+
+        if let Err(reason) = validate_sidecar_notification_payload(method, &message) {
+            if runtime.process_state != ProcessState::CrashLoop {
+                runtime.process_state = ProcessState::Degraded;
+            }
+            runtime.status.last_error = Some(format!(
+                "Rejected sidecar notification ({method}) due to schema validation error: {reason}"
+            ));
+            let parser_error = LiveSessionEventPayload::ParserValidationError {
+                kind: "schema_mismatch".to_string(),
+                raw_preview: method.to_string(),
+                reason,
+                occurred_at_iso: now_iso(),
+            };
+            handle_live_event_internal(&mut runtime, &parser_error);
+            emit_live_session_event(app_handle, &parser_error);
+            sync_status(&mut runtime);
+            emit_status(app_handle, &runtime.status);
+            return;
+        }
 
         match method {
             "account/updated" => {
@@ -748,13 +1647,39 @@ fn process_sidecar_message(
                 }
                 sync_status(&mut runtime);
             }
-            "item/started" | "item/completed" | "item/agentMessage/delta" | "turn/started"
+            "item/started"
+            | "item/completed"
+            | "item/agentMessage/delta"
+            | "turn/started"
             | "turn/completed" => {
                 let event = build_sidecar_live_delta(method, &message);
                 let _ = handle_live_event_internal(&mut runtime, &event);
                 emit_live_session_event(app_handle, &event);
             }
-            _ => {}
+            "item/commandExecution/requestApproval" | "item/fileChange/requestApproval" => {
+                let event =
+                    bind_approval_request_token(build_sidecar_approval_request(method, &message));
+                let _ = handle_live_event_internal(&mut runtime, &event);
+                emit_live_session_event(app_handle, &event);
+            }
+            _ => {
+                if !is_allowed_sidecar_notification_method(method) {
+                    if runtime.process_state != ProcessState::CrashLoop {
+                        runtime.process_state = ProcessState::Degraded;
+                    }
+                    runtime.status.last_error =
+                        Some(format!("Unsupported sidecar notification method: {method}"));
+                    let parser_error = LiveSessionEventPayload::ParserValidationError {
+                        kind: "protocol_violation".to_string(),
+                        raw_preview: method.to_string(),
+                        reason: format!("Rejected unknown sidecar notification method: {method}"),
+                        occurred_at_iso: now_iso(),
+                    };
+                    handle_live_event_internal(&mut runtime, &parser_error);
+                    emit_live_session_event(app_handle, &parser_error);
+                    sync_status(&mut runtime);
+                }
+            }
         }
 
         emit_status(app_handle, &runtime.status);
@@ -770,33 +1695,90 @@ fn process_sidecar_message(
         Err(_) => return,
     };
 
+    let Some(request) = runtime.pending_rpcs.remove(&id) else {
+        increment_labeled_counter(&mut runtime.parse_error_total, "rpc_unknown_id");
+        runtime.status.last_error = Some(format!(
+            "Ignored sidecar response for unknown request id: {id}"
+        ));
+        sync_status(&mut runtime);
+        emit_status(app_handle, &runtime.status);
+        return;
+    };
+
     if let Some(err) = message.get("error") {
-        runtime.status.last_error = Some(format!("Sidecar RPC error ({id}): {err}"));
-        if runtime.process_state != ProcessState::CrashLoop {
-            runtime.process_state = ProcessState::Degraded;
-        }
+        apply_pending_rpc_error(&mut runtime, id, request, err);
         sync_status(&mut runtime);
         emit_status(app_handle, &runtime.status);
         return;
     }
 
-    let result = message.get("result").cloned().unwrap_or(serde_json::Value::Null);
-    match id {
-        RPC_ID_INITIALIZE => {
-            runtime.status.last_error = None;
+    let result = message
+        .get("result")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
+
+    if let Err(reason) = validate_sidecar_rpc_result(request.kind, &result) {
+        if runtime.process_state != ProcessState::CrashLoop {
+            runtime.process_state = ProcessState::Degraded;
         }
-        RPC_ID_ACCOUNT_READ => {
-            apply_account_read_result(&mut runtime, &result);
-        }
-        RPC_ID_ACCOUNT_LOGIN_START => {
-            if let Some(url) = result.get("authUrl").and_then(serde_json::Value::as_str) {
-                runtime.status.last_error = Some(format!("Complete login in browser: {url}"));
-            }
-        }
-        _ => {}
+        runtime.status.last_error = Some(format!(
+            "Rejected sidecar RPC response ({id}) due to schema validation error: {reason}"
+        ));
+        let parser_error = LiveSessionEventPayload::ParserValidationError {
+            kind: "schema_mismatch".to_string(),
+            raw_preview: format!("rpc:{id}"),
+            reason,
+            occurred_at_iso: now_iso(),
+        };
+        handle_live_event_internal(&mut runtime, &parser_error);
+        emit_live_session_event(app_handle, &parser_error);
+        sync_status(&mut runtime);
+        emit_status(app_handle, &runtime.status);
+        return;
     }
+
+    apply_pending_rpc_success(&mut runtime, id, request, &result);
     sync_status(&mut runtime);
     emit_status(app_handle, &runtime.status);
+}
+
+fn validate_sidecar_jsonl_frame(trimmed: &str) -> Result<(), LiveSessionEventPayload> {
+    if trimmed.len() <= MAX_SIDECAR_JSONL_BYTES {
+        return Ok(());
+    }
+
+    Err(LiveSessionEventPayload::ParserValidationError {
+        kind: "protocol_violation".to_string(),
+        raw_preview: redact_sensitive_stderr_line(trimmed)
+            .chars()
+            .take(256)
+            .collect(),
+        reason: format!(
+            "Sidecar frame exceeded max size ({} bytes > {} bytes)",
+            trimmed.len(),
+            MAX_SIDECAR_JSONL_BYTES
+        ),
+        occurred_at_iso: now_iso(),
+    })
+}
+
+fn apply_sidecar_stdout_read_error(
+    runtime: &mut CodexAppServerRuntime,
+    error_message: &str,
+) -> LiveSessionEventPayload {
+    let event = LiveSessionEventPayload::ParserValidationError {
+        kind: "protocol_violation".to_string(),
+        raw_preview: "".to_string(),
+        reason: format!("Failed to read sidecar stdout line: {error_message}"),
+        occurred_at_iso: now_iso(),
+    };
+    handle_live_event_internal(runtime, &event);
+    if runtime.process_state != ProcessState::CrashLoop {
+        runtime.process_state = ProcessState::Degraded;
+    }
+    runtime.status.last_error = Some("Sidecar stdout stream produced invalid UTF-8".to_string());
+    sync_status(runtime);
+    event
 }
 
 fn spawn_sidecar_stdout_reader(
@@ -811,11 +1793,38 @@ fn spawn_sidecar_stdout_reader(
             if cancel.load(Ordering::SeqCst) {
                 break;
             }
-            let Ok(line) = line else {
-                break;
+            let line = match line {
+                Ok(line) => line,
+                Err(err) => {
+                    let mut runtime = match state.lock() {
+                        Ok(guard) => guard,
+                        Err(_) => break,
+                    };
+                    let event = apply_sidecar_stdout_read_error(&mut runtime, &err.to_string());
+                    emit_live_session_event(&app_handle, &event);
+                    emit_status(&app_handle, &runtime.status);
+                    continue;
+                }
             };
             let trimmed = line.trim();
             if trimmed.is_empty() {
+                continue;
+            }
+            if let Err(event) = validate_sidecar_jsonl_frame(trimmed) {
+                let mut runtime = match state.lock() {
+                    Ok(guard) => guard,
+                    Err(_) => break,
+                };
+                handle_live_event_internal(&mut runtime, &event);
+                if runtime.process_state != ProcessState::CrashLoop {
+                    runtime.process_state = ProcessState::Degraded;
+                }
+                runtime.status.last_error = Some(
+                    "Sidecar frame rejected: payload exceeds maximum allowed size".to_string(),
+                );
+                sync_status(&mut runtime);
+                emit_live_session_event(&app_handle, &event);
+                emit_status(&app_handle, &runtime.status);
                 continue;
             }
             let parsed = match serde_json::from_str::<serde_json::Value>(trimmed) {
@@ -827,7 +1836,10 @@ fn spawn_sidecar_stdout_reader(
                     };
                     let event = LiveSessionEventPayload::ParserValidationError {
                         kind: "protocol_violation".to_string(),
-                        raw_preview: trimmed.chars().take(256).collect(),
+                        raw_preview: redact_sensitive_stderr_line(trimmed)
+                            .chars()
+                            .take(256)
+                            .collect(),
                         reason: format!("Failed to parse sidecar JSON: {err}"),
                         occurred_at_iso: now_iso(),
                     };
@@ -839,6 +1851,33 @@ fn spawn_sidecar_stdout_reader(
             };
 
             process_sidecar_message(&app_handle, &state, parsed);
+        }
+    });
+}
+
+fn spawn_sidecar_stderr_reader(
+    state: Arc<Mutex<CodexAppServerRuntime>>,
+    cancel: Arc<AtomicBool>,
+    stderr: ChildStderr,
+) {
+    thread::spawn(move || {
+        let reader = BufReader::new(stderr);
+        for line in reader.lines() {
+            if cancel.load(Ordering::SeqCst) {
+                break;
+            }
+            let Ok(line) = line else {
+                break;
+            };
+            if line.trim().is_empty() {
+                continue;
+            }
+
+            let mut runtime = match state.lock() {
+                Ok(guard) => guard,
+                Err(_) => break,
+            };
+            remember_sidecar_stderr_line(&mut runtime, &line);
         }
     });
 }
@@ -863,25 +1902,19 @@ fn spawn_monitor_thread(
                     break;
                 }
 
+                let timed_out_rpcs = expire_pending_rpcs(&mut runtime, now_epoch_ms());
+                if timed_out_rpcs > 0 {
+                    emit_status(&app_handle, &runtime.status);
+                }
+
                 let child_status = runtime
                     .sidecar
                     .as_mut()
                     .and_then(|sidecar| sidecar.child.try_wait().ok().flatten());
 
                 if let Some(exit_status) = child_status {
-                    runtime.sidecar = None;
-                    runtime.status.stream_healthy = false;
-                    runtime.stream_session_state = StreamSessionState::Failed;
-                    register_start_failure(
-                        &mut runtime,
-                        format!("Codex App Server sidecar exited: {exit_status}"),
-                        "process_exit",
-                    );
-
-                    if runtime.process_state != ProcessState::CrashLoop
-                        && !runtime.status.stream_kill_switch
-                    {
-                        should_restart = true;
+                    should_restart = handle_sidecar_exit(&mut runtime, exit_status);
+                    if should_restart {
                         restart_path = runtime.sidecar_path.clone();
                     }
 
@@ -911,6 +1944,19 @@ fn spawn_monitor_thread(
                                 emit_status(&app_handle, &runtime.status);
                                 continue;
                             };
+                            let Some(stderr) = sidecar.child.stderr.take() else {
+                                let mut runtime = match state.lock() {
+                                    Ok(guard) => guard,
+                                    Err(_) => break,
+                                };
+                                register_start_failure(
+                                    &mut runtime,
+                                    "Failed to capture Codex App Server stderr".to_string(),
+                                    "stderr_missing",
+                                );
+                                emit_status(&app_handle, &runtime.status);
+                                continue;
+                            };
                             let mut runtime = match state.lock() {
                                 Ok(guard) => guard,
                                 Err(_) => break,
@@ -920,6 +1966,10 @@ fn spawn_monitor_thread(
                             runtime.stream_session_state = StreamSessionState::Expected;
                             runtime.handshake_state = HandshakeState::NotStarted;
                             runtime.status.stream_healthy = false;
+                            runtime.approval_waiters.clear();
+                            runtime.approval_window_id = generate_approval_window_id();
+                            runtime.thread_read_results.clear();
+                            runtime.thread_read_errors.clear();
                             runtime.status.last_error = Some(
                                 "Sidecar restarted; waiting for initialize/auth handshake"
                                     .to_string(),
@@ -931,6 +1981,11 @@ fn spawn_monitor_thread(
                                 state.clone(),
                                 runtime.monitor_cancel.clone(),
                                 stdout,
+                            );
+                            spawn_sidecar_stderr_reader(
+                                state.clone(),
+                                runtime.monitor_cancel.clone(),
+                                stderr,
                             );
                         }
                         Err(err) => {
@@ -972,6 +2027,16 @@ fn extract_repo_id(payload: &serde_json::Value) -> Option<i64> {
         .filter(|value| *value > 0)
 }
 
+fn schema_version_policy(schema_version: &str) -> SchemaVersionPolicy {
+    if APP_SERVER_SCHEMA_SUPPORTED.contains(&schema_version) {
+        return SchemaVersionPolicy::Supported;
+    }
+    if APP_SERVER_SCHEMA_DEPRECATED.contains(&schema_version) {
+        return SchemaVersionPolicy::Deprecated;
+    }
+    SchemaVersionPolicy::Rejected
+}
+
 fn validate_reconnect_payload(payload: &LiveSessionEventPayload) -> Result<(), &'static str> {
     let LiveSessionEventPayload::SessionDelta { payload, .. } = payload else {
         return Ok(());
@@ -982,7 +2047,10 @@ fn validate_reconnect_payload(payload: &LiveSessionEventPayload) -> Result<(), &
         .or_else(|| payload.get("schema_version"))
         .and_then(serde_json::Value::as_str);
     if let Some(schema_version) = schema_version {
-        if schema_version != "v1" {
+        if matches!(
+            schema_version_policy(schema_version),
+            SchemaVersionPolicy::Rejected
+        ) {
             return Err(RECONNECT_REASON_SCHEMA_MISMATCH);
         }
     }
@@ -1022,13 +2090,19 @@ fn apply_reconnect_validation_failure(runtime: &mut CodexAppServerRuntime, reaso
     sync_status(runtime);
 }
 
-fn assert_thread_snapshot_access(runtime: &CodexAppServerRuntime) -> Result<(), String> {
+fn assert_initialized_handshake(runtime: &CodexAppServerRuntime) -> Result<(), String> {
     if runtime.handshake_state != HandshakeState::Initialized {
         return Err(
-            "Handshake incomplete: initialize + initialized required before thread requests"
-                .to_string(),
+            "Not initialized: call initialize and wait for initialized handshake".to_string(),
         );
     }
+    Ok(())
+}
+
+fn assert_thread_snapshot_access(runtime: &CodexAppServerRuntime) -> Result<(), String> {
+    assert_initialized_handshake(runtime).map_err(|_| {
+        "Handshake incomplete: initialize + initialized required before thread requests".to_string()
+    })?;
     if runtime.auth_state != AuthState::Authenticated {
         return Err("Authentication required before requesting thread data".to_string());
     }
@@ -1412,6 +2486,12 @@ fn expire_pending_approvals(
                 decided_by: Some("system".to_string()),
                 reason: Some("Timed out waiting for approval response".to_string()),
             };
+            remember_approval_decision(
+                runtime,
+                &payload,
+                Some(pending.decision_token.as_str()),
+                Some(pending.approval_window_id),
+            );
             increment_labeled_counter(&mut runtime.approval_result_total, "timeout");
             results.push(payload);
         }
@@ -1445,20 +2525,27 @@ fn handle_live_event_internal(
                 source: source.clone(),
                 payload: Some(payload.clone()),
             };
+            runtime.last_stream_event_at_epoch_ms = Some(now_epoch_ms());
             Some(apply_session_delta(runtime, &input))
         }
         LiveSessionEventPayload::ApprovalRequest {
             request_id,
             thread_id,
             timeout_ms,
+            decision_token,
             ..
         } => {
+            let Some(decision_token) = decision_token.clone() else {
+                return None;
+            };
             runtime.approval_waiters.insert(
                 request_id.clone(),
                 PendingApproval {
                     thread_id: thread_id.clone(),
                     created_at_epoch_ms: now_epoch_ms(),
                     timeout_ms: *timeout_ms,
+                    decision_token,
+                    approval_window_id: runtime.approval_window_id,
                 },
             );
             None
@@ -1468,7 +2555,15 @@ fn handle_live_event_internal(
             approved,
             ..
         } => {
-            runtime.approval_waiters.remove(request_id);
+            let pending = runtime.approval_waiters.remove(request_id);
+            remember_approval_decision(
+                runtime,
+                payload,
+                pending
+                    .as_ref()
+                    .map(|record| record.decision_token.as_str()),
+                pending.as_ref().map(|record| record.approval_window_id),
+            );
             increment_labeled_counter(
                 &mut runtime.approval_result_total,
                 if *approved { "approved" } else { "rejected" },
@@ -1480,6 +2575,55 @@ fn handle_live_event_internal(
             None
         }
     }
+}
+
+fn validate_approval_submission_context(
+    runtime: &mut CodexAppServerRuntime,
+    request_id: &str,
+    thread_id: &str,
+    decision_token: &str,
+) -> Result<PendingApproval, String> {
+    if decision_token.trim().is_empty() {
+        increment_labeled_counter(&mut runtime.approval_result_total, "invalid_token");
+        return Err(format!(
+            "approval submission rejected for {request_id}: missing decision token"
+        ));
+    }
+
+    let Some(pending) = runtime.approval_waiters.get(request_id).cloned() else {
+        if let Some(record) = runtime.approval_decisions.get(request_id) {
+            increment_labeled_counter(&mut runtime.approval_result_total, "replay_rejected");
+            return Err(format!(
+                "approval replay rejected for request_id={request_id} (window={}, token_hash={})",
+                record.approval_window_id, record.decision_token_hash
+            ));
+        }
+        return Err(format!("approval request not found: {request_id}"));
+    };
+
+    if pending.approval_window_id != runtime.approval_window_id {
+        runtime.approval_waiters.remove(request_id);
+        increment_labeled_counter(&mut runtime.approval_result_total, "stale_context");
+        return Err(format!(
+            "approval submission rejected for {request_id}: stale approval window context"
+        ));
+    }
+
+    if pending.thread_id != thread_id {
+        increment_labeled_counter(&mut runtime.approval_result_total, "context_mismatch");
+        return Err(format!(
+            "approval submission rejected for {request_id}: thread context mismatch"
+        ));
+    }
+
+    if pending.decision_token != decision_token {
+        increment_labeled_counter(&mut runtime.approval_result_total, "invalid_token");
+        return Err(format!(
+            "approval submission rejected for {request_id}: invalid decision token"
+        ));
+    }
+
+    Ok(pending)
 }
 
 fn command_not_exposed_error(command: &str) -> String {
@@ -1540,6 +2684,15 @@ pub fn start_codex_app_server(
     runtime.auth_state = AuthState::NeedsLogin;
     runtime.status.stream_healthy = false;
     runtime.status.last_error = None;
+    let _ = cancel_pending_rpcs(&mut runtime, "rpc_cancelled_start");
+    runtime.next_rpc_id = 1;
+    runtime.sidecar_stderr_ring.clear();
+    runtime.sidecar_stderr_dropped = 0;
+    runtime.last_stream_event_at_epoch_ms = None;
+    runtime.approval_waiters.clear();
+    runtime.approval_window_id = generate_approval_window_id();
+    runtime.thread_read_results.clear();
+    runtime.thread_read_errors.clear();
     sync_status(&mut runtime);
 
     if runtime.status.stream_kill_switch {
@@ -1574,14 +2727,22 @@ pub fn start_codex_app_server(
                 emit_status(&app_handle, &runtime.status);
                 return Ok(runtime.status.clone());
             };
+            let Some(stderr) = sidecar.child.stderr.take() else {
+                register_start_failure(
+                    &mut runtime,
+                    "Failed to capture Codex App Server stderr".to_string(),
+                    "stderr_missing",
+                );
+                emit_status(&app_handle, &runtime.status);
+                return Ok(runtime.status.clone());
+            };
             runtime.sidecar_path = Some(sidecar_path);
             runtime.sidecar = Some(sidecar);
             runtime.process_state = ProcessState::Running;
             runtime.status.stream_healthy = false;
-            runtime.status.last_error = Some(
-                "Sidecar started; waiting for initialize/initialized/authenticated handshake"
-                    .to_string(),
-            );
+            runtime.status.last_error = Some(format!(
+                "Sidecar started; waiting for initialize/initialized/authenticated handshake (protocol target: {APP_SERVER_PROTOCOL_TARGET})"
+            ));
             sync_status(&mut runtime);
 
             let cancel = Arc::new(AtomicBool::new(false));
@@ -1596,6 +2757,11 @@ pub fn start_codex_app_server(
                 state.inner.clone(),
                 runtime.monitor_cancel.clone(),
                 stdout,
+            );
+            spawn_sidecar_stderr_reader(
+                state.inner.clone(),
+                runtime.monitor_cancel.clone(),
+                stderr,
             );
             emit_status(&app_handle, &runtime.status);
             drop(runtime);
@@ -1651,6 +2817,15 @@ pub fn stop_codex_app_server(
     runtime.auth_state = AuthState::NeedsLogin;
     runtime.status.stream_healthy = false;
     set_process_state(&mut runtime, ProcessState::Inactive, None);
+    let _ = cancel_pending_rpcs(&mut runtime, "rpc_cancelled_stop");
+    runtime.next_rpc_id = 1;
+    runtime.sidecar_stderr_ring.clear();
+    runtime.sidecar_stderr_dropped = 0;
+    runtime.last_stream_event_at_epoch_ms = None;
+    runtime.approval_waiters.clear();
+    runtime.approval_window_id = generate_approval_window_id();
+    runtime.thread_read_results.clear();
+    runtime.thread_read_errors.clear();
     emit_status(&app_handle, &runtime.status);
     Ok(runtime.status.clone())
 }
@@ -1665,19 +2840,26 @@ pub fn codex_app_server_initialize(
     {
         return Err("App Server is not running; cannot send initialize handshake".to_string());
     }
+    if runtime.handshake_state == HandshakeState::Initialized {
+        return Err("Already initialized".to_string());
+    }
+    if has_pending_initialize_request(&runtime) {
+        return Err("initialize request already in-flight".to_string());
+    }
     let initialize_request = serde_json::json!({
-        "method": "initialize",
-        "id": RPC_ID_INITIALIZE,
-        "params": {
-            "clientInfo": {
-                "name": "firefly-narrative",
-                "title": "Firefly Narrative",
-                "version": env!("CARGO_PKG_VERSION")
-            }
+        "clientInfo": {
+            "name": "firefly-narrative",
+            "title": "Firefly Narrative",
+            "version": env!("CARGO_PKG_VERSION")
         }
     });
-    send_sidecar_message(&mut runtime, &initialize_request)?;
-    runtime.handshake_state = HandshakeState::InitializeSent;
+    send_sidecar_request(
+        &mut runtime,
+        "initialize",
+        initialize_request,
+        PendingRpcKind::Initialize,
+    )?;
+    runtime.status.last_error = Some("Initialize request sent; waiting for response".to_string());
     sync_status(&mut runtime);
     Ok(runtime.status.clone())
 }
@@ -1686,23 +2868,37 @@ pub fn codex_app_server_initialize(
 pub fn codex_app_server_initialized(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAppServerStatus, String> {
+    {
+        let runtime = state.inner.lock().map_err(|e| e.to_string())?;
+        if runtime.handshake_state == HandshakeState::Initialized {
+            return Err("Already initialized".to_string());
+        }
+        if runtime.handshake_state == HandshakeState::NotStarted
+            && !has_pending_initialize_request(&runtime)
+        {
+            return Err("Not initialized: initialize must be called first".to_string());
+        }
+    }
+
+    wait_for_initialize_ack(&state.inner, Duration::from_millis(RPC_REQUEST_TIMEOUT_MS))?;
+
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
     if runtime.handshake_state != HandshakeState::InitializeSent {
-        return Err("initialize must be called before initialized".to_string());
+        return Err("Not initialized: initialize response not ready".to_string());
     }
+
     let initialized_notification = serde_json::json!({
         "method": "initialized",
         "params": {}
     });
     send_sidecar_message(&mut runtime, &initialized_notification)?;
-    let account_read_request = serde_json::json!({
-        "method": "account/read",
-        "id": RPC_ID_ACCOUNT_READ,
-        "params": {
-            "refreshToken": false
-        }
-    });
-    let _ = send_sidecar_message(&mut runtime, &account_read_request);
+    let account_read_request = serde_json::json!({ "refreshToken": false });
+    send_sidecar_request(
+        &mut runtime,
+        "account/read",
+        account_read_request,
+        PendingRpcKind::AccountRead,
+    )?;
     runtime.handshake_state = HandshakeState::Initialized;
     runtime.stream_session_state = StreamSessionState::Expected;
     sync_status(&mut runtime);
@@ -1714,77 +2910,82 @@ pub fn codex_app_server_account_read(
     state: State<'_, CodexAppServerState>,
 ) -> Result<CodexAccountStatus, String> {
     let runtime = state.inner.lock().map_err(|e| e.to_string())?;
+    let mode = runtime.status.auth_mode.clone();
+    let interactive_login_required = matches!(mode.as_str(), "chatgpt" | "chatgptAuthTokens");
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
-        auth_mode: runtime.status.auth_mode.clone(),
-        interactive_login_required: runtime.status.auth_mode == "chatgpt",
-        supported_modes: vec!["chatgpt".to_string()],
+        auth_mode: mode,
+        interactive_login_required,
+        supported_modes: supported_auth_modes(),
     })
 }
 
 #[command(rename_all = "camelCase")]
 pub fn codex_app_server_account_login_start(
     state: State<'_, CodexAppServerState>,
+    auth_mode: Option<String>,
 ) -> Result<CodexAccountStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    let login_start_request = serde_json::json!({
-        "method": "account/login/start",
-        "id": RPC_ID_ACCOUNT_LOGIN_START,
-        "params": {
-            "type": "chatgpt"
-        }
-    });
-    let _ = send_sidecar_message(&mut runtime, &login_start_request);
+    assert_initialized_handshake(&runtime)?;
+    let requested_mode = normalize_auth_mode(auth_mode.as_deref().unwrap_or("chatgpt"));
+    let Some(login_type) = auth_mode_to_login_start_type(&requested_mode) else {
+        return Err(format!(
+            "Unsupported auth mode: {requested_mode}. Expected one of {}",
+            SUPPORTED_AUTH_MODES.join(", ")
+        ));
+    };
+    let login_start_request = serde_json::json!({ "type": login_type });
+    send_sidecar_request(
+        &mut runtime,
+        "account/login/start",
+        login_start_request,
+        PendingRpcKind::AccountLoginStart,
+    )?;
+    runtime.status.auth_mode = requested_mode.clone();
     runtime.auth_state = AuthState::Authenticating;
     sync_status(&mut runtime);
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
-        auth_mode: runtime.status.auth_mode.clone(),
-        interactive_login_required: true,
-        supported_modes: vec!["chatgpt".to_string()],
+        auth_mode: requested_mode.clone(),
+        interactive_login_required: requested_mode != "apikey",
+        supported_modes: supported_auth_modes(),
     })
 }
 
 #[command(rename_all = "camelCase")]
-pub fn codex_app_server_account_login_completed(
+pub fn codex_app_server_account_chatgpt_auth_tokens_refresh(
     state: State<'_, CodexAppServerState>,
-    success: bool,
+    access_token: String,
+    refresh_token: Option<String>,
 ) -> Result<CodexAccountStatus, String> {
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    if success {
-        runtime.auth_state = AuthState::Authenticating;
-        runtime.status.last_error = None;
-    } else {
-        runtime.auth_state = AuthState::NeedsLogin;
-        runtime.status.stream_healthy = false;
-        runtime.stream_session_state = StreamSessionState::Failed;
-        if runtime.process_state != ProcessState::CrashLoop {
-            runtime.process_state = ProcessState::Degraded;
-        }
-        runtime.status.last_error = Some("Authentication cancelled or failed".to_string());
+    assert_initialized_handshake(&runtime)?;
+
+    let trimmed_access_token = access_token.trim();
+    if trimmed_access_token.is_empty() {
+        return Err("accessToken is required for chatgptAuthTokens refresh".to_string());
     }
-    sync_status(&mut runtime);
-    Ok(CodexAccountStatus {
-        auth_state: runtime.status.auth_state.clone(),
-        auth_mode: runtime.status.auth_mode.clone(),
-        interactive_login_required: true,
-        supported_modes: vec!["chatgpt".to_string()],
-    })
-}
 
-#[command(rename_all = "camelCase")]
-pub fn codex_app_server_account_updated(
-    state: State<'_, CodexAppServerState>,
-    auth_mode: String,
-    authenticated: bool,
-) -> Result<CodexAccountStatus, String> {
-    let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    apply_account_updated(&mut runtime, &auth_mode, authenticated);
+    let refresh_request = serde_json::json!({
+        "accessToken": trimmed_access_token,
+        "refreshToken": refresh_token.map(|token| token.trim().to_string()),
+    });
+    send_sidecar_request(
+        &mut runtime,
+        "account/chatgptAuthTokens/refresh",
+        refresh_request,
+        PendingRpcKind::AccountChatgptTokensRefresh,
+    )?;
+    runtime.auth_state = AuthState::Authenticating;
+    runtime.status.auth_mode = "chatgptAuthTokens".to_string();
+    runtime.status.last_error = Some("Refreshing chatgptAuthTokens session".to_string());
+    sync_status(&mut runtime);
+
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
         auth_mode: runtime.status.auth_mode.clone(),
         interactive_login_required: true,
-        supported_modes: vec!["chatgpt".to_string()],
+        supported_modes: supported_auth_modes(),
     })
 }
 
@@ -1797,11 +2998,12 @@ pub fn codex_app_server_account_logout(
     runtime.status.stream_healthy = false;
     runtime.stream_session_state = StreamSessionState::Failed;
     sync_status(&mut runtime);
+    let mode = runtime.status.auth_mode.clone();
     Ok(CodexAccountStatus {
         auth_state: runtime.status.auth_state.clone(),
-        auth_mode: runtime.status.auth_mode.clone(),
-        interactive_login_required: true,
-        supported_modes: vec!["chatgpt".to_string()],
+        auth_mode: mode.clone(),
+        interactive_login_required: mode != "apikey",
+        supported_modes: supported_auth_modes(),
     })
 }
 
@@ -1827,13 +3029,27 @@ pub fn codex_app_server_request_thread_snapshot(
     state: State<'_, CodexAppServerState>,
     thread_id: String,
 ) -> Result<serde_json::Value, String> {
-    let runtime = state.inner.lock().map_err(|e| e.to_string())?;
-    assert_thread_snapshot_access(&runtime)?;
-    Ok(serde_json::json!({
-        "threadId": thread_id,
-        "status": "ok",
-        "source": "codex-app-server",
-    }))
+    let request_thread_id = thread_id.trim().to_string();
+    if request_thread_id.is_empty() {
+        return Err("threadId is required".to_string());
+    }
+
+    let request_id = {
+        let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+        assert_thread_snapshot_access(&runtime)?;
+        send_sidecar_request(
+            &mut runtime,
+            "thread/read",
+            serde_json::json!({ "threadId": request_thread_id }),
+            PendingRpcKind::ThreadRead,
+        )?
+    };
+
+    wait_for_thread_read_response(
+        &state.inner,
+        request_id,
+        Duration::from_millis(RPC_REQUEST_TIMEOUT_MS),
+    )
 }
 
 #[command(rename_all = "camelCase")]
@@ -1854,6 +3070,7 @@ pub fn codex_app_server_receive_live_event(
     };
 
     let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+    let parsed = bind_approval_request_token(parsed);
 
     if let Err(reason) = validate_reconnect_payload(&parsed) {
         apply_reconnect_validation_failure(&mut runtime, reason);
@@ -1901,6 +3118,8 @@ pub fn codex_app_server_submit_approval(
     app_handle: AppHandle,
     state: State<'_, CodexAppServerState>,
     request_id: String,
+    thread_id: String,
+    decision_token: String,
     approved: bool,
     reason: Option<String>,
 ) -> Result<LiveSessionEventPayload, String> {
@@ -1908,8 +3127,42 @@ pub fn codex_app_server_submit_approval(
     for timed_out in expire_pending_approvals(&mut runtime, now_epoch_ms()) {
         emit_live_session_event(&app_handle, &timed_out);
     }
-    let Some(pending) = runtime.approval_waiters.remove(&request_id) else {
-        return Err(format!("approval request not found: {request_id}"));
+
+    let pending = match validate_approval_submission_context(
+        &mut runtime,
+        &request_id,
+        &thread_id,
+        &decision_token,
+    ) {
+        Ok(pending) => pending,
+        Err(reason) => {
+            let user_error = if reason.contains("missing decision token") {
+                "approval decision token is required".to_string()
+            } else if reason.contains("stale approval window context") {
+                "approval request is stale; refresh required".to_string()
+            } else if reason.contains("thread context mismatch") {
+                "approval submission context mismatch".to_string()
+            } else if reason.contains("invalid decision token") {
+                "approval decision token invalid".to_string()
+            } else if reason.contains("approval replay rejected") {
+                format!("approval request already decided: {request_id}")
+            } else {
+                reason.clone()
+            };
+
+            let redacted_reason = redact_sensitive_stderr_line(&reason);
+            let runtime_error = redacted_reason.clone();
+            let audit = LiveSessionEventPayload::ParserValidationError {
+                kind: "protocol_violation".to_string(),
+                raw_preview: "approval/submit".to_string(),
+                reason: redacted_reason,
+                occurred_at_iso: now_iso(),
+            };
+            handle_live_event_internal(&mut runtime, &audit);
+            emit_live_session_event(&app_handle, &audit);
+            runtime.status.last_error = Some(runtime_error);
+            return Err(user_error);
+        }
     };
 
     let payload = LiveSessionEventPayload::ApprovalResult {
@@ -1994,6 +3247,11 @@ pub fn get_capture_reliability_status(
             .unwrap_or("capture mode evaluated"),
     );
 
+    let now_ms = now_epoch_ms();
+    let time_since_last_stream_event_ms = runtime
+        .last_stream_event_at_epoch_ms
+        .map(|last| now_ms.saturating_sub(last));
+
     Ok(CaptureReliabilityStatus {
         mode,
         otel_baseline_healthy,
@@ -2005,6 +3263,23 @@ pub fn get_capture_reliability_status(
             stream_events_duplicates: runtime.stream_events_duplicates,
             stream_events_dropped: runtime.stream_events_dropped,
             stream_events_replaced: runtime.stream_events_replaced,
+            parser_validation_errors_total: counter_total(&runtime.parse_error_total),
+            rpc_timeouts_total: runtime
+                .parse_error_total
+                .get("rpc_timeout")
+                .copied()
+                .unwrap_or(0),
+            approval_timeouts_total: runtime
+                .approval_result_total
+                .get("timeout")
+                .copied()
+                .unwrap_or(0),
+            restart_events_total: counter_total(&runtime.restart_total),
+            pending_rpcs: runtime.pending_rpcs.len(),
+            pending_approvals: runtime.approval_waiters.len(),
+            sidecar_stderr_buffered: runtime.sidecar_stderr_ring.len(),
+            sidecar_stderr_dropped: runtime.sidecar_stderr_dropped,
+            time_since_last_stream_event_ms,
         },
         transitions: runtime.transitions.iter().cloned().collect(),
         app_server,
@@ -2035,17 +3310,31 @@ pub fn ingest_codex_stream_event(
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_account_updated, apply_reconnect_validation_failure, assert_thread_snapshot_access,
-        cleanup_live_sessions_with_policy, command_not_exposed_error, event_identity_key,
-        expire_pending_approvals, handle_live_event_internal, parse_event_from_legacy_input,
-        parse_live_payload, parser_validation_error, register_start_failure,
-        remember_dedupe_source, source_priority, terminate_child_with_timeout,
-        validate_reconnect_payload, AuthState, CodexAppServerRuntime, CodexAppServerStatus,
-        CodexStreamEventInput, HandshakeState, LiveSessionEventPayload, MAX_DEDUPE_SOURCES,
-        RECONNECT_REASON_SCHEMA_MISMATCH, RECONNECT_REASON_SESSION_INVALID,
-        RECONNECT_REASON_TOKEN_INVALID, RESTART_BUDGET,
+        apply_account_updated, apply_pending_rpc_error, apply_pending_rpc_success,
+        apply_reconnect_validation_failure, apply_sidecar_stdout_read_error,
+        assert_initialized_handshake, assert_thread_snapshot_access, auth_mode_to_login_start_type,
+        bind_approval_request_token, cancel_pending_rpcs, cleanup_live_sessions_with_policy,
+        command_not_exposed_error, event_identity_key, expire_pending_approvals,
+        expire_pending_rpcs, format_redacted_json, handle_live_event_internal, handle_sidecar_exit,
+        harden_sidecar_command, has_pending_initialize_request,
+        is_allowed_sidecar_notification_method, next_rpc_id, normalize_auth_mode, now_epoch_ms,
+        now_iso, parse_event_from_legacy_input, parse_live_payload, parser_validation_error,
+        redact_sensitive_stderr_line, register_start_failure, remember_approval_decision,
+        remember_dedupe_source, remember_sidecar_stderr_line, schema_version_policy,
+        send_sidecar_request, source_priority, terminate_child_with_timeout,
+        validate_and_redact_auth_url, validate_approval_submission_context,
+        validate_reconnect_payload, validate_sidecar_jsonl_frame,
+        validate_sidecar_notification_payload, validate_sidecar_rpc_result,
+        wait_for_initialize_ack, wait_for_thread_read_response, AuthState, CodexAppServerRuntime,
+        CodexAppServerStatus, CodexStreamEventInput, HandshakeState, LiveSessionEventPayload,
+        PendingApproval, PendingRpcKind, PendingRpcRequest, SchemaVersionPolicy,
+        APPROVAL_TOKEN_BYTES, APP_SERVER_PROTOCOL_TARGET, BLOCKED_SIDECAR_ENV_OVERRIDES,
+        MAX_DEDUPE_SOURCES, MAX_PENDING_RPC_REQUESTS, MAX_SIDECAR_JSONL_BYTES,
+        MAX_SIDECAR_STDERR_LINES, RECONNECT_REASON_SCHEMA_MISMATCH,
+        RECONNECT_REASON_SESSION_INVALID, RECONNECT_REASON_TOKEN_INVALID, RESTART_BUDGET,
     };
     use sqlx::sqlite::SqlitePoolOptions;
+    use std::path::Path;
     use std::process::Command;
     use std::time::Duration;
 
@@ -2106,6 +3395,64 @@ mod tests {
     }
 
     #[test]
+    fn sidecar_exit_handler_requests_restart_when_budget_available() {
+        let mut runtime = CodexAppServerRuntime {
+            process_state: super::ProcessState::Running,
+            ..CodexAppServerRuntime::default()
+        };
+        runtime.pending_rpcs.insert(
+            1,
+            PendingRpcRequest {
+                kind: PendingRpcKind::Initialize,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 10_000,
+            },
+        );
+
+        let status = Command::new("sh")
+            .arg("-c")
+            .arg("exit 7")
+            .status()
+            .expect("status");
+        let should_restart = handle_sidecar_exit(&mut runtime, status);
+
+        assert!(should_restart);
+        assert!(runtime.pending_rpcs.is_empty());
+        assert_eq!(runtime.next_rpc_id, 1);
+        assert_eq!(runtime.status.state, "degraded");
+        assert!(runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains("cancelled 1 pending RPC"));
+    }
+
+    #[test]
+    fn sidecar_exit_handler_blocks_restart_on_crash_loop_or_kill_switch() {
+        let status = Command::new("sh")
+            .arg("-c")
+            .arg("exit 8")
+            .status()
+            .expect("status");
+
+        let mut kill_switch_runtime = CodexAppServerRuntime {
+            process_state: super::ProcessState::Running,
+            ..CodexAppServerRuntime::default()
+        };
+        kill_switch_runtime.status.stream_kill_switch = true;
+        let should_restart = handle_sidecar_exit(&mut kill_switch_runtime, status);
+        assert!(!should_restart);
+
+        let mut crash_loop_runtime = CodexAppServerRuntime {
+            process_state: super::ProcessState::CrashLoop,
+            ..CodexAppServerRuntime::default()
+        };
+        let should_restart = handle_sidecar_exit(&mut crash_loop_runtime, status);
+        assert!(!should_restart);
+    }
+
+    #[test]
     fn chatgpt_account_updated_sets_authenticated_when_verified() {
         let mut runtime = CodexAppServerRuntime {
             auth_state: AuthState::NeedsLogin,
@@ -2125,18 +3472,59 @@ mod tests {
     }
 
     #[test]
-    fn account_updated_rejects_unsupported_mode() {
+    fn account_updated_supports_documented_modes_and_rejects_unknown_mode() {
         let mut runtime = CodexAppServerRuntime::default();
         apply_account_updated(&mut runtime, "apikey", true);
+        assert_eq!(runtime.status.auth_state, "authenticated");
+        assert_eq!(runtime.status.auth_mode, "apikey");
+
+        apply_account_updated(&mut runtime, "chatgptAuthTokens", true);
+        assert_eq!(runtime.status.auth_state, "authenticated");
+        assert_eq!(runtime.status.auth_mode, "chatgptAuthTokens");
+
+        apply_account_updated(&mut runtime, "custom_mode", true);
         assert_eq!(runtime.status.auth_state, "needs_login");
         assert_eq!(runtime.status.state, "degraded");
-        assert_eq!(runtime.status.auth_mode, "apikey");
+        assert_eq!(runtime.status.auth_mode, "custom_mode");
         assert!(runtime
             .status
             .last_error
             .as_deref()
             .unwrap_or_default()
             .contains("Unsupported auth mode"));
+    }
+
+    #[test]
+    fn auth_mode_normalization_and_login_type_mapping_follow_contract() {
+        assert_eq!(normalize_auth_mode("api_key"), "apikey");
+        assert_eq!(
+            normalize_auth_mode("chatgptauthtokens"),
+            "chatgptAuthTokens"
+        );
+        assert_eq!(normalize_auth_mode("none"), "none");
+
+        assert_eq!(auth_mode_to_login_start_type("apikey"), Some("apiKey"));
+        assert_eq!(
+            auth_mode_to_login_start_type("chatgptAuthTokens"),
+            Some("chatgptAuthTokens")
+        );
+        assert_eq!(auth_mode_to_login_start_type("unsupported"), None);
+    }
+
+    #[test]
+    fn redaction_helpers_scrub_sensitive_fields_and_lines() {
+        let redacted_json = format_redacted_json(&serde_json::json!({
+            "accessToken": "secret-token",
+            "nested": { "refresh_token": "refresh-secret", "ok": "value" }
+        }));
+        assert!(redacted_json.contains("[REDACTED]"));
+        assert!(!redacted_json.contains("secret-token"));
+        assert!(!redacted_json.contains("refresh-secret"));
+
+        let redacted_line =
+            redact_sensitive_stderr_line("authorization: Bearer secret-token-value");
+        assert!(redacted_line.contains("REDACTED"));
+        assert!(!redacted_line.contains("secret-token-value"));
     }
 
     #[test]
@@ -2153,6 +3541,37 @@ mod tests {
         assert!(runtime
             .dedupe_sources
             .contains_key(&format!("k-{}", MAX_DEDUPE_SOURCES + 31)));
+    }
+
+    #[test]
+    fn sidecar_stderr_ring_is_bounded_and_tracks_drops() {
+        let mut runtime = CodexAppServerRuntime::default();
+        for idx in 0..(MAX_SIDECAR_STDERR_LINES + 7) {
+            remember_sidecar_stderr_line(&mut runtime, &format!("stderr-{idx}"));
+        }
+
+        assert_eq!(runtime.sidecar_stderr_ring.len(), MAX_SIDECAR_STDERR_LINES);
+        assert_eq!(runtime.sidecar_stderr_dropped, 7);
+        assert_eq!(
+            runtime.sidecar_stderr_ring.front().map(String::as_str),
+            Some("stderr-7")
+        );
+    }
+
+    #[test]
+    fn harden_sidecar_command_sets_trusted_cwd_and_strips_loader_overrides() {
+        let mut command = Command::new("sh");
+        let binary_path = Path::new("/tmp/codex-app-server");
+
+        harden_sidecar_command(&mut command, binary_path);
+
+        assert_eq!(command.get_current_dir(), Some(Path::new("/tmp")));
+        for env_key in BLOCKED_SIDECAR_ENV_OVERRIDES {
+            let removed = command
+                .get_envs()
+                .find_map(|(key, value)| (key == std::ffi::OsStr::new(env_key)).then_some(value));
+            assert_eq!(removed, Some(None));
+        }
     }
 
     #[test]
@@ -2189,6 +3608,38 @@ mod tests {
     }
 
     #[test]
+    fn oversized_sidecar_frames_are_rejected() {
+        let oversized = "x".repeat(MAX_SIDECAR_JSONL_BYTES + 1);
+        let result = validate_sidecar_jsonl_frame(&oversized);
+        assert!(matches!(
+            result,
+            Err(LiveSessionEventPayload::ParserValidationError {
+                kind,
+                reason,
+                ..
+            }) if kind == "protocol_violation" && reason.contains("exceeded max size")
+        ));
+    }
+
+    #[test]
+    fn stdout_read_errors_degrade_runtime_without_panicking() {
+        let mut runtime = CodexAppServerRuntime::default();
+        let event =
+            apply_sidecar_stdout_read_error(&mut runtime, "stream did not contain valid UTF-8");
+        assert!(matches!(
+            event,
+            LiveSessionEventPayload::ParserValidationError { kind, .. } if kind == "protocol_violation"
+        ));
+        assert_eq!(runtime.process_state, super::ProcessState::Degraded);
+        assert!(runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains("invalid UTF-8"));
+    }
+
+    #[test]
     fn internal_approval_round_trip_tracks_pending_requests() {
         let mut runtime = CodexAppServerRuntime::default();
         let request = LiveSessionEventPayload::ApprovalRequest {
@@ -2198,6 +3649,7 @@ mod tests {
             command: "rm -rf /".to_string(),
             options: vec!["approve".to_string(), "deny".to_string()],
             timeout_ms: 5_000,
+            decision_token: Some("token_req_1".to_string()),
         };
 
         handle_live_event_internal(&mut runtime, &request);
@@ -2217,6 +3669,7 @@ mod tests {
             runtime.approval_result_total.get("rejected").copied(),
             Some(1)
         );
+        assert!(runtime.approval_decisions.contains_key("req_1"));
     }
 
     #[test]
@@ -2229,6 +3682,7 @@ mod tests {
             command: "write_file".to_string(),
             options: vec!["allow".to_string(), "deny".to_string()],
             timeout_ms: 1,
+            decision_token: Some("token_timeout".to_string()),
         };
         handle_live_event_internal(&mut runtime, &request);
 
@@ -2247,6 +3701,7 @@ mod tests {
             runtime.approval_result_total.get("timeout").copied(),
             Some(1)
         );
+        assert!(runtime.approval_decisions.contains_key("req_timeout"));
     }
 
     #[test]
@@ -2300,6 +3755,468 @@ mod tests {
         assert_eq!(
             validate_reconnect_payload(&invalid_token).unwrap_err(),
             RECONNECT_REASON_TOKEN_INVALID
+        );
+    }
+
+    #[test]
+    fn schema_version_policy_classifies_supported_and_rejected_versions() {
+        assert_eq!(schema_version_policy("v1"), SchemaVersionPolicy::Supported);
+        assert_eq!(schema_version_policy("v2"), SchemaVersionPolicy::Rejected);
+    }
+
+    #[test]
+    fn protocol_target_constant_is_defined() {
+        assert_eq!(APP_SERVER_PROTOCOL_TARGET, "v2");
+    }
+
+    #[test]
+    fn next_rpc_id_starts_at_one_and_increments() {
+        let mut runtime = CodexAppServerRuntime::default();
+        assert_eq!(next_rpc_id(&mut runtime), 1);
+        assert_eq!(next_rpc_id(&mut runtime), 2);
+        assert_eq!(next_rpc_id(&mut runtime), 3);
+    }
+
+    #[test]
+    fn initialize_tracking_helpers_detect_pending_and_wait_for_ack() {
+        let mut runtime = CodexAppServerRuntime {
+            process_state: super::ProcessState::Running,
+            ..CodexAppServerRuntime::default()
+        };
+        runtime.pending_rpcs.insert(
+            1,
+            PendingRpcRequest {
+                kind: PendingRpcKind::Initialize,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 10_000,
+            },
+        );
+        assert!(has_pending_initialize_request(&runtime));
+
+        let state = std::sync::Arc::new(std::sync::Mutex::new(runtime));
+        let state_clone = state.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(50));
+            if let Ok(mut runtime) = state_clone.lock() {
+                runtime.handshake_state = HandshakeState::InitializeSent;
+            }
+        });
+
+        let wait_result = wait_for_initialize_ack(&state, Duration::from_millis(500));
+        assert!(wait_result.is_ok());
+    }
+
+    #[test]
+    fn thread_read_waiter_returns_result_and_error() {
+        let mut runtime = CodexAppServerRuntime {
+            process_state: super::ProcessState::Running,
+            ..CodexAppServerRuntime::default()
+        };
+        runtime.pending_rpcs.insert(
+            11,
+            PendingRpcRequest {
+                kind: PendingRpcKind::ThreadRead,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 10_000,
+            },
+        );
+        runtime
+            .thread_read_results
+            .insert(11, serde_json::json!({ "threadId": "th_1" }));
+        let state = std::sync::Arc::new(std::sync::Mutex::new(runtime));
+        let value = wait_for_thread_read_response(&state, 11, Duration::from_millis(100))
+            .expect("thread/read result should be returned");
+        assert_eq!(
+            value.get("threadId").and_then(serde_json::Value::as_str),
+            Some("th_1")
+        );
+
+        let mut runtime_err = CodexAppServerRuntime {
+            process_state: super::ProcessState::Running,
+            ..CodexAppServerRuntime::default()
+        };
+        runtime_err.pending_rpcs.insert(
+            12,
+            PendingRpcRequest {
+                kind: PendingRpcKind::ThreadRead,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 10_000,
+            },
+        );
+        runtime_err
+            .thread_read_errors
+            .insert(12, "thread/read request failed".to_string());
+        let state_err = std::sync::Arc::new(std::sync::Mutex::new(runtime_err));
+        let err = wait_for_thread_read_response(&state_err, 12, Duration::from_millis(100))
+            .expect_err("thread/read error should be surfaced");
+        assert!(err.contains("thread/read request failed"));
+    }
+
+    #[test]
+    fn initialized_handshake_guard_requires_initialized_state() {
+        let runtime = CodexAppServerRuntime::default();
+        let err = assert_initialized_handshake(&runtime).expect_err("handshake should be required");
+        assert!(err.contains("Not initialized"));
+
+        let runtime = CodexAppServerRuntime {
+            handshake_state: HandshakeState::Initialized,
+            ..CodexAppServerRuntime::default()
+        };
+        assert!(assert_initialized_handshake(&runtime).is_ok());
+    }
+
+    #[test]
+    fn cancel_pending_rpcs_clears_inflight_requests() {
+        let mut runtime = CodexAppServerRuntime::default();
+        runtime.pending_rpcs.insert(
+            1,
+            PendingRpcRequest {
+                kind: PendingRpcKind::Initialize,
+                sent_at_epoch_ms: 1,
+                timeout_ms: 1,
+            },
+        );
+        runtime.pending_rpcs.insert(
+            2,
+            PendingRpcRequest {
+                kind: PendingRpcKind::AccountRead,
+                sent_at_epoch_ms: 1,
+                timeout_ms: 1,
+            },
+        );
+
+        let cancelled = cancel_pending_rpcs(&mut runtime, "rpc_cancelled_test");
+        assert_eq!(cancelled, 2);
+        assert!(runtime.pending_rpcs.is_empty());
+        assert_eq!(
+            runtime.parse_error_total.get("rpc_cancelled_test").copied(),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn expire_pending_rpcs_marks_runtime_degraded_with_request_labels() {
+        let mut runtime = CodexAppServerRuntime::default();
+        runtime.handshake_state = HandshakeState::InitializeSent;
+        runtime.pending_rpcs.insert(
+            42,
+            PendingRpcRequest {
+                kind: PendingRpcKind::Initialize,
+                sent_at_epoch_ms: 0,
+                timeout_ms: 1,
+            },
+        );
+
+        let expired = expire_pending_rpcs(&mut runtime, i64::MAX);
+        assert_eq!(expired, 1);
+        assert!(runtime.pending_rpcs.is_empty());
+        assert_eq!(runtime.handshake_state, HandshakeState::NotStarted);
+        assert_eq!(runtime.status.state, "degraded");
+        assert!(runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains("42:initialize"));
+    }
+
+    #[test]
+    fn pending_rpc_handlers_update_runtime_by_request_kind() {
+        let mut runtime = CodexAppServerRuntime::default();
+
+        apply_pending_rpc_success(
+            &mut runtime,
+            1,
+            PendingRpcRequest {
+                kind: PendingRpcKind::Initialize,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 1_000,
+            },
+            &serde_json::json!({}),
+        );
+        assert_eq!(runtime.handshake_state, HandshakeState::InitializeSent);
+
+        apply_pending_rpc_success(
+            &mut runtime,
+            2,
+            PendingRpcRequest {
+                kind: PendingRpcKind::AccountRead,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 1_000,
+            },
+            &serde_json::json!({ "account": { "type": "chatgpt" } }),
+        );
+        assert_eq!(runtime.auth_state, AuthState::Authenticated);
+
+        runtime.auth_state = AuthState::Authenticating;
+        runtime.process_state = super::ProcessState::Running;
+        apply_pending_rpc_error(
+            &mut runtime,
+            99,
+            PendingRpcRequest {
+                kind: PendingRpcKind::AccountLoginStart,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 1_000,
+            },
+            &serde_json::json!({
+                "code": -32000,
+                "message": "boom",
+                "accessToken": "super-secret-token"
+            }),
+        );
+        assert_eq!(runtime.auth_state, AuthState::NeedsLogin);
+        assert_eq!(runtime.process_state, super::ProcessState::Degraded);
+        assert!(runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains("account/login/start"));
+        assert!(!runtime
+            .status
+            .last_error
+            .as_deref()
+            .unwrap_or_default()
+            .contains("super-secret-token"));
+
+        apply_pending_rpc_success(
+            &mut runtime,
+            3,
+            PendingRpcRequest {
+                kind: PendingRpcKind::AccountChatgptTokensRefresh,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 1_000,
+            },
+            &serde_json::json!({}),
+        );
+        assert_eq!(runtime.auth_state, AuthState::Authenticated);
+        assert_eq!(runtime.status.auth_mode, "chatgptAuthTokens");
+
+        apply_pending_rpc_success(
+            &mut runtime,
+            4,
+            PendingRpcRequest {
+                kind: PendingRpcKind::ThreadRead,
+                sent_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 1_000,
+            },
+            &serde_json::json!({ "threadId": "thread_1", "items": [] }),
+        );
+        assert!(runtime.thread_read_results.contains_key(&4));
+    }
+
+    #[test]
+    fn sidecar_notification_allowlist_rejects_unknown_methods() {
+        assert!(is_allowed_sidecar_notification_method("account/updated"));
+        assert!(is_allowed_sidecar_notification_method("turn/completed"));
+        assert!(!is_allowed_sidecar_notification_method("thread/read"));
+    }
+
+    #[test]
+    fn notification_schema_validation_rejects_unknown_fields_and_missing_required_fields() {
+        let unknown_field_message = serde_json::json!({
+            "method": "account/updated",
+            "params": { "authMode": "chatgpt", "unexpected": true }
+        });
+        let err = validate_sidecar_notification_payload("account/updated", &unknown_field_message)
+            .expect_err("unknown field should fail");
+        assert!(err.contains("Unsupported field"));
+
+        let missing_required_message = serde_json::json!({
+            "method": "account/login/completed",
+            "params": { "error": "cancelled" }
+        });
+        let err = validate_sidecar_notification_payload(
+            "account/login/completed",
+            &missing_required_message,
+        )
+        .expect_err("missing success should fail");
+        assert!(err.contains("success must be boolean"));
+    }
+
+    #[test]
+    fn rpc_result_schema_validation_rejects_invalid_shapes() {
+        let init_err =
+            validate_sidecar_rpc_result(PendingRpcKind::Initialize, &serde_json::json!(42))
+                .expect_err("initialize result must be object");
+        assert!(init_err.contains("initialize result must be an object"));
+
+        let login_err = validate_sidecar_rpc_result(
+            PendingRpcKind::AccountLoginStart,
+            &serde_json::json!({ "authUrl": 123 }),
+        )
+        .expect_err("authUrl should be string");
+        assert!(login_err.contains("authUrl must be a string"));
+
+        let refresh_err = validate_sidecar_rpc_result(
+            PendingRpcKind::AccountChatgptTokensRefresh,
+            &serde_json::json!(null),
+        )
+        .expect_err("refresh result should be object");
+        assert!(refresh_err.contains("refresh result must be an object"));
+
+        let auth_url_err = validate_sidecar_rpc_result(
+            PendingRpcKind::AccountLoginStart,
+            &serde_json::json!({ "authUrl": "http://evil.example/login" }),
+        )
+        .expect_err("auth url should be rejected");
+        assert!(auth_url_err.contains("authUrl invalid"));
+
+        let thread_read_err =
+            validate_sidecar_rpc_result(PendingRpcKind::ThreadRead, &serde_json::json!(null))
+                .expect_err("thread/read result should be object");
+        assert!(thread_read_err.contains("thread/read result must be an object"));
+    }
+
+    #[test]
+    fn auth_url_validation_enforces_https_allowlist_and_redaction() {
+        let sanitized =
+            validate_and_redact_auth_url("https://chat.openai.com/auth?token=secret123#frag")
+                .expect("allowlisted url should pass");
+        assert_eq!(sanitized, "https://chat.openai.com/auth");
+
+        let invalid_scheme =
+            validate_and_redact_auth_url("http://chat.openai.com/auth").expect_err("http rejected");
+        assert!(invalid_scheme.contains("https"));
+
+        let invalid_host = validate_and_redact_auth_url("https://evil.example/login")
+            .expect_err("host should be rejected");
+        assert!(invalid_host.contains("allowlisted"));
+    }
+
+    #[test]
+    fn bind_approval_request_token_generates_missing_token() {
+        let payload = LiveSessionEventPayload::ApprovalRequest {
+            request_id: "req_bind".to_string(),
+            thread_id: "th_bind".to_string(),
+            turn_id: "tu_bind".to_string(),
+            command: "write_file".to_string(),
+            options: vec!["approve".to_string(), "deny".to_string()],
+            timeout_ms: 10_000,
+            decision_token: None,
+        };
+
+        let bound = bind_approval_request_token(payload);
+        let LiveSessionEventPayload::ApprovalRequest { decision_token, .. } = bound else {
+            panic!("expected approval request payload");
+        };
+        assert!(decision_token.as_deref().unwrap_or_default().len() >= APPROVAL_TOKEN_BYTES);
+    }
+
+    #[test]
+    fn approval_submission_context_rejects_replay_and_context_mismatch() {
+        let mut runtime = CodexAppServerRuntime::default();
+        runtime.approval_window_id = 777;
+        runtime.approval_waiters.insert(
+            "req_ctx".to_string(),
+            PendingApproval {
+                thread_id: "thread_ctx".to_string(),
+                created_at_epoch_ms: now_epoch_ms(),
+                timeout_ms: 5_000,
+                decision_token: "token_ctx".to_string(),
+                approval_window_id: 777,
+            },
+        );
+
+        let mismatch = validate_approval_submission_context(
+            &mut runtime,
+            "req_ctx",
+            "wrong_thread",
+            "token_ctx",
+        )
+        .expect_err("thread mismatch should fail");
+        assert!(mismatch.contains("thread context mismatch"));
+        assert_eq!(
+            runtime
+                .approval_result_total
+                .get("context_mismatch")
+                .copied(),
+            Some(1)
+        );
+
+        let invalid_token = validate_approval_submission_context(
+            &mut runtime,
+            "req_ctx",
+            "thread_ctx",
+            "wrong_token",
+        )
+        .expect_err("invalid token should fail");
+        assert!(invalid_token.contains("invalid decision token"));
+        assert_eq!(
+            runtime.approval_result_total.get("invalid_token").copied(),
+            Some(1)
+        );
+
+        let valid = validate_approval_submission_context(
+            &mut runtime,
+            "req_ctx",
+            "thread_ctx",
+            "token_ctx",
+        )
+        .expect("valid context should pass");
+        assert_eq!(valid.thread_id, "thread_ctx");
+
+        let replay_payload = LiveSessionEventPayload::ApprovalResult {
+            request_id: "req_replay".to_string(),
+            thread_id: "thread_replay".to_string(),
+            approved: false,
+            decided_at_iso: now_iso(),
+            decided_by: Some("user".to_string()),
+            reason: Some("Denied".to_string()),
+        };
+        remember_approval_decision(
+            &mut runtime,
+            &replay_payload,
+            Some("token_replay"),
+            Some(777),
+        );
+
+        let replay = validate_approval_submission_context(
+            &mut runtime,
+            "req_replay",
+            "thread_replay",
+            "token_replay",
+        )
+        .expect_err("replay should be rejected");
+        assert!(replay.contains("replay rejected"));
+        assert_eq!(
+            runtime
+                .approval_result_total
+                .get("replay_rejected")
+                .copied(),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn send_sidecar_request_enforces_pending_queue_limit() {
+        let mut runtime = CodexAppServerRuntime::default();
+        for id in 1..=(MAX_PENDING_RPC_REQUESTS as i64) {
+            runtime.pending_rpcs.insert(
+                id,
+                PendingRpcRequest {
+                    kind: PendingRpcKind::AccountRead,
+                    sent_at_epoch_ms: now_epoch_ms(),
+                    timeout_ms: 10_000,
+                },
+            );
+        }
+
+        let result = send_sidecar_request(
+            &mut runtime,
+            "account/read",
+            serde_json::json!({ "refreshToken": false }),
+            PendingRpcKind::AccountRead,
+        );
+        assert!(result.is_err());
+        assert!(result
+            .err()
+            .unwrap_or_default()
+            .contains("Too many pending sidecar RPC requests"));
+        assert_eq!(runtime.process_state, super::ProcessState::Degraded);
+        assert_eq!(
+            runtime.parse_error_total.get("rpc_overload").copied(),
+            Some(1)
         );
     }
 

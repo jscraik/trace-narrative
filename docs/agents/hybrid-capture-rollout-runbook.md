@@ -7,6 +7,7 @@
 - [Capture Modes](#capture-modes)
 - [Go / No-Go Thresholds](#go--no-go-thresholds)
 - [Release Phases](#release-phases)
+- [Command Compatibility Matrix (2026-02-25)](#command-compatibility-matrix-2026-02-25)
 - [Emergency OTEL-Only Fallback](#emergency-otel-only-fallback)
 - [Recovery Back to Hybrid](#recovery-back-to-hybrid)
 - [Migration Operations](#migration-operations)
@@ -56,6 +57,18 @@ Use these gates before widening release:
 3. **Phase C (broader release)**
    - Expand after stable behavior in Phase B and zero `FAILURE` events.
 
+## Command Compatibility Matrix (2026-02-25)
+
+| Surface | Previous command | Current command / behavior | Migration status |
+| --- | --- | --- | --- |
+| Auth mutation (renderer) | `codex_app_server_account_login_completed` | Removed from invoke surface. Sidecar notifications (`account/login/completed`) are authoritative. | ✅ Complete |
+| Auth mutation (renderer) | `codex_app_server_account_updated` | Removed from invoke surface. Sidecar notifications (`account/updated`) are authoritative. | ✅ Complete |
+| Stream mutation (renderer) | `codex_app_server_set_stream_health` | Removed from invoke surface. Runtime health is derived from protocol + telemetry. | ✅ Complete |
+| Event injection (renderer) | `ingest_codex_stream_event` | Removed from invoke surface. Sidecar stdout JSON-RPC is the only live-event ingress. | ✅ Complete |
+| Event injection (renderer) | `codex_app_server_receive_live_event` | Removed from invoke surface. Live events are backend-internal only. | ✅ Complete |
+| Approval decision | `codex_app_server_submit_approval(requestId, approved, reason?)` | `codex_app_server_submit_approval(requestId, threadId, decisionToken, approved, reason?)` | ✅ Complete |
+| Thread snapshot | local stub response | protocol-backed `thread/read` request with RPC correlation/timeout handling | ✅ Complete |
+
 ## Emergency OTEL-Only Fallback
 
 When to trigger:
@@ -92,9 +105,9 @@ Recovery sequence:
    - `codex_app_server_initialize`
    - `codex_app_server_initialized`
 4. Complete auth state:
-   - `codex_app_server_account_login_start`
-   - `codex_app_server_account_login_completed(success=true)`
-   - `codex_app_server_account_updated(auth_mode="chatgpt", authenticated=true)`
+   - `codex_app_server_account_login_start(auth_mode="chatgpt")`
+   - wait for sidecar `account/login/completed` + `account/updated` notifications
+   - optionally verify with `codex_app_server_account_read`
 5. Re-check reliability mode.
 6. Validate event-driven stream lifecycle:
    - listen for `session:live:event`
@@ -117,7 +130,7 @@ Recovery sequence:
 - [ ] Crash-loop degrades safely without data-loss escalation
 - [ ] Stream duplicate-resolution decisions are logged and visible
 - [ ] `session:live:event` observed for SessionDelta/ApprovalRequest/ApprovalResult/ParserValidationError paths
-- [ ] No UI path writes stream health directly; deprecated mutation commands return `command-not-exposed`
+- [ ] No UI path can call removed stream/auth mutation commands (`set_stream_health`, `ingest_codex_stream_event`, `codex_app_server_receive_live_event`)
 - [ ] `live_sessions` retention policy verified (TTL + MAX_ROWS bounded cleanup)
 
 ## Troubleshooting
