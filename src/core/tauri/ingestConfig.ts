@@ -98,6 +98,15 @@ export type CaptureReliabilityStatus = {
     streamEventsDuplicates: number;
     streamEventsDropped: number;
     streamEventsReplaced: number;
+    parserValidationErrorsTotal?: number;
+    rpcTimeoutsTotal?: number;
+    approvalTimeoutsTotal?: number;
+    restartEventsTotal?: number;
+    pendingRpcs?: number;
+    pendingApprovals?: number;
+    sidecarStderrBuffered?: number;
+    sidecarStderrDropped?: number;
+    timeSinceLastStreamEventMs?: number;
   };
   transitions: Array<{ atIso: string; fromMode?: string; toMode: string; reason: string }>;
   appServer: CodexAppServerStatus;
@@ -140,6 +149,7 @@ export type LiveSessionEventPayload =
       command: string;
       options: string[];
       timeoutMs: number;
+      decisionToken?: string;
     }
   | {
       type: 'ApprovalResult';
@@ -234,55 +244,42 @@ export async function codexAppServerAccountRead(): Promise<CodexAccountStatus> {
   return await invoke<CodexAccountStatus>('codex_app_server_account_read');
 }
 
-export async function codexAppServerLoginStart(): Promise<CodexAccountStatus> {
-  return await invoke<CodexAccountStatus>('codex_app_server_account_login_start');
+export async function codexAppServerLoginStart(authMode?: 'apikey' | 'chatgpt' | 'chatgptAuthTokens'): Promise<CodexAccountStatus> {
+  return await invoke<CodexAccountStatus>('codex_app_server_account_login_start', { authMode });
 }
 
-export async function codexAppServerLoginCompleted(success: boolean): Promise<CodexAccountStatus> {
-  return await invoke<CodexAccountStatus>('codex_app_server_account_login_completed', { success });
-}
-
-export async function codexAppServerAccountUpdated(
-  authMode: string,
-  authenticated: boolean,
+export async function codexAppServerChatgptAuthTokensRefresh(
+  accessToken: string,
+  refreshToken?: string,
 ): Promise<CodexAccountStatus> {
-  return await invoke<CodexAccountStatus>('codex_app_server_account_updated', { authMode, authenticated });
+  return await invoke<CodexAccountStatus>('codex_app_server_account_chatgpt_auth_tokens_refresh', {
+    accessToken,
+    refreshToken,
+  });
 }
 
 export async function codexAppServerLogout(): Promise<CodexAccountStatus> {
   return await invoke<CodexAccountStatus>('codex_app_server_account_logout');
 }
 
-/**
- * @deprecated Internal-only bridge command kept temporarily for migration safety.
- */
-export async function codexAppServerSetStreamHealth(healthy: boolean, reason?: string): Promise<CodexAppServerStatus> {
-  return await invoke<CodexAppServerStatus>('codex_app_server_set_stream_health', { healthy, reason });
-}
-
 export async function codexAppServerSetStreamKillSwitch(enabled: boolean): Promise<CodexAppServerStatus> {
   return await invoke<CodexAppServerStatus>('codex_app_server_set_stream_kill_switch', { enabled });
 }
 
-export async function codexAppServerReceiveLiveEvent(
-  payload: LiveSessionEventPayload | Record<string, unknown>,
-): Promise<CodexStreamIngestResult | null> {
-  return await invoke<CodexStreamIngestResult | null>('codex_app_server_receive_live_event', { payload });
-}
-
 export async function codexAppServerSubmitApproval(
   requestId: string,
+  threadId: string,
+  decisionToken: string,
   approved: boolean,
   reason?: string,
 ): Promise<LiveSessionEventPayload> {
-  return await invoke<LiveSessionEventPayload>('codex_app_server_submit_approval', { requestId, approved, reason });
-}
-
-/**
- * @deprecated Internal-only bridge command kept temporarily for migration safety.
- */
-export async function ingestCodexStreamEvent(event: CodexStreamEventInput): Promise<CodexStreamIngestResult> {
-  return await invoke<CodexStreamIngestResult>('ingest_codex_stream_event', { event });
+  return await invoke<LiveSessionEventPayload>('codex_app_server_submit_approval', {
+    requestId,
+    threadId,
+    decisionToken,
+    approved,
+    reason,
+  });
 }
 
 export async function getCaptureReliabilityStatus(): Promise<CaptureReliabilityStatus> {
