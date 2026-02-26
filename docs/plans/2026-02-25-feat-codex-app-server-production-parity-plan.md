@@ -10,10 +10,10 @@ origin: /Users/jamiecraik/dev/firefly-narrative/docs/brainstorms/2026-02-25-code
 
 ## Enhancement Summary
 
-**Deepened on:** 2026-02-25  
-**Sections enhanced:** 19  
-**Research agents used:** explorer skill reviews (`agent-native-architecture`, `openai-docs`, `security-best-practices`, `context7`, `writing-plans`, `verification-before-completion`) + docs-backed runtime review  
-**Skills discovered and matched:** `agent-native-architecture`, `openai-docs`, `security-best-practices`, `context7`, `writing-plans`, `verification-before-completion`, `backend-engineer`  
+**Deepened on:** 2026-02-25
+**Sections enhanced:** 19
+**Research agents used:** explorer skill reviews (`agent-native-architecture`, `openai-docs`, `security-best-practices`, `context7`, `writing-plans`, `verification-before-completion`) + docs-backed runtime review
+**Skills discovered and matched:** `agent-native-architecture`, `openai-docs`, `security-best-practices`, `context7`, `writing-plans`, `verification-before-completion`, `backend-engineer`
 **Institutional learnings applied:** 1 (`docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`)
 
 ### Key Improvements

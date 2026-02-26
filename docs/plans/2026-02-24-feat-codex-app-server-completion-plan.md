@@ -397,74 +397,74 @@ In `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts` and 
 6. **Phase 5 — Verification and release gates:** final cross-layer validation and runbook sign-off before release.
 
 ### Phase 0 — Baseline Hardening
-- [x] **P0-01** — Owner: **Runtime Owner**  
+- [x] **P0-01** — Owner: **Runtime Owner**
       Add state-machine unit tests in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs` for lifecycle states and restart budget (`>= 3 restarts in 60s`).
-- [x] **P0-02** — Owner: **Runtime Owner**  
+- [x] **P0-02** — Owner: **Runtime Owner**
       Add command-surface hardening tests proving renderer cannot mutate stream health directly.
-- [x] **P0-03** — Owner: **Data Owner**  
+- [x] **P0-03** — Owner: **Data Owner**
       Add `live_sessions` migration scaffold + migration tests in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/migrations/`.
-- [x] **P0-04** — Owner: **QA Owner**  
+- [x] **P0-04** — Owner: **QA Owner**
       Ensure phase test commands pass locally: `cargo test` for runtime module and targeted `pnpm test` for ingest/hook mocks.
 - [x] **Exit gate (required):** No phase-1 work starts until P0-01..P0-04 are green.
 
 ### Phase 1 — Sidecar actor + lifecycle
-- [x] **P1-01** — Owner: **Runtime Owner**  
+- [x] **P1-01** — Owner: **Runtime Owner**
       Implement sidecar actor struct + supervisor loop (spawn/monitor/shutdown/reconnect) in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`.
-- [x] **P1-02** — Owner: **Runtime Owner**  
+- [x] **P1-02** — Owner: **Runtime Owner**
       Update `start_codex_app_server` to spawn process and transition `starting -> running` only after readiness signal.
-- [x] **P1-03** — Owner: **Runtime Owner**  
+- [x] **P1-03** — Owner: **Runtime Owner**
       Update `stop_codex_app_server` to cancel monitor tasks, graceful-stop, timeout, hard-kill fallback, and final state cleanup.
-- [x] **P1-04** — Owner: **Protocol Owner**  
+- [x] **P1-04** — Owner: **Protocol Owner**
       Emit transition/status events on every lifecycle change; ensure event payload shape is stable.
-- [x] **P1-05** — Owner: **QA Owner**  
+- [x] **P1-05** — Owner: **QA Owner**
       Add integration tests for start failure, crash-loop, and controlled shutdown behavior.
 - [x] **Exit gate (required):** Actor owns process lifecycle end-to-end with deterministic cleanup after stop.
 
 ### Phase 2 — Protocol handshake and approvals
-- [x] **P2-01** — Owner: **Protocol Owner**  
+- [x] **P2-01** — Owner: **Protocol Owner**
       Replace boolean handshake state with explicit protocol state enum and transition helpers.
-- [x] **P2-02** — Owner: **Protocol Owner**  
+- [x] **P2-02** — Owner: **Protocol Owner**
       Enforce `initialize -> initialized -> authenticated` before enabling stream healthy state or thread snapshot access.
-- [x] **P2-03** — Owner: **Frontend Owner**  
+- [x] **P2-03** — Owner: **Frontend Owner**
       Wire `session:live:event` approval request/result handling in UI flow and remove any bypass paths.
-- [x] **P2-04** — Owner: **Runtime Owner**  
+- [x] **P2-04** — Owner: **Runtime Owner**
       Restrict auth promotion to valid callback state (`account_updated(auth_mode=\"chatgpt\", authenticated=true)`).
-- [x] **P2-05** — Owner: **QA Owner**  
+- [x] **P2-05** — Owner: **QA Owner**
       Add tests for handshake gating, approval round-trip, and denied/timeout approval paths.
 - [x] **Exit gate (required):** Approval and handshake behavior proven by tests; no stream activation without full protocol gate.
 
 ### Phase 3 — Stream completion + persistence
-- [x] **P3-01** — Owner: **Runtime Owner**  
+- [x] **P3-01** — Owner: **Runtime Owner**
       Internalize stream ingest path by removing public `#[command]` exposure for `codex_app_server_set_stream_health` and `ingest_codex_stream_event`.
-- [x] **P3-02** — Owner: **Protocol Owner**  
+- [x] **P3-02** — Owner: **Protocol Owner**
       Parse sidecar callback payloads into typed `ParsedSession` and emit `session:live:event` deltas/errors.
-- [x] **P3-03** — Owner: **Data Owner**  
+- [x] **P3-03** — Owner: **Data Owner**
       Persist completed sessions through canonical store helpers and apply dedupe keys/indexes.
-- [x] **P3-04** — Owner: **Data Owner**  
+- [x] **P3-04** — Owner: **Data Owner**
       Implement bounded `live_sessions` cleanup policy (TTL + row cap) on completion/startup/reconnect.
-- [x] **P3-05** — Owner: **QA Owner**  
+- [x] **P3-05** — Owner: **QA Owner**
       Add deterministic tests for parser error emission, dedupe outcomes (`accepted|duplicate|replaced|dropped`), and retention cleanup.
 - [x] **Exit gate (required):** Completed stream sessions persist reliably and cleanup policy remains bounded under load tests.
 
 ### Phase 4 — Security and operations hardening
-- [x] **P4-01** — Owner: **Runtime Owner**  
+- [x] **P4-01** — Owner: **Runtime Owner**
       Tighten reconnect checks (schema/session/token validation) and normalize failure reasons.
-- [x] **P4-02** — Owner: **Protocol Owner**  
+- [x] **P4-02** — Owner: **Protocol Owner**
       Add explicit observability metrics/logs for parse errors, approval outcomes, restart causes, and dropped completions.
-- [x] **P4-03** — Owner: **Ops Owner**  
+- [x] **P4-03** — Owner: **Ops Owner**
       Update `/Users/jamiecraik/dev/firefly-narrative/docs/agents/hybrid-capture-rollout-runbook.md` with new actor-owned verification steps and evidence capture.
-- [x] **P4-04** — Owner: **QA Owner**  
+- [x] **P4-04** — Owner: **QA Owner**
       Add security/regression tests for reconnect failure modes and command-surface guardrails.
 - [x] **Exit gate (required):** Runbook and telemetry prove operational recovery paths without UI-side mutation.
 
 ### Phase 5 — Verification and release gates
-- [x] **P5-01** — Owner: **QA Owner**  
+- [x] **P5-01** — Owner: **QA Owner**
       Run full validation suite (`cargo test`, `pnpm test`, stream recovery smoke) and archive results.
-- [x] **P5-02** — Owner: **Ops Owner**  
+- [x] **P5-02** — Owner: **Ops Owner**
       Complete rollout checklist and mark each operational assertion verified in `/Users/jamiecraik/dev/firefly-narrative/docs/agents/hybrid-capture-rollout-runbook.md`.
-- [x] **P5-03** — Owner: **Runtime Owner**  
+- [x] **P5-03** — Owner: **Runtime Owner**
       Update plan status references in `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-19-feat-hybrid-codex-claude-capture-reliability-plan.md` if completion criteria are satisfied.
-- [x] **P5-04** — Owner: **Frontend Owner**  
+- [x] **P5-04** — Owner: **Frontend Owner**
       Validate final TS command/event contract parity with Rust exports and test mocks.
 - [x] **Exit gate (release):** All phase gates passed, no open P0/P1 defects, runbook and tests signed off.
 
