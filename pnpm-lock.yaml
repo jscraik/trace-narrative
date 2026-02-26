@@ -63,9 +63,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      dialkit:
-        specifier: ^0.2.2
-        version: 0.2.2(motion@11.18.2(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       framer-motion:
         specifier: ^12.34.2
         version: 12.34.2(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -145,6 +142,9 @@ importers:
       agentation-mcp:
         specifier: ^1.2.0
         version: 1.2.0
+      dialkit:
+        specifier: ^0.2.2
+        version: 0.2.2(motion@11.18.2(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       jsdom:
         specifier: ^28.1.0
         version: 28.1.0

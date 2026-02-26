@@ -29,7 +29,6 @@ This directory contains developer documentation and operational notes for the Na
 
 - Package setup (repo-local):
   - `agentation` is pinned in `devDependencies`.
-  - `dialkit` is pinned in `dependencies`.
 
 Quick local startup sequence:
 

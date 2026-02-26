@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, BarChart3, BookOpen, GitBranch, Link2 } from 'lucide-react';
-import { useDialKit } from 'dialkit';
 
 type PlaceholderVariant = 'repo' | 'dashboard' | 'docs';
 
@@ -13,18 +12,16 @@ export function RepositoryPlaceholderCard({
   variant?: PlaceholderVariant;
   onOpenRepo?: () => void;
 }) {
-  const tune = useDialKit('Placeholder Card', {
-    animations: {
-      breathingDuration: [4, 1, 20, 0.5],
-      entryDelay: [0.1, 0, 1, 0.05],
-      waitingDuration: [2, 0.5, 10, 0.5],
-      cardYOffset: [10, 0, 50, 1],
-    }
-  });
+  const animations = {
+    breathingDuration: 4,
+    entryDelay: 0.1,
+    waitingDuration: 2,
+    cardYOffset: 10,
+  };
 
   const ANIMATION = {
     card: {
-      initial: { opacity: 0, y: tune.animations.cardYOffset },
+      initial: { opacity: 0, y: animations.cardYOffset },
       animate: { opacity: 1, y: 0 },
       transition: { duration: 0.4, ease: "easeOut" as const }
     },
@@ -42,7 +39,7 @@ export function RepositoryPlaceholderCard({
         ],
       },
       transition: {
-        duration: tune.animations.breathingDuration,
+        duration: animations.breathingDuration,
         ease: "easeInOut" as const,
         repeat: Infinity,
       }
@@ -55,7 +52,7 @@ export function RepositoryPlaceholderCard({
     gridItem: (index: number) => ({
       initial: { opacity: 0, x: -5 },
       animate: { opacity: 1, x: 0 },
-      transition: { duration: 0.3, delay: 0.4 + (index * tune.animations.entryDelay) }
+      transition: { duration: 0.3, delay: 0.4 + (index * animations.entryDelay) }
     })
   };
 
@@ -181,7 +178,7 @@ export function RepositoryPlaceholderCard({
       <motion.p
         className="mt-6 text-xs italic text-text-tertiary"
         animate={{ opacity: [0.7, 1, 0.7] }}
-        transition={{ duration: tune.animations.waitingDuration, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        transition={{ duration: animations.waitingDuration, repeat: Infinity, ease: "easeInOut", delay: 1 }}
       >
         Waiting for repository context…
       </motion.p>

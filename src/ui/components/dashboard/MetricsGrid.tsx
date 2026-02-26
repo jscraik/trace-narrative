@@ -1,4 +1,3 @@
-import { useDialKit } from 'dialkit';
 import { Cpu } from 'lucide-react';
 import type { PeriodStats, ToolStats } from '../../../core/types';
 import { computeTrend, getTrendColor } from '../../../core/attribution-api';
@@ -29,12 +28,10 @@ export function MetricsGrid({
   previousPeriod,
   toolBreakdown,
 }: MetricsGridProps) {
-  const tune = useDialKit('Dashboard', {
-    layout: {
-      sectionGap: [48, 12, 120, 2],
-      gridGap: [24, 8, 48, 2],
-    }
-  });
+  const layout = {
+    sectionGap: 48,
+    gridGap: 24,
+  };
   // Calculate trends
   const commitsTrend = computeTrend(
     currentPeriod.period.commits,
@@ -90,11 +87,11 @@ export function MetricsGrid({
     <section
       data-metrics-grid
       aria-label="Key metrics"
-      style={{ marginBottom: `${tune.layout.sectionGap}px` }}
+      style={{ marginBottom: `${layout.sectionGap}px` }}
     >
       <div
         className="grid grid-cols-2 md:grid-cols-4"
-        style={{ gap: `${tune.layout.gridGap}px` }}
+        style={{ gap: `${layout.gridGap}px` }}
       >
         {/* Total Commits */}
         <MetricCard

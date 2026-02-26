@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useDialKit } from 'dialkit';
 import type { TimelineNode as TimelineNodeType } from '../../core/types';
 import type { FireflyEvent } from '../../hooks/useFirefly';
 import { useTimelineNavigation } from '../../hooks/useTimelineNavigation';
@@ -36,12 +35,10 @@ export function Timeline({
   fireflyBurstType = null,
   onFireflyTrackingSettled,
 }: TimelineProps) {
-  const tune = useDialKit('Timeline', {
-    layout: {
-      padding: [7, 0, 80, 1],
-      maskWidth: [22, 0, 100, 1],
-    }
-  });
+  const layout = {
+    padding: 7,
+    maskWidth: 22,
+  };
   const {
     containerRef,
     sorted,
@@ -150,14 +147,14 @@ export function Timeline({
   }, []);
 
   const maskStyle = {
-    maskImage: `linear-gradient(to right, transparent, black ${tune.layout.maskWidth}px, black calc(100% - ${tune.layout.maskWidth}px), transparent)`,
-    WebkitMaskImage: `linear-gradient(to right, transparent, black ${tune.layout.maskWidth}px, black calc(100% - ${tune.layout.maskWidth}px), transparent)`,
+    maskImage: `linear-gradient(to right, transparent, black ${layout.maskWidth}px, black calc(100% - ${layout.maskWidth}px), transparent)`,
+    WebkitMaskImage: `linear-gradient(to right, transparent, black ${layout.maskWidth}px, black calc(100% - ${layout.maskWidth}px), transparent)`,
   };
 
   return (
     <div
       className="bg-bg-secondary/80 backdrop-blur-lg border-t border-border-subtle"
-      style={{ padding: `${tune.layout.padding}px` }}
+      style={{ padding: `${layout.padding}px` }}
     >
       <div className="flex items-center gap-3">
         <TimelineNavButtons

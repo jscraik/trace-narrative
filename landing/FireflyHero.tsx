@@ -27,7 +27,6 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
 }) => {
   const stageRef = useRef<HTMLDivElement>(null);
 
-  // --- DIALKIT TUNING ---
   const tune = useDialKit('Brand Hero', {
     physics: {
       stiffness: [40, 1, 200, 1],
@@ -38,7 +37,7 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
       breathDuration: [10, 1, 60, 0.5],
       jitterIntensity: [1, 0, 5, 0.1],
       mousePower: [0.39, 0, 1, 0.01],
-    }
+    },
   });
 
   const [latency, setLatency] = useState(0);
