@@ -1,53 +1,53 @@
 {
   "schemaVersion": 1,
-  "manifestVersion": 2026022501,
+  "manifestVersion": 2026022503,
   "minimumManifestVersion": 2026022501,
   "minimumSidecarVersion": "0.97.0",
   "activeSigner": "narrative-codex-sidecar-2026q1",
-  "payloadHash": "15af29ad3fe191670a9ae735d7c34efeabb46bcc3211600af4bcfe21771920d6",
-  "signature": "854cf7a0376cadde50764e0d05b68dd4bacd5c650a82f9f107de6372b968fd0d",
+  "payloadHash": "adc79f9d7bea6862fb4cae02fee6df9ac7751aed33c7688763ee3f9e185ff665",
+  "signature": "dc86a4d51cccff1f23a96a1108647275871d14cce4414bc7e4972584966a5bd8",
   "artifacts": [
     {
       "target": "aarch64-apple-darwin",
       "file": "codex-app-server",
-      "sha256": "ea43098fd5dcf12f0ef77a5b79f11f9eb66caf64a2b6db1cb11320ed6d5d8ef7",
-      "sidecarVersion": "0.97.0",
-      "minimumSidecarVersion": "0.97.0"
+      "sidecarVersion": "0.105.0",
+      "minimumSidecarVersion": "0.105.0",
+      "sha256": "ede8fb71141801c5d76fdfddeb0061fe5b2de913ab5fc5971a6cb0dc5fa69ea2"
     },
     {
       "target": "aarch64-apple-darwin",
       "file": "codex-app-server-aarch64-apple-darwin",
-      "sha256": "ea43098fd5dcf12f0ef77a5b79f11f9eb66caf64a2b6db1cb11320ed6d5d8ef7",
-      "sidecarVersion": "0.97.0",
-      "minimumSidecarVersion": "0.97.0"
+      "sidecarVersion": "0.105.0",
+      "minimumSidecarVersion": "0.105.0",
+      "sha256": "ede8fb71141801c5d76fdfddeb0061fe5b2de913ab5fc5971a6cb0dc5fa69ea2"
     },
     {
       "target": "aarch64-unknown-linux-gnu",
       "file": "codex-app-server-aarch64-unknown-linux-gnu",
-      "sha256": "ea43098fd5dcf12f0ef77a5b79f11f9eb66caf64a2b6db1cb11320ed6d5d8ef7",
-      "sidecarVersion": "0.97.0",
-      "minimumSidecarVersion": "0.97.0"
+      "sidecarVersion": "0.105.0",
+      "minimumSidecarVersion": "0.105.0",
+      "sha256": "b2bc58788dc0676d2d017022d6c37fa82c534dbba35e0a33018db75f3f4c8c22"
     },
     {
       "target": "x86_64-apple-darwin",
       "file": "codex-app-server-x86_64-apple-darwin",
-      "sha256": "ea43098fd5dcf12f0ef77a5b79f11f9eb66caf64a2b6db1cb11320ed6d5d8ef7",
-      "sidecarVersion": "0.97.0",
-      "minimumSidecarVersion": "0.97.0"
+      "sidecarVersion": "0.105.0",
+      "minimumSidecarVersion": "0.105.0",
+      "sha256": "79ce7a8486ead773b0ab104803415cb8f13bafb12daaa04ac24c4f80e02da5f5"
     },
     {
       "target": "x86_64-unknown-linux-gnu",
       "file": "codex-app-server-x86_64-unknown-linux-gnu",
-      "sha256": "ea43098fd5dcf12f0ef77a5b79f11f9eb66caf64a2b6db1cb11320ed6d5d8ef7",
-      "sidecarVersion": "0.97.0",
-      "minimumSidecarVersion": "0.97.0"
+      "sidecarVersion": "0.105.0",
+      "minimumSidecarVersion": "0.105.0",
+      "sha256": "c7898edc303905ec279e2b8d5347b0e525c1980e2aa4d222600963b41ee65a6d"
     },
     {
       "target": "x86_64-pc-windows-msvc",
       "file": "codex-app-server-x86_64-pc-windows-msvc.exe",
-      "sha256": "ea43098fd5dcf12f0ef77a5b79f11f9eb66caf64a2b6db1cb11320ed6d5d8ef7",
       "sidecarVersion": "0.97.0",
-      "minimumSidecarVersion": "0.97.0"
+      "minimumSidecarVersion": "0.97.0",
+      "sha256": "ea43098fd5dcf12f0ef77a5b79f11f9eb66caf64a2b6db1cb11320ed6d5d8ef7"
     }
   ]
 }

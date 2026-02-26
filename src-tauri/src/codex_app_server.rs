@@ -1216,6 +1216,7 @@ fn harden_sidecar_command(command: &mut Command, sidecar_path: &Path) {
 fn spawn_sidecar_process(path: &Path) -> Result<SidecarProcess, String> {
     let mut command = Command::new(path);
     harden_sidecar_command(&mut command, path);
+    command.arg("app-server");
     command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
