@@ -131,7 +131,11 @@ jobs:
         run: |
           build_args="${{ matrix.args }}"
           if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ] || [ -z "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" ]; then
-            build_args="$build_args --no-sign"
+            if [ -n "$build_args" ]; then
+              build_args="$build_args --no-sign"
+            else
+              build_args="--no-sign"
+            fi
           fi
           echo "args=$build_args" >> "$GITHUB_OUTPUT"
 
