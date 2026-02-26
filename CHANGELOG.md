@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.14.0](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.13.0...firefly-narrative-v0.14.0) (2026-02-26)
+
+
+### Features
+
+* **codex-app-server:** add cp4 rollout gates and schema drift checks ([cbc1c9d](https://github.com/jscraik/firefly-narrative/commit/cbc1c9d2926288d517810de299836da3dffcf2b8))
+* **codex-app-server:** add in-app live auth test controls ([3832666](https://github.com/jscraik/firefly-narrative/commit/383266612b16130ef985f666e4114a8c5492583b))
+* **codex-app-server:** add release gates and UI parity updates ([96aca13](https://github.com/jscraik/firefly-narrative/commit/96aca13a6f2a5503ea819fff293ae5e3805299d2))
+* **codex-app-server:** add sidecar supervisor and live event bridge ([eb14bd4](https://github.com/jscraik/firefly-narrative/commit/eb14bd40cc43c4513ba2d481bf4a1e3f31966ad0))
+* **codex-app-server:** enforce protocol auth/approval parity ([8a2629f](https://github.com/jscraik/firefly-narrative/commit/8a2629fef623302c19e1c7fa5e1c2a891d1a3a3e))
+* **codex-app-server:** enforce sidecar manifest trust gates ([34a1213](https://github.com/jscraik/firefly-narrative/commit/34a12132360841a59a56865f02bd6ed2f0897c14))
+* **codex-app-server:** harden reconnect validation and completion persistence ([1a9314f](https://github.com/jscraik/firefly-narrative/commit/1a9314f5af401b9a721e78b97c0ad8fd4e6b8a9f))
+* **codex-app-server:** send initialize handshake over stdio ([665fdcd](https://github.com/jscraik/firefly-narrative/commit/665fdcdd397e955d05954164099d704ddbaeafbb))
+* **ingest:** align canonical collector root to ~/.agents/otel-collector ([99dc550](https://github.com/jscraik/firefly-narrative/commit/99dc550796d2321c1c8cfb0ff5e154baa12c3a04))
+* keep dialkit dev-only for landing ([4618a14](https://github.com/jscraik/firefly-narrative/commit/4618a1410a370837a9b715c5e4fd03b7dfc6de40))
+* **narrative:** add truth-loop feedback calibration ([abf0015](https://github.com/jscraik/firefly-narrative/commit/abf001521f7237923f8f5a934f1714237844279d))
+* **sidecar:** pin bundled artifacts for release parity ([f5d7df4](https://github.com/jscraik/firefly-narrative/commit/f5d7df44ece679751e5cf46ca9c02e060bf017a8))
+* **ui:** commit pending branch updates ([6a3706e](https://github.com/jscraik/firefly-narrative/commit/6a3706e0a84dcf1cddd75c95fc70380434d7610c))
+* **ui:** hide otel file-path controls when embedded receiver is active ([a909573](https://github.com/jscraik/firefly-narrative/commit/a909573617eaa2bdbbfaf34fd1f64ff07440e415))
+
+
+### Bug Fixes
+
+* **build:** default tauri build to app bundle ([fb2fa75](https://github.com/jscraik/firefly-narrative/commit/fb2fa75f18d4186ef263744566e0c92179f40fbd))
+* **codex-app-server:** drive auth and events from real sidecar messages ([511323d](https://github.com/jscraik/firefly-narrative/commit/511323dbc76dfa67a45e7de266f9261274c02b35))
+* **codex-app-server:** keep sidecar stdin open to prevent crash loop ([9aa7075](https://github.com/jscraik/firefly-narrative/commit/9aa7075340188ffba1dbdf0df693f2daf9cd4394))
+* **codex-app-server:** launch real codex app-server from sidecar wrapper ([e19e6f8](https://github.com/jscraik/firefly-narrative/commit/e19e6f8caeef3c02861b22084357118a7f4191af))
+* **codex-app-server:** prevent startup crash loop in desktop sidecar ([f9ef1a4](https://github.com/jscraik/firefly-narrative/commit/f9ef1a4ae2fd787bcb897b8fe2b47010e01771be))
+* **release:** add no-sign fallback for unsigned builds ([c64d42d](https://github.com/jscraik/firefly-narrative/commit/c64d42da6c65fe9a15e10298372efbb9493553c8))
+* **tauri:** allow firefly settings store plugin in ACL ([5be41b8](https://github.com/jscraik/firefly-narrative/commit/5be41b8198f00ca8096d2221c5d26b13a730d732))
+
 ## [0.13.0](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.12.1...firefly-narrative-v0.13.0) (2026-02-24)
 
 
