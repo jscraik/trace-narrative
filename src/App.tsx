@@ -1,176 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { indexRepo } from './core/repo/indexer';
+import { EMPTY_BRANCH_MODEL } from './core/models/emptyBranchModel';
 import { setOtelReceiverEnabled } from './core/tauri/otelReceiver';
+import { normalizeHttpUrl } from './core/utils/url';
 import type {
-  BranchViewModel,
   DashboardFilter,
   TraceCollectorConfig
 } from './core/types';
 import { useAutoIngest } from './hooks/useAutoIngest';
 import { useCommitData } from './hooks/useCommitData';
-import { useRepoLoader, type RepoState } from './hooks/useRepoLoader';
+import { useRepoLoader } from './hooks/useRepoLoader';
 import { useSessionImport } from './hooks/useSessionImport';
 import { useTraceCollector } from './hooks/useTraceCollector';
 import { useUpdater } from './hooks/useUpdater';
-import { DocsOverviewPanel } from './ui/components/DocsOverviewPanel';
 import { RepoEmptyState } from './ui/components/RepoEmptyState';
 import { TopNav, type Mode } from './ui/components/TopNav';
 import { UpdateIndicator, UpdatePrompt } from './ui/components/UpdatePrompt';
 import { BranchView } from './ui/views/BranchView';
 import { DashboardView } from './ui/views/DashboardView';
-import {
-  DEV_FALLBACK_REPO_PATH,
-  applyDocsAutoloadError,
-  applyDocsAutoloadSuccess
-} from './ui/views/docsAutoLoad';
-
+import { DocsView } from './ui/views/DocsView';
 
 type AgentationComponentType = (typeof import('agentation'))['Agentation'];
-type TauriRuntimeWindow = Window & {
-  __TAURI_INTERNALS__?: { invoke?: unknown };
-  __TAURI_IPC__?: unknown;
-};
-
-function isTauriRuntime(): boolean {
-  if (typeof window === 'undefined') return false;
-  const tauriWindow = window as TauriRuntimeWindow;
-  return Boolean(tauriWindow.__TAURI_INTERNALS__?.invoke || tauriWindow.__TAURI_IPC__);
-}
-
-function normalizeHttpUrl(url: string | undefined): string | undefined {
-  if (!url?.trim()) {
-    return undefined;
-  }
-
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return undefined;
-    }
-    return parsed.toString();
-  } catch {
-    return undefined;
-  }
-}
-
-const EMPTY_MODEL: BranchViewModel = {
-  source: 'git',
-  title: '',
-  status: 'open',
-  description: '',
-  stats: {
-    added: 0,
-    removed: 0,
-    files: 0,
-    commits: 0,
-    prompts: 0,
-    responses: 0
-  },
-  intent: [],
-  timeline: []
-};
-
-/**
- * Docs view wrapper that auto-loads the current directory as repo if needed.
- * This ensures Docs mode works even when switching from Demo mode.
- */
-export function DocsView(props: {
-  repoState: RepoState;
-  setRepoState: React.Dispatch<React.SetStateAction<RepoState>>;
-  onClose: () => void;
-}) {
-  const { repoState, setRepoState, onClose } = props;
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Auto-load current directory as repo when Docs is opened without a loaded repo
-  // Only attempt auto-load once per component mount to avoid infinite loops on error.
-  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
-
-  useEffect(() => {
-    if (repoState.status === 'ready' || repoState.status === 'loading') {
-      return; // Already loaded or loading
-    }
-
-    // Only attempt auto-load once
-    if (hasAttemptedLoad) return;
-
-    const loadCurrentDir = async () => {
-      setHasAttemptedLoad(true);
-
-      // If we are in the browser (no Tauri), gracefully set to idle without crashing
-      // We can't index local git repos from a browser environment.
-      const isTauri = isTauriRuntime();
-      if (!isTauri) {
-        setRepoState(prev => prev.status === 'idle' ? prev : { status: 'idle' });
-        return;
-      }
-
-      if (!import.meta.env.DEV) {
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        // Dev-only fallback to a local repo path (when in Tauri)
-        const defaultPath = DEV_FALLBACK_REPO_PATH;
-
-        setRepoState({ status: 'loading', path: defaultPath });
-
-        const { model, repo } = await indexRepo(defaultPath, 60);
-        setRepoState((prev) => applyDocsAutoloadSuccess(prev, defaultPath, model, repo));
-      } catch (e) {
-        console.error('[DocsView] Failed to auto-load repo:', e);
-        // Don't overwrite newer repo state with stale auto-load errors.
-        setRepoState((prev) => applyDocsAutoloadError(prev, e));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadCurrentDir();
-  }, [repoState.status, setRepoState, hasAttemptedLoad]);
-
-  if (repoState.status === 'loading' || isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center bg-bg-tertiary p-6">
-        <div className="rounded-2xl border border-border-light bg-bg-secondary px-6 py-5 text-center text-text-tertiary shadow-sm">
-          <div className="text-sm font-medium text-text-secondary">Loading repository...</div>
-        </div>
-      </div>
-    );
-  }
-
-  const isTauri = isTauriRuntime();
-  if (!isTauri && repoState.status === 'idle') {
-    return (
-      <div className="flex h-full items-center justify-center bg-bg-tertiary p-6">
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-border-light bg-bg-secondary px-8 py-10 text-center shadow-sm max-w-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-amber-bg text-accent-amber">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <title>Desktop app required warning</title>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-text-primary mb-1">Desktop App Required</h3>
-            <p className="text-sm text-text-secondary leading-relaxed">
-              The Docs view needs access to your local file system to generate documentation. Please open Firefly Narrative in the desktop app to use this feature.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-full overflow-hidden bg-bg-tertiary p-6">
-      <DocsOverviewPanel
-        repoRoot={repoState.status === 'ready' ? repoState.repo.root : ''}
-        onClose={onClose}
-      />
-    </div>
-  );
-}
 
 export default function App() {
   const [mode, setMode] = useState<Mode>('demo');
@@ -263,7 +112,7 @@ export default function App() {
     diffCache
   } = useRepoLoader();
 
-  const modelForHooks = repoState.status === 'ready' ? repoState.model : EMPTY_MODEL;
+  const modelForHooks = repoState.status === 'ready' ? repoState.model : EMPTY_BRANCH_MODEL;
 
   // OTLP trace collection events and handlers
   const traceCollectorHandlers = useTraceCollector({

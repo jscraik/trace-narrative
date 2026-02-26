@@ -13,6 +13,7 @@
     "lint:component-size": "node scripts/lint-component-size.mjs",
     "lint": "pnpm lint:tokens && pnpm lint:component-size && biome check src src-tauri/src",
     "test": "vitest run",
+    "test:deep": "pnpm test && pnpm test:integration && pnpm test:a11y",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:a11y": "vitest run src/ui/components/__tests__/BranchHeader.test.tsx src/ui/views/__tests__/BranchView.test.tsx",

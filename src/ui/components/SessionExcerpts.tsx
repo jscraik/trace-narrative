@@ -1,297 +1,16 @@
-import { Link2, Link2Off, Upload, ChevronDown, ChevronUp, CheckCircle2, HelpCircle, XCircle } from 'lucide-react';
-import { useState } from 'react';
+import { Upload } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import type { SessionExcerpt } from '../../core/types';
-import { Dialog } from './Dialog';
 import { useRepoFileExistence } from '../../hooks/useRepoFileExistence';
-
-function truncateText(text: string, limit = 160) {
-  const trimmed = text.trim().replace(/\s+/g, ' ');
-  if (trimmed.length <= limit) return trimmed;
-  return `${trimmed.slice(0, limit).trim()}…`;
-}
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-}
-
-function ExpandableHighlight({ text, id }: { text: string; id: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const limit = 120;
-  const needsExpansion = text.length > limit;
-  const displayText = expanded || !needsExpansion ? text : `${text.slice(0, limit).trim()}…`;
-  
-  return (
-    <li key={id} className="text-xs text-text-secondary">
-      <span id={`${id}-text`}>{displayText}</span>
-      {needsExpansion && (
-        <button
-          type="button"
-          onClick={() => setExpanded((prev) => !prev)}
-          className="ml-1 text-accent-blue hover:text-accent-blue/80 text-[10px] font-medium inline-flex items-center gap-0.5"
-          aria-expanded={expanded}
-          aria-controls={`${id}-text`}
-        >
-          {expanded ? (
-            <>
-              <ChevronUp className="w-3 h-3" />
-              Show less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-3 h-3" />
-              Read more
-            </>
-          )}
-        </button>
-      )}
-    </li>
-  );
-}
-
-function ToolPill({
-  tool,
-  durationMin,
-  agentName,
-  redactionCount
-}: {
-  tool: string;
-  durationMin?: number;
-  agentName?: string;
-  redactionCount?: number;
-}) {
-  return (
-    <div className="flex items-center gap-2 text-[11px] text-text-muted">
-      <span className="px-2 py-1 bg-bg-primary rounded-md font-mono text-text-tertiary">
-        {tool}
-      </span>
-      {agentName ? <span className="text-text-tertiary">· {agentName}</span> : null}
-      {typeof durationMin === 'number' && (
-        <span>{formatDuration(durationMin)}</span>
-      )}
-      {typeof redactionCount === 'number' && redactionCount > 0 ? (
-        <span className="rounded bg-accent-amber-bg px-1.5 py-0.5 text-accent-amber">Redacted {redactionCount}</span>
-      ) : null}
-    </div>
-  );
-}
-
-function collectFiles(messages: SessionExcerpt['messages']) {
-  const files = messages.flatMap((m) => m.files ?? []);
-  return Array.from(new Set(files));
-}
-
-function isRepoRelativePath(p: string): boolean {
-  // POSIX absolute
-  if (p.startsWith('/')) return false;
-  // Windows drive absolute
-  if (/^[A-Za-z]:[\\/]/.test(p)) return false;
-  // Avoid traversal-y looking paths (best-effort)
-  if (p.includes('..')) return false;
-  return true;
-}
-
-function selectHighlights(messages: SessionExcerpt['messages']) {
-  const assistantMessages = messages.filter((m) =>
-    ['assistant', 'thinking', 'plan'].includes(m.role)
-  );
-  const source = assistantMessages.length > 0 ? assistantMessages : messages;
-  return source
-    .filter((m) => m.text.trim().length > 0)
-    .slice(0, 3)
-    .map((m) => ({ id: m.id, text: truncateText(m.text) }));
-}
-
-function LinkStatus({ excerpt, onUnlink, onClick, isSelected }: {
-  excerpt: SessionExcerpt;
-  onUnlink?: () => void;
-  onClick?: () => void;
-  isSelected?: boolean;
-}) {
-  if (!excerpt.linkedCommitSha) {
-    return (
-      <div
-        className="flex items-center gap-2 text-[11px] text-text-tertiary"
-        title="Session imported successfully, but no confident commit match has been linked yet."
-      >
-        <Link2Off className="w-3 h-3" />
-        <span>Imported · awaiting link</span>
-      </div>
-    );
-  }
-
-  const shortSha = excerpt.linkedCommitSha.slice(0, 8);
-  const confidencePercent = excerpt.linkConfidence ? Math.round(excerpt.linkConfidence * 100) : 0;
-  const isAutoLinked = excerpt.autoLinked ?? false;
-
-  return (
-    <div className="flex items-center gap-2 text-[11px] text-text-muted">
-      <Link2 className="w-3 h-3" />
-      <button
-        type="button"
-        onClick={onClick}
-        aria-label={`View commit ${shortSha} in timeline`}
-        className={`
-          text-text-secondary hover:text-accent-blue transition-colors
-          ${isSelected ? 'text-accent-blue font-semibold' : ''}
-        `}
-        title="Click to view this commit in the timeline"
-      >
-        Linked to <span className="font-mono">{shortSha}</span>
-      </button>
-      <span
-        className="px-1.5 py-0.5 bg-bg-primary rounded text-text-tertiary cursor-help"
-        title={`Link confidence: ${confidencePercent}% — Estimated match quality between session activity and commit changes. Higher values indicate stronger correlation.`}
-      >
-        {confidencePercent}%
-      </span>
-      {isAutoLinked && (
-        <span className="rounded bg-accent-green-bg px-1.5 py-0.5 text-accent-green">
-          Auto
-        </span>
-      )}
-      {onUnlink && (
-        <button
-          type="button"
-          onClick={onUnlink}
-          aria-label="Unlink session from commit"
-          className="rounded bg-accent-red-bg px-1.5 py-0.5 text-accent-red transition-colors hover:bg-accent-red-light"
-          title="Unlink this session from the commit"
-        >
-          Unlink
-        </button>
-      )}
-    </div>
-  );
-}
-
-function FilePill({
-  file,
-  onClick,
-  isSelected,
-  variant,
-  title
-}: {
-  file: string;
-  onClick?: () => void;
-  isSelected?: boolean;
-  variant?: 'default' | 'best-effort' | 'not-found';
-  title?: string;
-}) {
-  const variantClass =
-    variant === 'not-found' ? 'not-found' : variant === 'best-effort' ? 'best-effort' : '';
-
-  const StatusIcon = () => {
-    switch (variant) {
-      case 'default':
-        return <CheckCircle2 className="w-3 h-3 text-accent-green shrink-0" aria-hidden="true" />;
-      case 'best-effort':
-        return <HelpCircle className="w-3 h-3 text-accent-amber shrink-0" aria-hidden="true" />;
-      case 'not-found':
-        return <XCircle className="w-3 h-3 text-accent-red shrink-0" aria-hidden="true" />;
-      default:
-        return null;
-    }
-  };
-
-  const content = (
-    <>
-      <StatusIcon />
-      <span className="truncate">{file}</span>
-    </>
-  );
-
-  if (!onClick) {
-    return (
-      <span
-        title={title ?? file}
-        className={`pill-file max-w-full truncate inline-flex items-center gap-1.5 ${variantClass} ${isSelected ? 'selected' : ''}`}
-      >
-        {content}
-      </span>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={isSelected ? `View file ${file} (selected)` : `View file ${file}`}
-      aria-pressed={isSelected}
-      title={title ?? file}
-      className={`pill-file max-w-full truncate inline-flex items-center gap-1.5 ${variantClass} ${isSelected ? 'selected' : ''}`}
-    >
-      {content}
-    </button>
-  );
-}
-
-function UnlinkConfirmDialog({
-  isOpen,
-  onClose,
-  onConfirm
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <Dialog
-      title="Unlink session from commit?"
-      message="This will remove the association between the AI session and the commit. The session will remain imported but will show as 'Imported · awaiting link'."
-      confirmLabel="Unlink"
-      cancelLabel="Cancel"
-      variant="destructive"
-      open={isOpen}
-      onConfirm={onConfirm}
-      onClose={onClose}
-    />
-  );
-}
-
-function SessionLinkPipeline({ excerpt }: { excerpt: SessionExcerpt }) {
-  const isLinked = Boolean(excerpt.linkedCommitSha);
-  const needsReview = Boolean(excerpt.needsReview);
-  const activeStep = isLinked ? (needsReview ? 2 : 3) : 2;
-
-  const steps = [
-    { id: 1, label: 'Imported' },
-    { id: 2, label: 'Matching' },
-    { id: 3, label: needsReview ? 'Needs review' : 'Linked' },
-  ] as const;
-
-  return (
-    <div className="mt-1 w-full max-w-[220px]" title="Session link lifecycle">
-      <div className="flex items-center gap-1.5">
-        {steps.map((step, index) => {
-          const complete = step.id < activeStep;
-          const active = step.id === activeStep;
-          const dotClass = complete
-            ? 'bg-accent-green border-accent-green'
-            : active
-              ? 'bg-accent-amber border-accent-amber animate-pulse'
-              : 'bg-bg-tertiary border-border-light';
-
-          return (
-            <div key={step.id} className="flex min-w-0 items-center gap-1.5">
-              <span className={`h-2 w-2 shrink-0 rounded-full border ${dotClass}`} />
-              <span
-                className={`text-[10px] leading-4 ${active ? 'text-text-secondary font-semibold' : 'text-text-muted'}`}
-              >
-                {step.label}
-              </span>
-              {index < steps.length - 1 ? (
-                <span className="h-px w-3 bg-border-light" aria-hidden="true" />
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+import {
+  ExpandableHighlight,
+  FilePill,
+  LinkStatus,
+  SessionLinkPipeline,
+  ToolPill,
+  UnlinkConfirmDialog,
+} from './session-excerpts/SessionExcerptsParts';
+import { collectFiles, isRepoRelativePath, selectHighlights } from './session-excerpts/sessionExcerpts.utils';
 
 export interface SessionExcerptsProps {
   excerpts: SessionExcerpt[] | undefined;
@@ -306,18 +25,20 @@ export interface SessionExcerptsProps {
   changedFiles?: string[];
 }
 
-export function SessionExcerpts({
-  excerpts,
-  selectedFile,
-  onFileClick,
-  onUnlink,
-  onCommitClick,
-  selectedCommitId,
-  selectedSessionId,
-  onSelectSession,
-  repoRoot,
-  changedFiles
-}: SessionExcerptsProps) {
+export function SessionExcerpts(props: SessionExcerptsProps) {
+  const {
+    excerpts,
+    selectedFile,
+    onFileClick,
+    onUnlink,
+    onCommitClick,
+    selectedCommitId,
+    selectedSessionId,
+    onSelectSession,
+    repoRoot,
+    changedFiles,
+  } = props;
+
   const [unlinkDialogOpen, setUnlinkDialogOpen] = useState(false);
   const [pendingUnlinkId, setPendingUnlinkId] = useState<string | null>(null);
 
@@ -328,46 +49,18 @@ export function SessionExcerpts({
 
   const filesTouched = excerpt ? collectFiles(excerpt.messages) : [];
   const highlights = excerpt ? selectHighlights(excerpt.messages) : [];
-  const changedSet = new Set(changedFiles ?? []);
+  const changedSet = useMemo(() => new Set(changedFiles ?? []), [changedFiles]);
   const visibleFiles = filesTouched.slice(0, 8);
   const existsMap = useRepoFileExistence(
     repoRoot ?? '',
-    visibleFiles.filter((p) => isRepoRelativePath(p))
+    visibleFiles.filter((path) => isRepoRelativePath(path))
   );
 
   if (!hasExcerpts) {
-    return (
-      <div className="card p-5 overflow-x-hidden max-h-[42vh] overflow-y-auto">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="section-header">SESSION SUMMARY</div>
-            <div className="section-subheader">Key moments from the session</div>
-          </div>
-        </div>
-        <div className="mt-6 flex flex-col items-center text-center py-4">
-          <div className="w-12 h-12 rounded-full bg-bg-primary flex items-center justify-center mb-3">
-            <Upload className="w-5 h-5 text-text-muted" />
-          </div>
-          <p className="text-sm text-text-tertiary mb-1">No sessions imported yet</p>
-          <p className="text-xs text-text-muted mb-4">Import from Claude, Cursor, or Kimi</p>
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-blue text-accent-foreground text-sm font-medium hover:bg-accent-blue transition-colors shadow-sm"
-            onClick={() => {
-              // Dispatch custom event to open import panel
-              window.dispatchEvent(new CustomEvent('narrative:open-import'));
-            }}
-          >
-            <Upload className="w-4 h-4" />
-            Import Session
-          </button>
-        </div>
-      </div>
-    );
+    return <EmptySessionState />;
   }
 
   if (!excerpt) {
-    // Defensive: should be impossible if hasExcerpts is true, but keeps TS happy.
     return null;
   }
 
@@ -429,13 +122,12 @@ export function SessionExcerpts({
                   key={item.id}
                   type="button"
                   onClick={() => onSelectSession?.(item.id)}
-                  className={`
-                    px-3 py-1.5 rounded-lg text-[11px] font-medium border transition-all duration-150
-                    ${isActive
+                  className={[
+                    'px-3 py-1.5 rounded-lg text-[11px] font-medium border transition-all duration-150',
+                    isActive
                       ? 'bg-accent-blue-light border-accent-blue text-accent-blue shadow-sm ring-1 ring-accent-blue/20'
-                      : 'bg-bg-secondary border-border-light text-text-secondary hover:bg-bg-hover hover:border-border-medium'
-                    }
-                  `}
+                      : 'bg-bg-secondary border-border-light text-text-secondary hover:bg-bg-hover hover:border-border-medium',
+                  ].join(' ')}
                   aria-pressed={isActive}
                 >
                   {item.tool}
@@ -447,22 +139,7 @@ export function SessionExcerpts({
         ) : null}
 
         <div className="mt-4 grid gap-4 rounded-lg border border-border-subtle bg-bg-tertiary p-4">
-          <div className="flex flex-wrap gap-4 text-xs text-text-secondary">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-text-muted">Messages</div>
-              <div className="font-semibold">{excerpt.messages.length}</div>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-text-muted">Mentioned files</div>
-              <div className="font-semibold">{filesTouched.length}</div>
-            </div>
-            {typeof excerpt.durationMin === 'number' ? (
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-text-muted">Duration</div>
-                <div className="font-semibold">{excerpt.durationMin} min</div>
-              </div>
-            ) : null}
-          </div>
+          <SessionStats excerpt={excerpt} filesTouchedCount={filesTouched.length} />
 
           <div>
             <div className="text-[10px] uppercase tracking-wider text-text-muted">AI-suggested highlights</div>
@@ -487,46 +164,40 @@ export function SessionExcerpts({
                 From imported session logs. Best-effort — may not be changed in this commit.
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
-                {visibleFiles.map((f) => (
-                  (() => {
-                    const isRel = isRepoRelativePath(f);
-                    const exists = isRel ? existsMap[f] : false;
-                    const inCommit = changedSet.has(f);
-                    const variant: 'default' | 'best-effort' | 'not-found' =
-                      exists === false ? 'not-found' : inCommit ? 'default' : 'best-effort';
-                    const title = !isRel
-                      ? 'Mentioned, but the path is not repo-relative'
-                      : exists === false
-                        ? 'Mentioned, but file was not found in this repo'
-                        : inCommit
-                          ? 'Mentioned and changed in this commit'
-                          : 'Mentioned, but not changed in this commit';
-                    const clickable = isRel && exists !== false;
+                {visibleFiles.map((file) => {
+                  const isRel = isRepoRelativePath(file);
+                  const exists = isRel ? existsMap[file] : false;
+                  const inCommit = changedSet.has(file);
+                  const variant: 'default' | 'best-effort' | 'not-found' =
+                    exists === false ? 'not-found' : inCommit ? 'default' : 'best-effort';
 
-                    return (
-                      <FilePill
-                        key={f}
-                        file={f}
-                        isSelected={selectedFile === f}
-                        variant={variant}
-                        title={title}
-                        onClick={clickable ? () => onFileClick?.(f) : undefined}
-                      />
-                    );
-                  })()
-                ))}
+                  const title = !isRel
+                    ? 'Mentioned, but the path is not repo-relative'
+                    : exists === false
+                      ? 'Mentioned, but file was not found in this repo'
+                      : inCommit
+                        ? 'Mentioned and changed in this commit'
+                        : 'Mentioned, but not changed in this commit';
+
+                  return (
+                    <FilePill
+                      key={file}
+                      file={file}
+                      isSelected={selectedFile === file}
+                      variant={variant}
+                      title={title}
+                      onClick={isRel && exists !== false ? () => onFileClick?.(file) : undefined}
+                    />
+                  );
+                })}
                 {filesTouched.length > 8 ? (
-                  <span className="text-[11px] text-text-muted">
-                    +{filesTouched.length - 8} more
-                  </span>
+                  <span className="text-[11px] text-text-muted">+{filesTouched.length - 8} more</span>
                 ) : null}
               </div>
             </div>
           ) : null}
 
-          <div className="text-[11px] text-text-muted">
-            Full conversation appears below in the Conversation panel.
-          </div>
+          <div className="text-[11px] text-text-muted">Full conversation appears below in the Conversation panel.</div>
         </div>
       </div>
 
@@ -536,5 +207,56 @@ export function SessionExcerpts({
         onConfirm={handleUnlinkConfirm}
       />
     </>
+  );
+}
+
+function EmptySessionState() {
+  return (
+    <div className="card p-5 overflow-x-hidden max-h-[42vh] overflow-y-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="section-header">SESSION SUMMARY</div>
+          <div className="section-subheader">Key moments from the session</div>
+        </div>
+      </div>
+      <div className="mt-6 flex flex-col items-center text-center py-4">
+        <div className="w-12 h-12 rounded-full bg-bg-primary flex items-center justify-center mb-3">
+          <Upload className="w-5 h-5 text-text-muted" />
+        </div>
+        <p className="text-sm text-text-tertiary mb-1">No sessions imported yet</p>
+        <p className="text-xs text-text-muted mb-4">Import from Claude, Cursor, or Kimi</p>
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-blue text-accent-foreground text-sm font-medium hover:bg-accent-blue transition-colors shadow-sm"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('narrative:open-import'));
+          }}
+        >
+          <Upload className="w-4 h-4" />
+          Import Session
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SessionStats({ excerpt, filesTouchedCount }: { excerpt: SessionExcerpt; filesTouchedCount: number }) {
+  return (
+    <div className="flex flex-wrap gap-4 text-xs text-text-secondary">
+      <div>
+        <div className="text-[10px] uppercase tracking-wider text-text-muted">Messages</div>
+        <div className="font-semibold">{excerpt.messages.length}</div>
+      </div>
+      <div>
+        <div className="text-[10px] uppercase tracking-wider text-text-muted">Mentioned files</div>
+        <div className="font-semibold">{filesTouchedCount}</div>
+      </div>
+      {typeof excerpt.durationMin === 'number' ? (
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-text-muted">Duration</div>
+          <div className="font-semibold">{excerpt.durationMin} min</div>
+        </div>
+      ) : null}
+    </div>
   );
 }
