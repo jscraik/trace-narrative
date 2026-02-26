@@ -2,9 +2,9 @@
 
 ## How to get help
 
-- **Bug reports:** [Open a bug report](https://github.com/jscraik/narrative/issues/new?template=bug_report.yml)
-- **Feature requests:** [Open a feature request](https://github.com/jscraik/narrative/issues/new?template=feature_request.yml)
-- **General questions:** [Open an issue](https://github.com/jscraik/narrative/issues/new) and include reproduction context.
+- **Bug reports:** [Open a bug report](https://github.com/jscraik/firefly-narrative/issues/new?template=bug_report.yml)
+- **Feature requests:** [Open a feature request](https://github.com/jscraik/firefly-narrative/issues/new?template=feature_request.yml)
+- **General questions:** [Open an issue](https://github.com/jscraik/firefly-narrative/issues/new) and include reproduction context.
 
 ## Before opening an issue
 

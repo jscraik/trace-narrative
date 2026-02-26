@@ -6,7 +6,7 @@
 
 <div align="center">
 
-[![CI](https://github.com/jscraik/narrative/actions/workflows/ci.yml/badge.svg)](https://github.com/jscraik/narrative/actions)
+[![CI](https://github.com/jscraik/firefly-narrative/actions/workflows/ci.yml/badge.svg)](https://github.com/jscraik/firefly-narrative/actions)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![tauri v2](https://img.shields.io/badge/tauri-v2-orange.svg)](https://tauri.app)
 
@@ -22,8 +22,7 @@
 
 ```bash
 # macOS (Apple Silicon) - Recommended
-curl -fsSL https://github.com/jscraik/narrative/releases/latest/download/Narrative_aarch64_mac.dmg -o Narrative.dmg
-open Narrative.dmg
+open https://github.com/jscraik/firefly-narrative/releases/latest
 ```
 
 </div>
@@ -80,8 +79,8 @@ Access project documentation and knowledge items directly within the narrative i
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/jscraik/narrative.git
-cd narrative
+git clone https://github.com/jscraik/firefly-narrative.git
+cd firefly-narrative
 
 # 2. Install dependencies
 pnpm install
@@ -162,9 +161,9 @@ We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md).
 
 ### Ways to Contribute
 
-- **Bug reports** - [Open an issue](https://github.com/jscraik/narrative/issues/new?template=bug_report.yml)
-- **Feature requests** - [Request a feature](https://github.com/jscraik/narrative/issues/new?template=feature_request.yml)
-- **Code** - Look for [good first issues](https://github.com/jscraik/narrative/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- **Bug reports** - [Open an issue](https://github.com/jscraik/firefly-narrative/issues/new?template=bug_report.yml)
+- **Feature requests** - [Request a feature](https://github.com/jscraik/firefly-narrative/issues/new?template=feature_request.yml)
+- **Code** - Look for [good first issues](https://github.com/jscraik/firefly-narrative/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 

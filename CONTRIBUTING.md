@@ -25,8 +25,8 @@ For user support channels, see [`SUPPORT.md`](SUPPORT.md).
 3. Start the app.
 
 ```bash
-git clone https://github.com/jscraik/narrative.git
-cd narrative
+git clone https://github.com/jscraik/firefly-narrative.git
+cd firefly-narrative
 pnpm install
 pnpm tauri dev
 ```
@@ -74,7 +74,7 @@ cargo clippy
 
 ### Good first issues
 
-Look for issues labeled [`good first issue`](https://github.com/jscraik/narrative/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22). Maintainers curate these for new contributors.
+Look for issues labeled [`good first issue`](https://github.com/jscraik/firefly-narrative/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22). Maintainers curate these for new contributors.
 
 ### Areas we need help
 
@@ -82,7 +82,7 @@ Look for issues labeled [`good first issue`](https://github.com/jscraik/narrativ
 - UI/UX accessibility and polish
 - Documentation and onboarding
 - Test coverage and regression prevention
-- Bug fixes from the [bug label](https://github.com/jscraik/narrative/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+- Bug fixes from the [bug label](https://github.com/jscraik/firefly-narrative/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 
 ### Code style
 

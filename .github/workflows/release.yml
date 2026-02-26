@@ -122,6 +122,19 @@ jobs:
             const { data: release } = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
             core.setOutput('release_id', String(release.id));
 
+      - name: Resolve release signing args
+        id: build_args
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          build_args="${{ matrix.args }}"
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ] || [ -z "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" ]; then
+            build_args="$build_args --no-sign"
+          fi
+          echo "args=$build_args" >> "$GITHUB_OUTPUT"
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -133,7 +146,7 @@ jobs:
           releaseId: ${{ steps.resolve_release.outputs.release_id }}
           releaseDraft: false
           prerelease: false
-          args: ${{ matrix.args }}
+          args: ${{ steps.build_args.outputs.args }}
 
   verify-release-assets:
     needs: build
