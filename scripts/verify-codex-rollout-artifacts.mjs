@@ -43,12 +43,32 @@ function assert(condition, message, errors) {
 
 function validateCanary(label, data, errors, { requireOwner }) {
   const prefix = `${label}:`;
-  assert(data.window_hours === 24, `${prefix} window_hours must be 24`, errors);
-  assert(data.handshake_p99_ms <= 5000, `${prefix} handshake_p99_ms exceeds threshold`, errors);
-  assert(data.pending_timeout_rate <= 0.005, `${prefix} pending_timeout_rate exceeds threshold`, errors);
-  assert(data.auth_failure_rate <= 0.01, `${prefix} auth_failure_rate exceeds threshold`, errors);
-  assert(data.crash_loop_count === 0, `${prefix} crash_loop_count must be 0`, errors);
-  assert(data.rollback_recommended !== true, `${prefix} rollback_recommended must be false`, errors);
+  assert(
+    Number.isFinite(data.window_hours) && data.window_hours === 24,
+    `${prefix} window_hours must be 24`,
+    errors,
+  );
+  assert(
+    Number.isFinite(data.handshake_p99_ms) && data.handshake_p99_ms <= 5000,
+    `${prefix} handshake_p99_ms exceeds threshold`,
+    errors,
+  );
+  assert(
+    Number.isFinite(data.pending_timeout_rate) && data.pending_timeout_rate <= 0.005,
+    `${prefix} pending_timeout_rate exceeds threshold`,
+    errors,
+  );
+  assert(
+    Number.isFinite(data.auth_failure_rate) && data.auth_failure_rate <= 0.01,
+    `${prefix} auth_failure_rate exceeds threshold`,
+    errors,
+  );
+  assert(
+    Number.isFinite(data.crash_loop_count) && data.crash_loop_count === 0,
+    `${prefix} crash_loop_count must be 0`,
+    errors,
+  );
+  assert(data.rollback_recommended === false, `${prefix} rollback_recommended must be false`, errors);
   if (requireOwner) {
     assert(typeof data.owner === 'string' && data.owner.trim().length > 0, `${prefix} owner is required`, errors);
   }
@@ -58,6 +78,10 @@ function validateOsArch(data, errors, { requireOwner }) {
   const prefix = 'os-arch-smoke:';
   assert(data.supported_arch_smoke_pass === true, `${prefix} supported_arch_smoke_pass must be true`, errors);
   assert(data.wrong_arch_failures === 0, `${prefix} wrong_arch_failures must be 0`, errors);
+  assert(Number.isFinite(data.wrong_arch_failures), `${prefix} wrong_arch_failures must be a finite number`, errors);
+  assert(Array.isArray(data.required_targets), `${prefix} required_targets must be an array`, errors);
+  assert(Array.isArray(data.tested_targets), `${prefix} tested_targets must be an array`, errors);
+  assert(Array.isArray(data.missing_targets), `${prefix} missing_targets must be an array`, errors);
   if (requireOwner) {
     assert(typeof data.owner === 'string' && data.owner.trim().length > 0, `${prefix} owner is required`, errors);
   }

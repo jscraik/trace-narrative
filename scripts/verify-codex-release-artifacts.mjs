@@ -36,11 +36,31 @@ function readJson(filePath) {
 }
 
 function validateSoak(soak, errors) {
-  assert(soak.window_hours >= 168, 'soak-100p.window_hours must be >= 168', errors);
-  assert(soak.handshake_p99_ms <= 5000, 'soak-100p.handshake_p99_ms exceeds 5000', errors);
-  assert(soak.pending_timeout_rate <= 0.005, 'soak-100p.pending_timeout_rate exceeds 0.005', errors);
-  assert(soak.parser_error_rate <= 0.001, 'soak-100p.parser_error_rate exceeds 0.001', errors);
-  assert(soak.event_lag_p95_ms <= 250, 'soak-100p.event_lag_p95_ms exceeds 250', errors);
+  assert(
+    Number.isFinite(soak.window_hours) && soak.window_hours >= 168,
+    'soak-100p.window_hours must be >= 168',
+    errors,
+  );
+  assert(
+    Number.isFinite(soak.handshake_p99_ms) && soak.handshake_p99_ms <= 5000,
+    'soak-100p.handshake_p99_ms exceeds 5000',
+    errors,
+  );
+  assert(
+    Number.isFinite(soak.pending_timeout_rate) && soak.pending_timeout_rate <= 0.005,
+    'soak-100p.pending_timeout_rate exceeds 0.005',
+    errors,
+  );
+  assert(
+    Number.isFinite(soak.parser_error_rate) && soak.parser_error_rate <= 0.001,
+    'soak-100p.parser_error_rate exceeds 0.001',
+    errors,
+  );
+  assert(
+    Number.isFinite(soak.event_lag_p95_ms) && soak.event_lag_p95_ms <= 250,
+    'soak-100p.event_lag_p95_ms exceeds 250',
+    errors,
+  );
   assert(typeof soak.owner === 'string' && soak.owner.trim().length > 0, 'soak-100p.owner is required', errors);
 }
 

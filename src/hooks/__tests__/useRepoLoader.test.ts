@@ -328,6 +328,29 @@ describe('useRepoLoader', () => {
     expect(result.current.actionError).toBeNull();
   });
 
+  it('continues repo activation steps after indexing completes', async () => {
+    const indexResult = createIndexResult(1, '/repo/1');
+    mockOpen.mockResolvedValue('/repo/1');
+    mockIndexRepo.mockResolvedValue(indexResult);
+
+    const { result } = renderHook(() => useRepoLoader());
+
+    await act(async () => {
+      await result.current.openRepo();
+    });
+
+    expect(result.current.repoState).toMatchObject({
+      status: 'ready',
+      path: '/repo/1',
+      model: indexResult.model,
+      repo: indexResult.repo,
+    });
+    expect(mockSetActiveRepoRoot).toHaveBeenCalledWith('/repo/1');
+    expect(mockSetOtelReceiverEnabled).toHaveBeenCalledWith(false);
+    expect(mockDetectCodexOtelPromptExport).toHaveBeenCalled();
+    expect(mockGetAttributionPrefs).toHaveBeenCalledWith(1);
+  });
+
   it('ignores openRepo completion after repo state is reset while indexing', async () => {
     const deferredIndex = createDeferred<ReturnType<typeof createIndexResult>>();
     mockOpen.mockResolvedValue('/repo/1');

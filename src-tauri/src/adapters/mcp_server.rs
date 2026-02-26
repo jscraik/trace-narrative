@@ -1,4 +1,5 @@
 use axum::http::HeaderMap;
+use subtle::ConstantTimeEq;
 
 const API_KEY_HEADER: &str = "x-mcp-api-key";
 const AUTHORIZATION_HEADER: &str = "authorization";
@@ -101,7 +102,11 @@ pub fn authenticate_client(
         .ok_or(McpServerAuthError::MissingServerApiKey)?;
 
     let provided_api_key = extract_api_key(headers).ok_or(McpServerAuthError::AuthRequired)?;
-    if !constant_time_eq(provided_api_key.as_bytes(), expected_api_key.as_bytes()) {
+    if !provided_api_key
+        .as_bytes()
+        .ct_eq(expected_api_key.as_bytes())
+        .is_true()
+    {
         return Err(McpServerAuthError::InvalidCredentials);
     }
 
@@ -159,18 +164,6 @@ fn extract_api_key(headers: &HeaderMap) -> Option<String> {
     }
 
     Some(token.trim().to_string())
-}
-
-fn constant_time_eq(left: &[u8], right: &[u8]) -> bool {
-    if left.len() != right.len() {
-        return false;
-    }
-
-    let mut diff: u8 = 0;
-    for (a, b) in left.iter().zip(right.iter()) {
-        diff |= a ^ b;
-    }
-    diff == 0
 }
 
 #[cfg(test)]

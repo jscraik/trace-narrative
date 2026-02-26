@@ -7,6 +7,7 @@ const FORBIDDEN_SCOPE: &str = "*";
 pub enum McpClientAuthError {
     InvalidResourceIndicator,
     MissingScope,
+    InvalidScope,
     WildcardScopeNotAllowed,
 }
 
@@ -41,12 +42,20 @@ pub fn validate_resource_indicator(resource_indicator: &str) -> Result<(), McpCl
 }
 
 fn normalize_scopes(scopes: &[String]) -> Result<Vec<String>, McpClientAuthError> {
-    let mut normalized: Vec<String> = scopes
-        .iter()
-        .map(|scope| scope.trim())
-        .filter(|scope| !scope.is_empty())
-        .map(ToOwned::to_owned)
-        .collect();
+    let mut normalized: Vec<String> = Vec::new();
+
+    for scope in scopes {
+        let scope = scope.trim();
+        if scope.is_empty() {
+            continue;
+        }
+
+        if scope.chars().any(char::is_whitespace) {
+            return Err(McpClientAuthError::InvalidScope);
+        }
+
+        normalized.push(scope.to_owned());
+    }
 
     if normalized.is_empty() {
         return Err(McpClientAuthError::MissingScope);
@@ -111,6 +120,15 @@ mod tests {
         build_initialize_authorization, build_oauth_token_request_form,
         connect_with_resource_indicators, validate_resource_indicator, McpClientAuthError,
     };
+
+    #[test]
+    fn rejects_scopes_with_internal_whitespace() {
+        let scopes = vec!["session read".to_string()];
+        assert_eq!(
+            connect_with_resource_indicators("narrative://session-capture", &scopes),
+            Err(McpClientAuthError::InvalidScope)
+        );
+    }
 
     #[test]
     fn validates_narrative_resource_indicators() {

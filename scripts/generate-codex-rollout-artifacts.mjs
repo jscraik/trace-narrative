@@ -125,7 +125,7 @@ function buildCanaryArtifact({ sourceMetrics, stagePercent, owner, nowIso }) {
 function buildOsArchSmokeArtifact({ source, owner, nowIso }) {
   const overrides = source ?? {};
   const testedTargets = Array.isArray(overrides.testedTargets)
-    ? overrides.testedTargets
+    ? [...new Set(overrides.testedTargets.filter((target) => typeof target === 'string').map((target) => target.trim()))]
     : REQUIRED_TARGETS;
 
   const missingTargets = REQUIRED_TARGETS.filter((target) => !testedTargets.includes(target));

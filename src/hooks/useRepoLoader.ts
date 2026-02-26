@@ -135,7 +135,7 @@ export function useRepoLoader(): UseRepoLoaderReturn {
     const isActiveLoadingRequestForSelectedPath = () => {
       if (!isMountedRef.current || isStaleRequest()) return false;
       const current = repoStateRef.current;
-      return current.status === 'loading' && current.path === selected;
+      return (current.status === 'loading' || current.status === 'ready') && current.path === selected;
     };
 
     try {

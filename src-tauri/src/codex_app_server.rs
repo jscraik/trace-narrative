@@ -894,10 +894,20 @@ fn verify_sidecar_manifest_for_path(sidecar_path: &Path) -> Result<(), String> {
         .iter()
         .find(|artifact| artifact.target == SIDECAR_TARGET_TRIPLE && artifact.file == file_name)
         .or_else(|| {
-            manifest
-                .artifacts
-                .iter()
-                .find(|artifact| artifact.file == file_name)
+            if SIDECAR_TARGET_TRIPLE == "unsupported-target" {
+                manifest
+                    .artifacts
+                    .iter()
+                    .find(|artifact| artifact.file == file_name)
+                    .or_else(|| {
+                        manifest
+                            .artifacts
+                            .iter()
+                            .find(|artifact| artifact.target == "generic" && artifact.file == file_name)
+                    })
+            } else {
+                None
+            }
         })
         .ok_or_else(|| {
             format!(
@@ -2547,14 +2557,14 @@ async fn cleanup_live_sessions_with_policy(
     ttl_hours: i64,
     max_rows: i64,
 ) -> Result<LiveSessionsCleanupResult, String> {
-    let cutoff = format!("-{ttl_hours} hours");
+    let ttl_seconds = ttl_hours.saturating_mul(3600);
 
     let ttl_result =
-        sqlx::query("DELETE FROM live_sessions WHERE last_activity_at < datetime('now', ?)")
-            .bind(cutoff)
-            .execute(pool)
-            .await
-            .map_err(|e| format!("failed to cleanup live_sessions by ttl: {e}"))?;
+        sqlx::query("DELETE FROM live_sessions WHERE unixepoch(last_activity_at) < (unixepoch('now') - ?)")
+        .bind(ttl_seconds)
+        .execute(pool)
+        .await
+        .map_err(|e| format!("failed to cleanup live_sessions by ttl: {e}"))?;
 
     let cap_result = sqlx::query(
         r#"

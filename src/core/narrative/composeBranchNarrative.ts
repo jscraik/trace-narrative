@@ -123,17 +123,16 @@ function applyCalibrationToHighlights(
   return [...highlights]
     .map((highlight) => {
       const adjustment = calibration.highlightAdjustments[highlight.id] ?? 0;
-      const rankingBiasBonus = calibration.rankingBias * 0.2;
-      const rankingScore = highlight.confidence + adjustment + rankingBiasBonus;
+      const rankingScore = confidence(
+        highlight.confidence + adjustment + calibration.rankingBias * 0.2,
+      );
 
       return {
         ...highlight,
-        confidence: confidence(highlight.confidence + adjustment),
-        _rankingScore: rankingScore,
+        confidence: rankingScore,
       };
     })
-    .sort((a, b) => b._rankingScore - a._rankingScore)
-    .map(({ _rankingScore: _unused, ...highlight }) => highlight);
+    .sort((a, b) => b.confidence - a.confidence);
 }
 
 function applyCalibrationToOverallConfidence(

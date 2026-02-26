@@ -137,6 +137,10 @@ export function AtlasSearchPanel(props: { repoId: number | null }) {
       setRebuildSummary(null);
       return;
     }
+
+    setRebuildLoading(false);
+    setRebuildError(null);
+    setRebuildSummary(null);
     void refreshInfo();
   }, [repoId, refreshInfo]);
 

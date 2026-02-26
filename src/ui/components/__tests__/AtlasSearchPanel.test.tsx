@@ -232,4 +232,24 @@ describe('AtlasSearchPanel', () => {
     expect(screen.queryByText(/Rebuild complete:/)).not.toBeInTheDocument();
     expect(mockRefreshSelectedSession).not.toHaveBeenCalled();
   });
+
+  it('resets rebuild state when switching repos', async () => {
+    const { rerender } = render(<AtlasSearchPanel repoId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Rebuild index')).toBeInTheDocument();
+    });
+
+    const button = screen.getByText('Rebuild index');
+    await act(async () => {
+      fireEvent.click(button);
+      await Promise.resolve();
+    });
+
+    mockRefreshSelectedSession.mockClear();
+    rerender(<AtlasSearchPanel repoId={2} />);
+
+    expect(screen.queryByText(/Rebuild complete:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Rebuild error/)).not.toBeInTheDocument();
+  });
 });

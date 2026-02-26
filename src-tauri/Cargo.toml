@@ -38,6 +38,7 @@ sha2 = "0.10"
 regex = "1.10"
 lazy_static = "1.4"
 dirs = "5.0"
+subtle = "2.6"
 
 # Cursor SQLite parsing
 rusqlite = { version = "0.32", features = ["bundled"] }

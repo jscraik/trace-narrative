@@ -6,7 +6,7 @@ export const NARRATIVE_PROMPT_TEMPLATE_VERSION = '2026-02-24';
 const ADVERSARIAL_PATTERNS: Array<{ id: string; regex: RegExp }> = [
   { id: 'ignore_previous_instructions', regex: /\bignore\s+(all|any|previous)\s+instructions\b/i },
   { id: 'reveal_system_prompt', regex: /\b(reveal|print|show)\s+(the\s+)?system\s+prompt\b/i },
-  { id: 'exfiltrate_secret', regex: /\b(api[_ -]?key|token|secret|password)\b.{0,30}\b(print|dump|exfiltrat|reveal)\b/i },
+  { id: 'exfiltrate_secret', regex: /\b(api[_ -]?key|token|secret|password)\b.{0,30}\b(print|dump|reveal|exfiltrat(?:e|ed|ion|es|ing))\b/i },
   { id: 'disable_safety_guardrails', regex: /\b(disable|bypass|override)\s+(all\s+)?(safety|guardrails?|security)\b/i },
 ];
 

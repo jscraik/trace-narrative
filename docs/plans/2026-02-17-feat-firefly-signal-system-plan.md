@@ -3,12 +3,12 @@ title: "feat: Firefly Signal System — ambient commit graph indicator"
 type: feat
 date: 2026-02-17
 status: superseded
-superseded_by: /Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-visual-system-v1-plan.md
+superseded_by: ./2026-02-17-feat-firefly-visual-system-v1-plan.md
 ---
 
 # Firefly Signal System
 
-> **Status:** Superseded. Use `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-17-feat-firefly-visual-system-v1-plan.md` as the canonical Firefly plan.
+> **Status:** Superseded. Use `./2026-02-17-feat-firefly-visual-system-v1-plan.md` as the canonical Firefly plan.
 
 ## Overview
 
