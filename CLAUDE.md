@@ -1,49 +1,14 @@
 # CLAUDE.md — Agent Task Notes
 
-## Agent Startup Checklist
-- Confirm scope first in `docs/agents/landing-page-separation.md`.
-- If this is standalone landing-page work, follow `docs/agents/frontend-website-rules.md` before UI edits.
-- For visual verification, run screenshot commands from localhost:
-  - `node screenshot.mjs http://localhost:2000`
-  - `node screenshot.mjs http://localhost:2000 card`
-  - `node screenshot.mjs http://localhost:2000 button`
-- Use output names like `temporary screenshots/screenshot-<N>.png` and `screenshot-<N>-card.png` / `...-button.png`.
+## Source of truth
+- Use `AGENTS.md` for repository-wide workflow and command guidance.
+- Use linked `docs/agents/*.md` files for detailed, task-specific procedures.
 
-This repo uses separate instruction paths for app UI work vs standalone frontend work.
+## Scope first for frontend work
+- For standalone frontend/web-only tasks, confirm scope in `docs/agents/landing-page-separation.md`.
+- Then follow `docs/agents/frontend-website-rules.md`.
+- For in-app Tauri UI work, follow `docs/agents/development.md` and `docs/agents/tauri.md`.
 
-## When to follow landing-page workflow
-- Use `docs/agents/landing-page-separation.md` first to confirm scope.
-- Use `docs/agents/frontend-website-rules.md` for standalone landing-page work (not the embedded Tauri dashboard flows).
-- For in-app Tauri UI changes, follow normal app docs (`docs/agents/development.md`, `docs/agents/tauri.md`).
-
-## Required visual verification flow
-1. Build first:
-
-```bash
-pnpm build
-```
-
-2. Start local server (once):
-
-```bash
-node serve.mjs
-```
-
-3. Capture required screenshots from localhost:
-
-```bash
-node screenshot.mjs http://localhost:2000
-node screenshot.mjs http://localhost:2000 card
-node screenshot.mjs http://localhost:2000 button
-```
-
-## Server/process guardrails
-- If `serve.mjs` is already running, do **not** start a second instance (it uses port `2000`).
-- If screenshots fail with `ERR_CONNECTION_REFUSED`, wait/retry for server startup timing or verify no port conflict.
-
-## Naming convention
-- Screenshot outputs are auto-incremented: `temporary screenshots/screenshot-<N>.png`
-- Use labeled component shots like `screenshot-<N>-card.png`, `screenshot-<N>-button.png`, etc.
-
-## Capture tooling
-- Screenshot capture is handled by `screenshot.mjs`; keep all captures on localhost and route output review from `temporary screenshots/`.
+## Agent-facing quick workflow
+- Run root app setup from `AGENTS.md` and `docs/agents/development.md` (for `pnpm` commands and Rust prerequisites).
+- For landing-page screenshot flows, follow `docs/agents/frontend-website-rules.md` instead of duplicating commands here.
