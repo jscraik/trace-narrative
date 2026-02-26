@@ -531,7 +531,7 @@ Interfaces requiring update parity:
 - ✅ `jq -e '.window_hours >= 168 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .parser_error_rate <= 0.001 and .event_lag_p95_ms <= 250' artifacts/release/codex-app-server/soak-100p.json`
 - ✅ `jq -e '.dashboards_live == true and .alerts_routed_owner != null and (.sli_definitions | length) >= 6' artifacts/release/codex-app-server/telemetry-readiness.json`
 - ⚠️ `pnpm tauri:build` fails locally at bundle/signing stage (`bundle_dmg.sh` + updater private-key password env). Release signing secrets/host setup required.
-- ⚠️ Windows sidecar artifact remains shim because upstream pinned binary exceeds GitHub 100 MB object limit; follow-up required to move Windows artifact delivery to fetch-at-build/package.
+- ℹ️ Packaging scope for this release checkpoint is macOS + Linux only.
 
 ### Checkpoint evidence log (2026-02-25 UTC)
 - ✅ `cargo test --manifest-path src-tauri/Cargo.toml codex_app_server`

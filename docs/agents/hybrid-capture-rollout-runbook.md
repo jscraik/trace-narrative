@@ -80,7 +80,7 @@ Use these gates before widening release:
 
 - Sidecar binaries are pinned in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/bin/` and validated against `/Users/jamiecraik/dev/firefly-narrative/src-tauri/bin/codex-app-server-manifest.json`.
 - Current pinned artifact source: `openai/codex` stable release `rust-v0.105.0` (Codex CLI binaries). Runtime launches these artifacts with the `app-server` subcommand.
-- Windows caveat: upstream pinned x86_64 Windows binary exceeds GitHub's 100 MB object limit; until fetch-at-build/package is implemented, the Windows artifact remains a shim and CP5 stays open.
+- Supported sidecar packaging scope for this release: macOS + Linux targets only (no Windows bundle target in scope).
 - Verification command (required in CI/build):  
   `node scripts/verify-codex-sidecar-manifest.mjs --manifest src-tauri/bin/codex-app-server-manifest.json --require-signature --require-checksum --enforce-min-version`
 - Production runtime policy:
