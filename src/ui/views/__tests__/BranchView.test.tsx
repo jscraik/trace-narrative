@@ -8,6 +8,12 @@ const mockFileSelectionState = vi.hoisted(() => ({ selectedFile: "preselected.ts
 const mockTrackNarrativeEvent = vi.hoisted(() => vi.fn());
 const mockTrackQualityRenderDecision = vi.hoisted(() => vi.fn());
 const mockGetLatestTestRunForCommit = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+let capturedOpenEvidenceHandler: ((link: { id: string; kind: string; label: string; commitSha?: string }) => void) | null = null;
+let capturedOpenRawDiffHandler: ((laneContext?: {
+  source?: 'recall_lane';
+  recallLaneItemId?: string;
+  recallLaneConfidenceBand?: 'low' | 'medium' | 'high';
+}) => void) | null = null;
 const mockLoadGitHubContext = vi.hoisted(() =>
   vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
 );
@@ -107,6 +113,8 @@ vi.mock("../../../hooks/useTestImport", () => ({
 vi.mock("../../components/BranchNarrativePanel", () => ({
   BranchNarrativePanel: ({
     onSubmitFeedback,
+    onOpenEvidence,
+    onOpenRawDiff,
   }: {
     onSubmitFeedback: (feedback: {
       actorRole: "developer" | "reviewer";
@@ -115,22 +123,61 @@ vi.mock("../../components/BranchNarrativePanel", () => ({
       targetId?: string;
       detailLevel: "summary" | "evidence" | "diff";
     }) => void;
-  }) => (
-    <button
-      type="button"
-      onClick={() =>
-        onSubmitFeedback({
-          actorRole: "developer",
-          feedbackType: "highlight_key",
-          targetKind: "highlight",
-          targetId: "highlight:h1",
-          detailLevel: "summary",
-        })
-      }
-    >
-      submit-feedback
-    </button>
-  ),
+    onOpenEvidence: (link: {
+      id: string;
+      kind: "commit" | "session" | "file" | "diff";
+      label: string;
+      commitSha?: string;
+      filePath?: string;
+      sessionId?: string;
+    }, _laneContext?: {
+      source?: 'recall_lane';
+      recallLaneItemId?: string;
+      recallLaneConfidenceBand?: 'low' | 'medium' | 'high';
+    }) => void;
+    onOpenRawDiff: (_laneContext?: {
+      source?: 'recall_lane';
+      recallLaneItemId?: string;
+      recallLaneConfidenceBand?: 'low' | 'medium' | 'high';
+    }) => void;
+  }) => {
+    capturedOpenEvidenceHandler = onOpenEvidence;
+    capturedOpenRawDiffHandler = onOpenRawDiff;
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() =>
+            onSubmitFeedback({
+              actorRole: "developer",
+              feedbackType: "highlight_key",
+              targetKind: "highlight",
+              targetId: "highlight:h1",
+              detailLevel: "summary",
+            })
+          }
+        >
+          submit-feedback
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            onOpenEvidence({
+              id: "commit:aaaa1111",
+              kind: "commit",
+              label: "Commit aaaa1111",
+              commitSha: "aaaa1111",
+            })
+          }
+        >
+          open-evidence
+        </button>
+        <button type="button" onClick={onOpenRawDiff}>
+          open-raw-diff
+        </button>
+      </>
+    );
+  },
 }));
 
 vi.mock("../../components/NarrativeGovernancePanel", () => ({
@@ -318,6 +365,8 @@ describe("BranchView transition and integration coverage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFileSelectionState.selectedFile = "preselected.ts";
+    capturedOpenEvidenceHandler = null;
+    capturedOpenRawDiffHandler = null;
     mockGetLatestTestRunForCommit.mockResolvedValue(null);
     mockLoadGitHubContext.mockResolvedValue({ status: "empty", entries: [] });
     mockEvaluateNarrativeRollout.mockReturnValue({
@@ -430,6 +479,99 @@ describe("BranchView transition and integration coverage", () => {
     expect(screen.getByTestId("files-changed")).toHaveTextContent("src/final-a.ts");
     expect(screen.getByTestId("files-changed")).not.toHaveTextContent("src/stale-b.ts");
     expect(screen.getByTestId("files-changed")).not.toHaveTextContent("src/stale-a.ts");
+  });
+
+  it("ignores stale evidence/open-raw-diff callbacks after branch scope changes", async () => {
+    const props = buildProps();
+    const { rerender } = render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(capturedOpenEvidenceHandler).toBeInstanceOf(Function);
+      expect(capturedOpenRawDiffHandler).toBeInstanceOf(Function);
+    });
+
+    const staleEvidence = capturedOpenEvidenceHandler;
+    const staleRawDiff = capturedOpenRawDiffHandler;
+
+    const updatedModel = createModel({
+      meta: {
+        ...props.model.meta,
+        branchName: "feature/recall-lane-switch",
+      },
+    });
+    rerender(<BranchView {...buildProps({ model: updatedModel })} />);
+
+    await waitFor(() => {
+      expect(capturedOpenEvidenceHandler).toBeInstanceOf(Function);
+      expect(capturedOpenEvidenceHandler).not.toBe(staleEvidence);
+    });
+
+    const beforeStaleCalls = mockTrackNarrativeEvent.mock.calls.length;
+    await act(async () => {
+      staleEvidence?.({
+        id: "commit:aaaa1111",
+        kind: "commit",
+        label: "commit:aaaa1111",
+        commitSha: "aaaa1111",
+      });
+      staleRawDiff?.();
+      await Promise.resolve();
+    });
+    expect(mockTrackNarrativeEvent).toHaveBeenCalledTimes(beforeStaleCalls);
+
+    const preCurrentCalls = mockTrackNarrativeEvent.mock.calls.length;
+    await act(async () => {
+      capturedOpenEvidenceHandler?.({
+        id: "commit:bbbb2222",
+        kind: "commit",
+        label: "commit:bbbb2222",
+        commitSha: "bbbb2222",
+      });
+      await Promise.resolve();
+    });
+    await waitFor(() => {
+      expect(mockTrackNarrativeEvent).toHaveBeenCalledTimes(preCurrentCalls + 1);
+    });
+  });
+
+  it("tracks recall-lane fallback context for raw diff opens", async () => {
+    const props = buildProps();
+    render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(capturedOpenRawDiffHandler).toBeInstanceOf(Function);
+    });
+
+    const beforeFallbackCalls = mockTrackNarrativeEvent.mock.calls.filter((call) => call[0] === "fallback_used").length;
+
+    act(() => {
+      capturedOpenRawDiffHandler?.({
+        source: "recall_lane",
+        recallLaneItemId: "recall:abc",
+        recallLaneConfidenceBand: "high",
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockTrackNarrativeEvent.mock.calls.filter((call) => call[0] === "fallback_used").length).toBe(
+        beforeFallbackCalls + 1,
+      );
+      const fallbackPayload = mockTrackNarrativeEvent.mock.calls
+        .filter((call) => call[0] === "fallback_used")
+        .at(-1)?.[1] as
+        | {
+            source?: string;
+            recallLaneItemId?: string;
+            recallLaneConfidenceBand?: string;
+          }
+        | undefined;
+
+      expect(fallbackPayload).toMatchObject({
+        source: "recall_lane",
+        recallLaneItemId: "recall:abc",
+        recallLaneConfidenceBand: "high",
+      });
+    });
   });
 
   it("resets diff loading state when selected file context is cleared", async () => {

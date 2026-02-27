@@ -206,7 +206,10 @@ describe('AtlasSearchPanel', () => {
       expect(screen.getByText('Rebuild index')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Rebuild index'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('Rebuild index'));
+      await Promise.resolve();
+    });
 
     await waitFor(() => {
       expect(mockAtlasDoctorRebuildDerived).toHaveBeenCalledWith(1);
@@ -247,7 +250,10 @@ describe('AtlasSearchPanel', () => {
     });
 
     mockRefreshSelectedSession.mockClear();
-    rerender(<AtlasSearchPanel repoId={2} />);
+    await act(async () => {
+      rerender(<AtlasSearchPanel repoId={2} />);
+      await Promise.resolve();
+    });
 
     expect(screen.queryByText(/Rebuild complete:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Rebuild error/)).not.toBeInTheDocument();

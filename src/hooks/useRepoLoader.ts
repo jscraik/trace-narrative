@@ -46,6 +46,7 @@ export function useRepoLoader(): UseRepoLoaderReturn {
   const [attributionPrefs, setAttributionPrefsState] = useState<AttributionPrefs | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
+  const openRepoPathRef = useRef<string | null>(null);
 
   // LRU cache for commit diffs - bounded to prevent memory leaks
   const diffCache = useRef(new Map<string, string>());
@@ -134,11 +135,11 @@ export function useRepoLoader(): UseRepoLoaderReturn {
 
     const isActiveLoadingRequestForSelectedPath = () => {
       if (!isMountedRef.current || isStaleRequest()) return false;
-      const current = repoStateRef.current;
-      return (current.status === 'loading' || current.status === 'ready') && current.path === selected;
+      return openRepoPathRef.current === selected;
     };
 
     try {
+      openRepoPathRef.current = selected;
       const { model, repo } = await indexRepo(selected, 60, (progress) => {
         if (!isActiveLoadingRequestForSelectedPath()) return;
         setIndexingProgress((prev) => {
@@ -151,6 +152,7 @@ export function useRepoLoader(): UseRepoLoaderReturn {
       if (!isActiveLoadingRequestForSelectedPath()) return;
       if (!isMountedRef.current) return;
       setRepoState({ status: 'ready', path: selected, model, repo });
+      openRepoPathRef.current = selected;
       if (!isMountedRef.current) return;
       setIndexingProgress(null);
 
@@ -185,10 +187,18 @@ export function useRepoLoader(): UseRepoLoaderReturn {
         path: selected,
         message: e instanceof Error ? e.message : String(e)
       });
+      openRepoPathRef.current = null;
       if (!isMountedRef.current) return;
       setIndexingProgress(null);
     }
   }, []);
+
+  useEffect(() => {
+    if (!openRepoPathRef.current) return;
+    if (repoState.status === 'loading') return;
+    if (repoState.status === 'ready' && repoState.path === openRepoPathRef.current) return;
+    openRepoPathRef.current = null;
+  }, [repoState]);
 
   const updateAttributionPrefs = useCallback(async (update: AttributionPrefsUpdate) => {
     if (repoStateRef.current.status !== 'ready') return;
