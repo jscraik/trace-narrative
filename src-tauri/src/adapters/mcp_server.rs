@@ -102,11 +102,11 @@ pub fn authenticate_client(
         .ok_or(McpServerAuthError::MissingServerApiKey)?;
 
     let provided_api_key = extract_api_key(headers).ok_or(McpServerAuthError::AuthRequired)?;
-    if !provided_api_key
-        .as_bytes()
-        .ct_eq(expected_api_key.as_bytes())
-        .is_true()
-    {
+    if !bool::from(
+        provided_api_key
+            .as_bytes()
+            .ct_eq(expected_api_key.as_bytes()),
+    ) {
         return Err(McpServerAuthError::InvalidCredentials);
     }
 

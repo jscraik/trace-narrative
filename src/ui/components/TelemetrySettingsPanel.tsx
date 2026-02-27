@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { IngestConfig, OtlpKeyStatus } from '../../core/tauri/ingestConfig';
+import type { CaptureReliabilityStatus, IngestConfig, OtlpKeyStatus } from '../../core/tauri/ingestConfig';
 import type { TraceCollectorConfig } from '../../core/types';
 import { HelpPopover } from './HelpPopover';
 import { Toggle } from './Toggle';
@@ -7,6 +7,7 @@ import { Toggle } from './Toggle';
 interface TelemetrySettingsPanelProps {
     traceConfig?: TraceCollectorConfig;
     ingestConfig?: IngestConfig | null;
+    captureReliabilityStatus?: CaptureReliabilityStatus | null;
     otlpKeyStatus?: OtlpKeyStatus | null;
     logUserPromptEnabled?: boolean | null;
     logUserPromptConfigPath?: string | null;
@@ -21,6 +22,7 @@ interface TelemetrySettingsPanelProps {
 export function TelemetrySettingsPanel({
     traceConfig,
     ingestConfig,
+    captureReliabilityStatus,
     otlpKeyStatus,
     logUserPromptEnabled,
     logUserPromptConfigPath,
@@ -41,7 +43,23 @@ export function TelemetrySettingsPanel({
 
     const receiverEnabled = traceConfig?.codexOtelReceiverEnabled ?? false;
     const embeddedReceiverAvailable = Boolean(onToggleCodexOtelReceiver);
-    const showFilePathConfig = !embeddedReceiverAvailable || !receiverEnabled;
+    const appServerStreamActive = captureReliabilityStatus?.streamExpected ?? false;
+    const showFilePathConfig = (!embeddedReceiverAvailable || !receiverEnabled) && !appServerStreamActive;
+    const filePathHiddenReason = appServerStreamActive
+        ? {
+            icon: '🛰',
+            badge: 'App Server stream active',
+            message: 'Codex App Server stream is active. File-path OTEL import is hidden.',
+            badgeClass: 'border-accent-violet-light bg-accent-violet-bg text-accent-violet',
+            dotClass: 'bg-accent-violet',
+        }
+        : {
+            icon: '📥',
+            badge: 'Embedded receiver active',
+            message: 'Embedded receiver is active. File-path OTEL import is hidden.',
+            badgeClass: 'border-accent-amber-light bg-accent-amber-bg text-accent-amber',
+            dotClass: 'bg-accent-amber',
+        };
     const disablePromptSnippet = 'log_user_prompt = false';
     const hasConsent = ingestConfig?.consent.codexTelemetryGranted ?? false;
     const keyPresent = otlpKeyStatus?.present ?? false;
@@ -169,7 +187,12 @@ export function TelemetrySettingsPanel({
                         </div>
                     ) : (
                         <div className="rounded-md border border-border-subtle bg-bg-secondary px-3 py-2 text-[11px] text-text-tertiary">
-                            Embedded receiver is active. File-path OTEL import is hidden.
+                            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${filePathHiddenReason.badgeClass}`}>
+                                <span aria-hidden="true">{filePathHiddenReason.icon}</span>
+                                <span className={`inline-block h-1.5 w-1.5 rounded-full ${filePathHiddenReason.dotClass}`} aria-hidden="true" />
+                                {filePathHiddenReason.badge}
+                            </span>
+                            <div className="mt-1">{filePathHiddenReason.message}</div>
                         </div>
                     )}
 

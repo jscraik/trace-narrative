@@ -257,6 +257,7 @@ export function RightPanelTabPanels(props: RightPanelTabPanelsProps) {
           <TelemetrySettingsPanel
             traceConfig={traceConfig}
             ingestConfig={ingestConfig ?? null}
+            captureReliabilityStatus={captureReliabilityStatus ?? null}
             otlpKeyStatus={otlpKeyStatus ?? null}
             logUserPromptEnabled={codexPromptExport?.enabled ?? null}
             logUserPromptConfigPath={codexPromptExport?.configPath ?? null}

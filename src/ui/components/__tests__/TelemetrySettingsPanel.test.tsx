@@ -15,6 +15,7 @@ describe('TelemetrySettingsPanel', () => {
     );
 
     expect(screen.queryByText('Codex OTel log file path')).not.toBeInTheDocument();
+    expect(screen.getByText('Embedded receiver active')).toBeInTheDocument();
     expect(
       screen.getByText('Embedded receiver is active. File-path OTEL import is hidden.')
     ).toBeInTheDocument();
@@ -33,5 +34,48 @@ describe('TelemetrySettingsPanel', () => {
 
     expect(screen.getByText('Codex OTel log file path')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sync' })).toBeInTheDocument();
+  });
+
+  it('hides file-path controls when codex app server stream is active', () => {
+    render(
+      <TelemetrySettingsPanel
+        traceConfig={{
+          codexOtelLogPath: '/tmp/codex-otel.json',
+          codexOtelReceiverEnabled: false,
+        }}
+        captureReliabilityStatus={{
+          mode: 'HYBRID_ACTIVE',
+          otelBaselineHealthy: true,
+          streamExpected: true,
+          streamHealthy: true,
+          reasons: [],
+          metrics: {
+            streamEventsAccepted: 0,
+            streamEventsDuplicates: 0,
+            streamEventsDropped: 0,
+            streamEventsReplaced: 0,
+          },
+          transitions: [],
+          appServer: {
+            state: 'running',
+            initialized: true,
+            initializeSent: true,
+            authState: 'authenticated',
+            authMode: 'chatgpt',
+            streamHealthy: true,
+            streamKillSwitch: false,
+            restartBudget: 3,
+            restartAttemptsInWindow: 0,
+          },
+        }}
+        onToggleCodexOtelReceiver={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText('Codex OTel log file path')).not.toBeInTheDocument();
+    expect(screen.getByText('App Server stream active')).toBeInTheDocument();
+    expect(
+      screen.getByText('Codex App Server stream is active. File-path OTEL import is hidden.')
+    ).toBeInTheDocument();
   });
 });

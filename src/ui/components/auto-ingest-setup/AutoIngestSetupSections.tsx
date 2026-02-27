@@ -47,6 +47,19 @@ export function CaptureModeCard(props: {
 }) {
   const { captureMode, captureReliability, authBusy, onRefreshReliability, onAuthorize, onLogout } = props;
   const appServerStatus = captureReliability?.appServer;
+  const authUrl = (() => {
+    const hint = appServerStatus?.lastError?.trim();
+    if (!hint || !hint.startsWith('Complete login in browser:')) return null;
+    const value = hint.slice('Complete login in browser:'.length).trim();
+    if (!value) return null;
+    try {
+      const parsed = new URL(value);
+      if (parsed.protocol !== 'https:') return null;
+      return parsed.toString();
+    } catch {
+      return null;
+    }
+  })();
 
   return (
     <div className="rounded-lg border border-border-subtle bg-bg-secondary p-3">
@@ -78,6 +91,24 @@ export function CaptureModeCard(props: {
             <span className="font-mono">{appServerStatus.authState}</span> · initialized:{' '}
             <span className="font-mono">{appServerStatus.initialized ? 'yes' : 'no'}</span>
           </div>
+          {appServerStatus.lastError ? (
+            <div className="mt-1 text-[11px] text-text-tertiary">
+              {authUrl ? (
+                <>
+                  Login required:{' '}
+                  <button
+                    type="button"
+                    className="underline hover:no-underline"
+                    onClick={() => window.open(authUrl, '_blank', 'noopener,noreferrer')}
+                  >
+                    Open sign-in page
+                  </button>
+                </>
+              ) : (
+                appServerStatus.lastError
+              )}
+            </div>
+          ) : null}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button
               type="button"
