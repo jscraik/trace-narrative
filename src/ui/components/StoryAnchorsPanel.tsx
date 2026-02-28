@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronRight, GitBranch, Settings2 } from 'lucide-react';
 import {
   exportSessionLinkNote,
   getRepoHooksStatus,
@@ -281,60 +282,76 @@ export function StoryAnchorsPanel(props: {
     setMessage(`Migrate attribution ref: ${result.migrated}/${result.total}.`);
   });
 
-  return (
-    <div className="mt-6 flex flex-col gap-3 rounded-lg border border-border-light bg-bg-secondary p-4">
-      <div>
-        <div className="text-xs font-semibold text-text-secondary">Story Anchors</div>
-        <div className="text-[11px] text-text-muted">Keep attribution + session links attached to commits via Git Notes, and sync automatically via git hooks.</div>
+  // Build status summary for collapsed view
+  const hooksLabel = hookInstalled === null ? 'hooks: ?' : hookInstalled ? 'hooks: on' : 'hooks: off';
+  const hooksColor = hookInstalled === null ? 'text-text-muted' : hookInstalled ? 'text-accent-green' : 'text-text-muted';
+  const anchorsLabel = repoCounts ? `${repoCounts.complete}/${repoCounts.total} anchors` : '0 anchors';
+
+  if (!canRun) {
+    return (
+      <div className="mt-4 flex items-center gap-2 text-xs text-text-muted">
+        <Settings2 className="w-3.5 h-3.5" />
+        <span>Trace Narrative</span>
+        <span className="text-text-muted/60">— open a repo to manage</span>
       </div>
+    );
+  }
 
-      {!canRun ? (
-        <div className="text-[11px] text-text-muted">Open a repo to manage Story Anchors.</div>
-      ) : (
-        <>
-          <HooksStatusRow
-            hookInstalled={hookInstalled}
-            hooksDir={hooksDir}
+  return (
+    <details className="group mt-4">
+      <summary className="cursor-pointer list-none flex items-center gap-2 text-xs py-1.5 px-2 rounded-md hover:bg-bg-hover transition-colors select-none">
+        <span className="w-4 h-4 flex items-center justify-center rounded-sm bg-bg-primary group-open:bg-bg-hover transition-colors">
+          <ChevronRight className="w-3 h-3 transition-transform group-open:rotate-90" />
+        </span>
+        <GitBranch className="w-3.5 h-3.5 text-text-secondary" />
+        <span className="font-medium text-text-secondary">Trace Narrative</span>
+        <span className={`text-[10px] ${hooksColor}`}>{hooksLabel}</span>
+        <span className="text-[10px] text-text-muted">· {anchorsLabel}</span>
+      </summary>
+
+      <div className="mt-3 flex flex-col gap-3 rounded-lg border border-border-light bg-bg-secondary p-3">
+        <HooksStatusRow
+          hookInstalled={hookInstalled}
+          hooksDir={hooksDir}
+          busy={busy}
+          canRun={Boolean(repoId)}
+          onInstallHooks={installHooksAction}
+          onUninstallHooks={uninstallHooksAction}
+          onRefresh={() => void refresh()}
+        />
+
+        <RepoActionsCard
+          indexedCount={indexedCommitShas?.length ?? 0}
+          repoCounts={repoCounts}
+          exportProgress={exportProgress}
+          busy={busy}
+          canRunRepoActions={canRunRepoActions}
+          onRefreshIndexedStatus={refreshIndexedStatusAction}
+          onImportSessionsNotes={importIndexedSessionNotesAction}
+          onExportSessionsNotes={exportIndexedSessionNotesAction}
+          onMigrateAttributionRef={migrateIndexedAttributionAction}
+          onReconcileDryRun={() => reconcileIndexedAction(false)}
+          onReconcileWrite={() => reconcileIndexedAction(true)}
+        />
+
+        {selectedCommitSha ? (
+          <CommitActionsCard
+            selectedCommitSha={selectedCommitSha}
+            status={status}
             busy={busy}
-            canRun={Boolean(repoId)}
-            onInstallHooks={installHooksAction}
-            onUninstallHooks={uninstallHooksAction}
-            onRefresh={() => void refresh()}
+            canRunCommitActions={canRunCommitActions}
+            onImportSessionNote={importSelectedSessionNoteAction}
+            onExportSessionNote={exportSelectedSessionNoteAction}
+            onReconcileNoWrite={() => reconcileSelectedAction(false)}
+            onReconcileWrite={() => reconcileSelectedAction(true)}
+            onMigrateAttributionRef={migrateSelectedAttributionAction}
           />
+        ) : (
+          <div className="text-[11px] text-text-muted">Select a commit to manage its session link note.</div>
+        )}
 
-          <RepoActionsCard
-            indexedCount={indexedCommitShas?.length ?? 0}
-            repoCounts={repoCounts}
-            exportProgress={exportProgress}
-            busy={busy}
-            canRunRepoActions={canRunRepoActions}
-            onRefreshIndexedStatus={refreshIndexedStatusAction}
-            onImportSessionsNotes={importIndexedSessionNotesAction}
-            onExportSessionsNotes={exportIndexedSessionNotesAction}
-            onMigrateAttributionRef={migrateIndexedAttributionAction}
-            onReconcileDryRun={() => reconcileIndexedAction(false)}
-            onReconcileWrite={() => reconcileIndexedAction(true)}
-          />
-
-          {selectedCommitSha ? (
-            <CommitActionsCard
-              selectedCommitSha={selectedCommitSha}
-              status={status}
-              busy={busy}
-              canRunCommitActions={canRunCommitActions}
-              onImportSessionNote={importSelectedSessionNoteAction}
-              onExportSessionNote={exportSelectedSessionNoteAction}
-              onReconcileNoWrite={() => reconcileSelectedAction(false)}
-              onReconcileWrite={() => reconcileSelectedAction(true)}
-              onMigrateAttributionRef={migrateSelectedAttributionAction}
-            />
-          ) : (
-            <div className="mt-2 text-[11px] text-text-muted">Select a commit to manage its session link note + reconcile status.</div>
-          )}
-
-          {message ? <div className="text-[11px] text-text-muted">{message}</div> : null}
-        </>
-      )}
-    </div>
+        {message ? <div className="text-[11px] text-text-muted">{message}</div> : null}
+      </div>
+    </details>
   );
 }
