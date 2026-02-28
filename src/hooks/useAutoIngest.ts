@@ -589,6 +589,20 @@ export function useAutoIngest(params: {
       }
       await codexAppServerInitialize();
       await codexAppServerInitialized();
+
+      // Check if already authenticated before attempting login
+      const statusAfterInit = await getCodexAppServerStatus();
+      if (!isMountedRef.current) return;
+      setCodexAppServerStatus(statusAfterInit);
+
+      if (statusAfterInit.authState === 'authenticated') {
+        showToast('Codex App Server already authenticated');
+        if (!isMountedRef.current) return;
+        await refreshReliability();
+        return;
+      }
+
+      // Only call loginStart if we actually need to authenticate
       await codexAppServerLoginStart();
       const latestStatus = await getCodexAppServerStatus();
       if (!isMountedRef.current) return;
