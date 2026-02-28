@@ -120,6 +120,11 @@ jobs:
           version: 9
           run_install: false
 
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
+
       - name: Install dependencies
         run: pnpm install
 
