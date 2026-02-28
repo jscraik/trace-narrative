@@ -1,4 +1,5 @@
 import { listen } from '@tauri-apps/api/event';
+import { open as openExternal } from '@tauri-apps/plugin-shell';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BranchViewModel } from '../core/types';
 import { refreshSessionBadges } from '../core/repo/sessionBadges';
@@ -83,10 +84,10 @@ function extractAuthUrlFromStatus(status: CodexAppServerStatus | null | undefine
   }
 }
 
-function openExternalAuthUrl(url: string): boolean {
+async function openExternalAuthUrl(url: string): Promise<boolean> {
   try {
-    const popup = window.open(url, '_blank', 'noopener,noreferrer');
-    return popup !== null;
+    await openExternal(url);
+    return true;
   } catch {
     return false;
   }
@@ -594,8 +595,12 @@ export function useAutoIngest(params: {
       setCodexAppServerStatus(latestStatus);
       const authUrl = extractAuthUrlFromStatus(latestStatus);
       if (authUrl) {
-        const opened = openExternalAuthUrl(authUrl);
-        showToast(opened ? 'Opened Codex App Server login in your browser' : 'Codex login URL ready in status panel');
+        const opened = await openExternalAuthUrl(authUrl);
+        showToast(
+          opened
+            ? 'Opened Codex App Server login in your browser'
+            : 'Unable to open browser automatically; copy the URL from status to continue.'
+        );
       } else {
         showToast('Codex App Server login started (check browser flow)');
       }

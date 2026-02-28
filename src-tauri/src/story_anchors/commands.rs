@@ -32,33 +32,73 @@ fn find_executable_on_path(candidates: &[&str]) -> Option<PathBuf> {
 }
 
 fn find_packaged_narrative_cli(app: &tauri::AppHandle) -> Option<PathBuf> {
-    // If we bundled a prebuilt CLI (via `bundle.resources: ["bin/*"]`),
-    // it will be available under the app's resource directory.
     let resource_dir = app.path().resource_dir().ok()?;
-    let bin_dir = resource_dir.join("bin");
-    let entries = fs::read_dir(&bin_dir).ok()?;
+    let mut candidates: Vec<PathBuf> = Vec::new();
 
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_file() {
-            continue;
-        }
-        let name = p.file_name().and_then(|s| s.to_str()).unwrap_or("");
-        if !name.starts_with("narrative-cli-") {
-            continue;
-        }
-        if cfg!(windows) {
-            if p.extension().and_then(|s| s.to_str()) != Some("exe") {
-                continue;
-            }
-        } else if p.extension().is_some() {
-            // Non-Windows builds should produce an extension-less binary.
-            continue;
-        }
-        return Some(p);
+    // Bundled CLI binaries can land in either `resources/bin` (when explicitly
+    // configured) or directly under `resources` on some bundle layouts.
+    let bin_candidate_dirs = [
+        resource_dir.join("bin"),
+        resource_dir,
+    ];
+    for dir in bin_candidate_dirs {
+        push_narrative_cli_candidates(&dir, &mut candidates);
     }
 
-    None
+    if candidates.is_empty() {
+        return None;
+    }
+
+    candidates.sort_by_key(|path| {
+        (
+            if path.file_name().and_then(|s| s.to_str()) == Some("narrative-cli") {
+                0
+            } else {
+                1
+            },
+            path.to_string_lossy().to_string(),
+        )
+    });
+    candidates.into_iter().next()
+}
+
+fn is_narrative_cli_candidate(name: &str) -> bool {
+    if cfg!(windows) {
+        return name == "narrative-cli.exe" || name.starts_with("narrative-cli-");
+    }
+
+    name == "narrative-cli" || name.starts_with("narrative-cli-")
+}
+
+fn push_narrative_cli_candidates(dir: &PathBuf, candidates: &mut Vec<PathBuf>) {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(_) => return,
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+
+        let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        if !is_narrative_cli_candidate(name) {
+            continue;
+        }
+
+        if cfg!(windows) {
+            if path.extension().and_then(|s| s.to_str()) != Some("exe") {
+                continue;
+            }
+        } else if path.extension().is_some() {
+            continue;
+        }
+
+        candidates.push(path);
+    }
 }
 
 /// Check result for git notes fetch configuration
@@ -544,7 +584,7 @@ pub async fn install_repo_hooks(
     let mut candidates: Vec<PathBuf> = Vec::new();
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
-            candidates.push(dir.join(exe_name));
+            push_narrative_cli_candidates(&dir.to_path_buf(), &mut candidates);
             // Some dev setups may have the binary without an extension even on Windows shells.
             if cfg!(windows) {
                 candidates.push(dir.join("narrative-cli"));

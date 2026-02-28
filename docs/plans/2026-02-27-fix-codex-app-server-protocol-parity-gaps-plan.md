@@ -356,7 +356,7 @@ Surfaces that must remain aligned together:
 - [ ] `jq -e '.window_hours == 24 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .auth_failure_rate <= 0.01 and .crash_loop_count == 0 and .parser_error_rate <= 0.001 and .schema_validation_reject_rate <= 0.001' artifacts/release/codex-app-server/canary-5p.json`
 - [ ] `jq -e '.window_hours == 24 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .auth_failure_rate <= 0.01 and .crash_loop_count == 0 and .parser_error_rate <= 0.001 and .schema_validation_reject_rate <= 0.001' artifacts/release/codex-app-server/canary-25p.json`
 - [ ] `jq -e '.window_hours >= 168 and .handshake_p99_ms <= 5000 and .pending_timeout_rate <= 0.005 and .parser_error_rate <= 0.001 and .event_lag_p95_ms <= 250' artifacts/release/codex-app-server/soak-100p.json`
-- [ ] Runbook manual recovery drill executed and recorded: sidecar stop/disable -> `OTEL_ONLY` or `DEGRADED_STREAMING` -> recover to `HYBRID_ACTIVE`.
+- [ ] Runbook manual recovery drill executed and recorded (log format from runbook): sidecar stop/disable -> `OTEL_ONLY` or `DEGRADED_STREAMING` -> recover to `HYBRID_ACTIVE`.
 
 ## Success Metrics
 

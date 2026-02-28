@@ -217,6 +217,73 @@ Immediate actions:
    - invoke `get_capture_reliability_status`
    - expected mode: `OTEL_ONLY` or `DEGRADED_STREAMING` (never `FAILURE`)
 
+### Recorded drill sequence (manual fallback test)
+
+Use this exact sequence in the app DevTools console while running a built app:
+
+```js
+// In App window console (Tauri window)
+(async () => {
+  const invoke = window.__TAURI__?.core?.invoke
+    ?? (await import('@tauri-apps/api/core')).invoke;
+  const { listen } = window.__TAURI__?.event
+    ? window.__TAURI__.event
+    : await import('@tauri-apps/api/event');
+
+  const seen = { transitions: [], statuses: [] };
+  const unlisten = await listen('capture-reliability-transition', (evt) => {
+    seen.transitions.push({ at: new Date().toISOString(), ...evt.payload });
+    console.log('[transition]', evt.payload);
+  });
+
+  const snapshot = async (label) => {
+    const status = await invoke('get_capture_reliability_status');
+    seen.statuses.push({
+      label,
+      at: new Date().toISOString(),
+      mode: status.mode,
+      app: status.appServer,
+    });
+    console.log(label, status.mode, status);
+    return status;
+  };
+
+  try {
+    await snapshot('baseline');
+    await invoke('codex_app_server_set_stream_kill_switch', { enabled: true });
+    await snapshot('kill-switch-enabled');
+    await invoke('stop_codex_app_server');
+    await snapshot('sidecar-stopped');
+
+    // Expected: OTEL_ONLY or DEGRADED_STREAMING with app server state not running.
+
+    await invoke('codex_app_server_set_stream_kill_switch', { enabled: false });
+    await invoke('start_codex_app_server');
+    await invoke('codex_app_server_initialize');
+    await invoke('codex_app_server_initialized');
+    await invoke('codex_app_server_account_login_start', { authMode: 'chatgpt' });
+    await snapshot('recovery-started');
+    // Complete browser login flow if prompted.
+    await snapshot('recovered-check');
+
+    const log = {
+      capturedAt: new Date().toISOString(),
+      sequence: seen,
+      expectedFinal: 'HYBRID_ACTIVE',
+      observedFinal: (await snapshot('final-check')).mode,
+    };
+    const payload = JSON.stringify(log, null, 2);
+    console.log('CAPTURED_RECOVERY_DRILL_LOG', payload);
+    await navigator.clipboard?.writeText?.(payload);
+    console.log('Recovery log copied to clipboard (if permitted).');
+  } finally {
+    await unlisten();
+  }
+})();
+```
+
+Expected success state is `HYBRID_ACTIVE` in the final `snapshot`.
+
 ## Recovery Back to Hybrid
 
 Only recover when all are true:

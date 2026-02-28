@@ -242,4 +242,28 @@ describe('BranchNarrativePanel', () => {
       })
     );
   });
+
+  it('forces raw-diff fallback while kill switch is active', () => {
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        killSwitchActive={true}
+        killSwitchReason="failed narrative synthesis"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Kill switch active. Narrative layers are read-only until quality recovers.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open raw diff context' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Open evidence/i })).not.toBeInTheDocument();
+  });
 });

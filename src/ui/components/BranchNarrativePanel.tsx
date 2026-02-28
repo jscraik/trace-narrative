@@ -97,8 +97,18 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
     onOpenRawDiff,
   } = props;
   const projection = projections[audience] ?? projectionFallback(audience, narrative);
+  const effectiveDetailLevel: NarrativeDetailLevel = killSwitchActive ? 'diff' : detailLevel;
 
   const handleRecallLaneOpen = (item: NarrativeRecallLaneItem) => {
+    if (killSwitchActive) {
+      onOpenRawDiff({
+        source: 'recall_lane',
+        recallLaneItemId: item.id,
+        recallLaneConfidenceBand: item.confidenceTier,
+      });
+      return;
+    }
+
     const firstEvidence = item.evidenceLinks[0];
     if (firstEvidence) {
       onOpenEvidence(firstEvidence, {
@@ -128,19 +138,19 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
         <div className="flex items-center gap-1">
           <DetailButton
             level="summary"
-            current={detailLevel}
+            current={effectiveDetailLevel}
             label="Summary"
             disabled={killSwitchActive}
             onClick={onDetailLevelChange}
           />
           <DetailButton
             level="evidence"
-            current={detailLevel}
+            current={effectiveDetailLevel}
             label="Evidence"
             disabled={killSwitchActive}
             onClick={onDetailLevelChange}
           />
-          <DetailButton level="diff" current={detailLevel} label="Raw Diff" onClick={onDetailLevelChange} />
+          <DetailButton level="diff" current={effectiveDetailLevel} label="Raw Diff" onClick={onDetailLevelChange} />
         </div>
       </div>
 
@@ -151,7 +161,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
         </div>
       )}
 
-      {detailLevel === 'summary' && (
+      {effectiveDetailLevel === 'summary' && (
         <div className="mt-4 space-y-3">
           <div className="rounded-lg border border-border-subtle bg-bg-primary p-3">
             <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">Recall lane</div>
@@ -195,6 +205,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
                 key={option}
                 type="button"
                 onClick={() => onAudienceChange(option)}
+                disabled={killSwitchActive}
                 className={`rounded-md border px-2.5 py-1 text-xs capitalize transition-colors ${
                   audience === option
                     ? 'border-accent-green-light bg-accent-green-bg text-accent-green'
@@ -213,6 +224,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
                 key={role}
                 type="button"
                 onClick={() => onFeedbackActorRoleChange(role)}
+                disabled={killSwitchActive}
                 className={`rounded-md border px-2.5 py-1 text-xs capitalize transition-colors ${
                   feedbackActorRole === role
                     ? 'border-accent-blue-light bg-accent-blue-bg text-accent-blue'
@@ -233,6 +245,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
                   detailLevel,
                 })
               }
+              disabled={killSwitchActive}
               className="rounded-md border border-border-subtle bg-bg-primary px-2.5 py-1 text-xs text-text-secondary transition-colors hover:border-border-light hover:bg-bg-secondary"
             >
               Missing decision
@@ -259,6 +272,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
                 <div className="mt-2 flex items-center gap-1">
                   <button
                     type="button"
+                    disabled={killSwitchActive}
                     onClick={() =>
                       onSubmitFeedback({
                         actorRole: feedbackActorRole,
@@ -274,6 +288,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
                   </button>
                   <button
                     type="button"
+                    disabled={killSwitchActive}
                     onClick={() =>
                       onSubmitFeedback({
                         actorRole: feedbackActorRole,
@@ -300,7 +315,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
         </div>
       )}
 
-      {detailLevel === 'evidence' && (
+      {effectiveDetailLevel === 'evidence' && (
         <div className="mt-4 space-y-3">
           {narrative.evidenceLinks.length === 0 ? (
             <div className="rounded-lg border border-border-subtle bg-bg-primary px-3 py-2 text-xs text-text-tertiary">
@@ -322,7 +337,7 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
         </div>
       )}
 
-      {detailLevel === 'diff' && (
+      {effectiveDetailLevel === 'diff' && (
         <div className="mt-4 rounded-lg border border-border-subtle bg-bg-primary p-4">
           <p className="text-sm text-text-secondary">
             Open raw diff to verify narrative claims directly against commit-level evidence.

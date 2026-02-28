@@ -12,6 +12,9 @@ export interface UpdatePromptProps {
   onCheckAgain?: () => void;
 }
 
+const normalizeVersionLabel = (raw: string): string =>
+  raw.trim().replace(/^v\s+/i, 'v').trim();
+
 /**
  * Update notification component that displays update status
  * and allows users to download/install updates.
@@ -167,8 +170,10 @@ export function UpdatePrompt({ status, onUpdate, onClose, onDismiss, onCheckAgai
 
   // Available update state (default)
   if (status.type === 'available') {
-    const version = status.update.version;
-    const currentVersion = status.update.currentVersion;
+    const version = normalizeVersionLabel(status.update.version);
+    const currentVersion = status.update.currentVersion
+      ? normalizeVersionLabel(status.update.currentVersion)
+      : null;
 
     return (
       <div className="fixed top-4 right-4 z-50 w-80 animate-in slide-in-from-right fade-in duration-300">
@@ -233,12 +238,14 @@ export function UpdateIndicator({
   if (!status) return null;
 
   if (status.type === 'available') {
+    const version = normalizeVersionLabel(status.update.version);
+
     return (
       <button
         type="button"
         onClick={onClick}
         className="inline-flex items-center gap-1.5 rounded-md bg-accent-amber-bg px-2 py-1 text-xs font-medium text-accent-amber transition-colors hover:bg-accent-amber-light motion-safe:animate-pulse"
-        title={`Update available: ${status.update.version}`}
+        title={`Update available: ${version}`}
       >
         <Download className="w-3 h-3" />
         Update

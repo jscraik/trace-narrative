@@ -15,27 +15,25 @@ export function AppearanceCard({ fireflyEnabled, onToggleFirefly }: AppearanceCa
       <div className="section-subheader mt-0.5">visual preferences</div>
 
       <div className="mt-4 flex flex-col gap-4">
-        {import.meta.env.DEV ? (
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-medium text-text-secondary">Dev Theme Override</span>
-              <span className="text-[10px] text-text-tertiary">Force dark/light mode for testing</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider">
-                {theme === 'dark' ? 'Dark' : 'Light'}
-              </span>
-              <Toggle
-                checked={theme === 'dark'}
-                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-                aria-label="Toggle dark mode"
-              />
-            </div>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-medium text-text-secondary">Theme override</span>
+            <span className="text-[10px] text-text-tertiary">Force dark/light mode for testing</span>
           </div>
-        ) : null}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider">
+              {theme === 'dark' ? 'Dark' : 'Light'}
+            </span>
+            <Toggle
+              checked={theme === 'dark'}
+              onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+              aria-label="Toggle dark mode"
+            />
+          </div>
+        </div>
 
         {onToggleFirefly ? (
-          <div className={`flex items-center justify-between ${import.meta.env.DEV ? 'border-t border-border-subtle/50 pt-3' : ''}`}>
+          <div className="flex items-center justify-between border-t border-border-subtle/50 pt-3">
             <div className="flex flex-col gap-0.5">
               <span className="text-xs font-medium text-text-secondary">Firefly Signal</span>
               <span className="text-[10px] text-text-tertiary">Ambient status indicator</span>
@@ -48,7 +46,7 @@ export function AppearanceCard({ fireflyEnabled, onToggleFirefly }: AppearanceCa
           </div>
         ) : null}
 
-        <div className={`border-t border-border-subtle/50 pt-3 ${onToggleFirefly || import.meta.env.DEV ? '' : 'mt-0'}`}>
+        <div className={`border-t border-border-subtle/50 pt-3 ${onToggleFirefly ? '' : 'mt-0'}`}>
           <div className="text-xs font-medium text-text-secondary mb-2">Color Semantics</div>
           <div className="flex flex-wrap gap-2 text-[11px] font-medium">
             <span className="rounded-full border border-accent-green-light bg-accent-green-bg px-2 py-0.5 text-accent-green">AI</span>

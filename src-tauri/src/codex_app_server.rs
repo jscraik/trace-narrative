@@ -833,10 +833,10 @@ fn compute_manifest_signature(payload_hash: &str, signer: &str) -> String {
 }
 
 fn verify_sidecar_manifest_for_path(sidecar_path: &Path) -> Result<(), String> {
-    let Some(bin_dir) = sidecar_path.parent() else {
-        return Err("Sidecar path has no parent directory".to_string());
-    };
-    let manifest_path = bin_dir.join(SIDECAR_MANIFEST_FILE);
+    let manifest_path = locate_sidecar_manifest_path(sidecar_path).ok_or_else(|| {
+        "Failed to locate codex-app-server manifest in supported bundle/runtime locations".to_string()
+    })?;
+
     let raw_manifest = std::fs::read_to_string(&manifest_path).map_err(|error| {
         format!(
             "Failed to read sidecar manifest at {}: {error}",
@@ -959,6 +959,30 @@ fn verify_sidecar_manifest_for_path(sidecar_path: &Path) -> Result<(), String> {
     Ok(())
 }
 
+fn locate_sidecar_manifest_path(sidecar_path: &Path) -> Option<PathBuf> {
+    let Some(sidecar_dir) = sidecar_path.parent() else {
+        return None;
+    };
+
+    let mut candidates: Vec<PathBuf> = Vec::new();
+    for ancestor in sidecar_dir.ancestors() {
+        candidates.push(ancestor.join(SIDECAR_MANIFEST_FILE));
+        candidates.push(ancestor.join("bin").join(SIDECAR_MANIFEST_FILE));
+        candidates.push(ancestor.join("Resources").join("bin").join(SIDECAR_MANIFEST_FILE));
+        candidates.push(
+            ancestor
+                .join("..")
+                .join("Resources")
+                .join("bin")
+                .join(SIDECAR_MANIFEST_FILE),
+        );
+    }
+
+    candidates
+        .into_iter()
+        .find(|candidate| candidate.is_file())
+}
+
 fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
     if let Ok(override_path) = std::env::var(SIDECAR_OVERRIDE_ENV) {
         if sidecar_is_production_mode() {
@@ -989,8 +1013,24 @@ fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
     let mut candidates: Vec<PathBuf> = Vec::new();
 
     if let Ok(resource_dir) = app_handle.path().resource_dir() {
+        candidates.push(resource_dir.join("codex-app-server"));
+        candidates.push(resource_dir.join("codex-app-server.exe"));
         candidates.push(resource_dir.join("bin/codex-app-server"));
         candidates.push(resource_dir.join("bin/codex-app-server.exe"));
+
+        if let Some(app_dir) = resource_dir.parent() {
+            candidates.push(app_dir.join("codex-app-server"));
+            candidates.push(app_dir.join("codex-app-server.exe"));
+            candidates.push(app_dir.join("MacOS").join("codex-app-server"));
+            candidates.push(app_dir.join("MacOS").join("codex-app-server.exe"));
+        }
+    }
+
+    if let Ok(current_exe) = std::env::current_exe() {
+        if let Some(bin_dir) = current_exe.parent() {
+            candidates.push(bin_dir.join("codex-app-server"));
+            candidates.push(bin_dir.join("codex-app-server.exe"));
+        }
     }
 
     if let Ok(cwd) = std::env::current_dir() {
@@ -1001,7 +1041,8 @@ fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
 
     let mut trust_errors = Vec::new();
 
-    for candidate in candidates {
+    for candidate in candidates.iter() {
+        let candidate = candidate.clone();
         if !candidate.exists() || !is_executable_candidate(&candidate) {
             continue;
         }
@@ -1020,7 +1061,17 @@ fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
         ));
     }
 
-    Err("Codex App Server sidecar binary not found (expected bin/codex-app-server)".to_string())
+    let mut checked_candidates: Vec<String> = candidates
+        .iter()
+        .map(|candidate| candidate.display().to_string())
+        .collect();
+    if checked_candidates.is_empty() {
+        checked_candidates.push("<none>".to_string());
+    }
+    Err(format!(
+        "Codex App Server sidecar binary not found in known bundle/runtime locations: checked {}",
+        checked_candidates.join(", ")
+    ))
 }
 
 fn is_executable_candidate(path: &Path) -> bool {
