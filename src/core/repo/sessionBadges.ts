@@ -92,14 +92,18 @@ export async function refreshSessionBadges(
       return prev;
     }
 
+    let timelineChanged = false;
     const existingBadges = prev.timeline.map((node) => {
       const links = linksByCommit[node.id];
       if (!links || links.length === 0) {
         if (unlinkMode) {
-          return {
-            ...node,
-            badges: node.badges?.filter((b) => b.type !== 'session') ?? [],
-          };
+          const filteredBadges = node.badges?.filter((b) => b.type !== 'session') ?? [];
+          // Only create new object if badges actually changed
+          const hadSessionBadge = node.badges?.some((b) => b.type === 'session') ?? false;
+          if (hadSessionBadge) {
+            timelineChanged = true;
+            return { ...node, badges: filteredBadges };
+          }
         }
         return node;
       }
@@ -115,18 +119,32 @@ export async function refreshSessionBadges(
       }
 
       const existing = node.badges?.filter((b) => b.type !== 'session') ?? [];
-      return {
-        ...node,
-        badges: [
-          ...existing,
-          {
-            type: 'session' as const,
-            label: buildSessionBadgeLabel(toolCounts),
-            sessionTools: [...new Set(sessionTools)] // Unique tools only
-          },
-        ],
+      const newSessionBadge = {
+        type: 'session' as const,
+        label: buildSessionBadgeLabel(toolCounts),
+        sessionTools: [...new Set(sessionTools)] // Unique tools only
       };
+
+      // Check if session badge actually changed
+      const currentSessionBadge = node.badges?.find((b) => b.type === 'session');
+      const badgeChanged = !currentSessionBadge ||
+        currentSessionBadge.label !== newSessionBadge.label ||
+        JSON.stringify(currentSessionBadge.sessionTools) !== JSON.stringify(newSessionBadge.sessionTools);
+
+      if (badgeChanged) {
+        timelineChanged = true;
+        return {
+          ...node,
+          badges: [...existing, newSessionBadge],
+        };
+      }
+      return node;
     });
+
+    // Only return new state if something actually changed
+    if (!timelineChanged) {
+      return prev;
+    }
 
     return {
       ...prev,
