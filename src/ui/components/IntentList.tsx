@@ -1,14 +1,13 @@
-import { ArrowRight, BookOpen, FlaskConical, RefreshCw, Sparkles, Wrench } from 'lucide-react';
 import type { IntentItem, IntentType } from '../../core/types';
 
 // Intent type icons and labels
-const INTENT_CONFIG: Record<IntentType, { icon: React.ReactNode; label: string; className: string }> = {
-  feature: { icon: <Sparkles className="w-4 h-4" />, label: 'New feature', className: 'text-accent-amber' },
-  fix: { icon: <Wrench className="w-4 h-4" />, label: 'Bug fix', className: 'text-accent-red' },
-  refactor: { icon: <RefreshCw className="w-4 h-4" />, label: 'Refactor', className: 'text-accent-green' },
-  test: { icon: <FlaskConical className="w-4 h-4" />, label: 'Tests', className: 'text-accent-violet' },
-  docs: { icon: <BookOpen className="w-4 h-4" />, label: 'Documentation', className: 'text-accent-blue' },
-  other: { icon: <ArrowRight className="w-4 h-4" />, label: 'Change', className: 'text-text-muted' },
+const INTENT_CONFIG: Record<IntentType, { icon: string; label: string; className: string }> = {
+  feature: { icon: '✨', label: 'New feature', className: 'text-accent-amber' },
+  fix: { icon: '🔧', label: 'Bug fix', className: 'text-accent-red' },
+  refactor: { icon: '♻️', label: 'Refactor', className: 'text-accent-green' },
+  test: { icon: '🧪', label: 'Tests', className: 'text-accent-violet' },
+  docs: { icon: '📚', label: 'Documentation', className: 'text-accent-blue' },
+  other: { icon: '→', label: 'Change', className: 'text-text-muted' },
 };
 
 function getIntentType(text: string): IntentType {
@@ -36,7 +35,7 @@ export function IntentList({ items }: { items: IntentItem[] }) {
             <div key={it.id} className="flex items-start justify-between gap-4 group">
               <div className="flex items-start gap-3 flex-1">
                 <span
-                  className={`mt-0.5 leading-none transition-transform duration-150 ease-out group-hover:translate-x-0.5 ${config.className}`}
+                  className={`mt-1 text-lg leading-none transition-transform duration-150 ease-out group-hover:translate-x-0.5 ${config.className}`}
                   title={config.label}
                 >
                   {config.icon}

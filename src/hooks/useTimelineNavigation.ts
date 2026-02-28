@@ -30,7 +30,7 @@ export function useTimelineNavigation({
 }: UseTimelineNavigationProps): UseTimelineNavigationReturn {
   const containerRef = useRef<HTMLDivElement>(null);
   const reducedMotionQuery = useMemo(
-    () => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null),
+    () => (typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null),
     []
   );
   const [canScrollLeft, setCanScrollLeft] = useState(false);

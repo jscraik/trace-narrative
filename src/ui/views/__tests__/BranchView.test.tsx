@@ -274,69 +274,6 @@ vi.mock("../../components/Timeline", () => ({
   ),
 }));
 
-
-// Mock HeroTimeline (used in new layout)
-vi.mock("../../components/HeroTimeline", () => ({
-  HeroTimeline: ({
-    nodes,
-    selectedId,
-    onSelect,
-    pulseCommitId,
-  }: {
-    nodes: Array<{ id: string; label?: string }>;
-    selectedId: string | null;
-    onSelect: (id: string) => void;
-    pulseCommitId?: string | null;
-  }) => (
-    <div data-testid="timeline-mock">
-      {nodes.map((node) => (
-        <button key={node.id} type="button" onClick={() => onSelect(node.id)}>
-          {node.label ?? node.id}
-        </button>
-      ))}
-      <output data-testid="timeline-pulse-id">{pulseCommitId ?? ""}</output>
-      <output data-testid="selected-node">{selectedId ?? "none"}</output>
-    </div>
-  ),
-}));
-
-// Mock TraceDetailModal (used in new layout) - renders children directly for testing
-vi.mock("../../components/TraceDetailModal", () => ({
-  TraceDetailModal: ({
-    open,
-    children,
-  }: {
-    open: boolean;
-    children: React.ReactNode;
-  }) => (open ? <div data-testid="detail-modal">{children}</div> : null),
-  DetailSection: ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => <>{children}</>,
-}));
-
-// Mock BranchHero (used in new layout)
-vi.mock("../../components/BranchHero", () => ({
-  BranchHero: ({
-    model,
-    onBack,
-    isFilteredView,
-  }: {
-    model: { meta?: { branchName?: string }; title?: string; timeline: unknown[]; stats: { files: number } };
-    onBack?: () => void;
-    isFilteredView?: boolean;
-  }) => (
-    <header data-testid="branch-hero">
-      <h1>{model.meta?.branchName || "main"}</h1>
-      {isFilteredView && onBack && (
-        <button type="button" onClick={onBack} data-testid="clear-filter-btn">
-          Back to dashboard
-        </button>
-      )}
-    </header>
-  ),
-}));
 import { BranchView } from "../BranchView";
 
 type Deferred<T> = {
@@ -637,7 +574,7 @@ describe("BranchView transition and integration coverage", () => {
     });
   });
 
-  it.skip("resets diff loading state when selected file context is cleared", async () => { // TODO: update for new modal layout
+  it("resets diff loading state when selected file context is cleared", async () => {
     const deferredDiff = createDeferred<string>();
     const loadDiffForFile = vi.fn(async () => deferredDiff.promise);
     const props = buildProps({ loadDiffForFile });
@@ -666,7 +603,7 @@ describe("BranchView transition and integration coverage", () => {
     expect(screen.getByTestId("diff-panel")).toHaveTextContent("(none)");
   });
 
-  it.skip("clears files when commit selection becomes unavailable", async () => { // TODO: update for new modal layout
+  it("clears files when commit selection becomes unavailable", async () => {
     const loadFilesForNode = vi.fn(async () => [{ path: "src/old-file.ts", additions: 2, deletions: 1 }]);
     const props = buildProps({ loadFilesForNode });
     const { rerender } = render(<BranchView {...props} />);
@@ -689,7 +626,7 @@ describe("BranchView transition and integration coverage", () => {
     });
   });
 
-  it.skip("ignores stale repo test-run completion after rapid commit change", async () => { // TODO: update for new modal layout
+  it("ignores stale repo test-run completion after rapid commit change", async () => {
     const deferredByCommit: Record<string, Deferred<TestRun | null>> = {
       aaaa1111: createDeferred<TestRun | null>(),
       bbbb2222: createDeferred<TestRun | null>(),
@@ -731,7 +668,7 @@ describe("BranchView transition and integration coverage", () => {
     expect(screen.getByTestId("test-run-id")).not.toHaveTextContent("run-a");
   });
 
-  it.skip("sets github context to error when connector context loading fails", async () => { // TODO: update for new modal layout
+  it("sets github context to error when connector context loading fails", async () => {
     mockLoadGitHubContext.mockRejectedValueOnce(new Error("GitHub unavailable"));
 
     const props = {
@@ -746,7 +683,7 @@ describe("BranchView transition and integration coverage", () => {
     });
   });
 
-  it.skip("supports keyboard activation for filtered-view clear action", async () => { // TODO: update for new modal layout
+  it("supports keyboard activation for filtered-view clear action", async () => {
     const user = userEvent.setup();
     const onClearFilter = vi.fn();
 

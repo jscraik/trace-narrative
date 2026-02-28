@@ -72,7 +72,7 @@ export function TopNav(props: {
         <div className="flex items-center gap-2">
           {/* Using a span for the text logo */}
           <span className="text-xl font-semibold tracking-tight text-text-primary flex items-baseline gap-1.5">
-            <span className="brand-firefly text-2xl">The Trace</span> Narrative
+            <span className="brand-firefly text-2xl">Firefly</span> Narrative
           </span>
         </div>
       </div>
