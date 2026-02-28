@@ -88,7 +88,7 @@ Carried-forward direction from brainstorm: keep a **protocol-native runtime**, *
 
 ## Problem Statement
 
-Current implementation in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs` is improved but still not fully aligned with current app-server behavior:
+Current implementation in `src-tauri/src/codex_app_server.rs` is improved but still not fully aligned with current app-server behavior:
 
 1. Server-initiated JSON-RPC requests with `id` can be misclassified as notifications.
 2. Approval responses are not sent back to sidecar using JSON-RPC response payload shape.
@@ -127,15 +127,15 @@ This keeps scope focused on app-server parity and trust-boundary correctness, no
 ### Architecture
 
 Primary runtime surfaces:
-- Runtime state + protocol handling: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`
-- Tauri command wiring: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/lib.rs`
-- TS bridge types/invokes: `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts`
-- UI orchestrator/listeners: `/Users/jamiecraik/dev/firefly-narrative/src/hooks/useAutoIngest.ts`
+- Runtime state + protocol handling: `src-tauri/src/codex_app_server.rs`
+- Tauri command wiring: `src-tauri/src/lib.rs`
+- TS bridge types/invokes: `src/core/tauri/ingestConfig.ts`
+- UI orchestrator/listeners: `src/hooks/useAutoIngest.ts`
 
 Contract/safety surfaces:
-- Contract artifact: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/contracts/codex-app-server-v1-contract.json`
-- Sidecar manifest: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/bin/codex-app-server-manifest.json`
-- Manifest verifier: `/Users/jamiecraik/dev/firefly-narrative/scripts/verify-codex-sidecar-manifest.mjs`
+- Contract artifact: `src-tauri/contracts/codex-app-server-v1-contract.json`
+- Sidecar manifest: `src-tauri/bin/codex-app-server-manifest.json`
+- Manifest verifier: `scripts/verify-codex-sidecar-manifest.mjs`
 
 ### Server Request Classification Matrix
 
@@ -150,7 +150,7 @@ Contract/safety surfaces:
 
 #### Phase 1: Protocol request/response correctness
 
-- Add explicit branch in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs` to process server requests (`method` + `id`) separately from notifications.
+- Add explicit branch in `src-tauri/src/codex_app_server.rs` to process server requests (`method` + `id`) separately from notifications.
 - Implement response writer for approval requests using JSON-RPC response envelopes:
   - command approvals (`item/commandExecution/requestApproval`)
   - file-change approvals (`item/fileChange/requestApproval`)
@@ -300,11 +300,11 @@ stateDiagram-v2
 ### API Surface Parity
 
 Surfaces that must remain aligned together:
-- Rust command handlers: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`
-- Registered command surface: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/lib.rs`
-- TS invoke wrappers/types: `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts`
-- Hook orchestration/listeners: `/Users/jamiecraik/dev/firefly-narrative/src/hooks/useAutoIngest.ts`
-- Contract tests: `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/__tests__/codexAppServerContractParity.test.ts`
+- Rust command handlers: `src-tauri/src/codex_app_server.rs`
+- Registered command surface: `src-tauri/src/lib.rs`
+- TS invoke wrappers/types: `src/core/tauri/ingestConfig.ts`
+- Hook orchestration/listeners: `src/hooks/useAutoIngest.ts`
+- Contract tests: `src/core/tauri/__tests__/codexAppServerContractParity.test.ts`
 
 ### Integration Test Scenarios
 
@@ -324,14 +324,14 @@ Surfaces that must remain aligned together:
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs` classifies sidecar envelopes using the request/notification/response matrix.
+- [ ] `src-tauri/src/codex_app_server.rs` classifies sidecar envelopes using the request/notification/response matrix.
 - [ ] Server requests (`method+id`) are never processed by notification handler paths.
 - [ ] Approval decisions emit protocol-valid JSON-RPC responses with original request `id`.
 - [ ] Unsupported server requests with `id` receive JSON-RPC method-not-found response (no silent drop).
 - [ ] Request correlation supports integer and string `id` values.
 - [ ] Auth request payloads are complete for runtime modes `apikey`, `chatgpt`, and `chatgptAuthTokens` (protocol login type token remains `apiKey`).
 - [ ] `account/login/completed` handling supports `loginId` while preserving compatibility.
-- [ ] Sidecar manifest in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/bin/codex-app-server-manifest.json` is pinned to `0.106.0` and verifier passes.
+- [ ] Sidecar manifest in `src-tauri/bin/codex-app-server-manifest.json` is pinned to `0.106.0` and verifier passes.
 
 ### Non-Functional Requirements
 - [ ] No regression to OTEL fallback reliability mode behavior.
@@ -402,7 +402,7 @@ Surfaces that must remain aligned together:
 - Maintainer confirmation of sidecar pin upgrade target (`0.106.0` exact pin for this rollout).
 - Existing reliability runbook constraints remain source of truth for rollout and rollback.
 - Prior solved learning must remain enforced for auth source-of-truth and stream/OTEL precedence:
-  - `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`
+  - `docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`
 
 ## Risk Analysis & Mitigation
 
@@ -436,28 +436,28 @@ Surfaces that must remain aligned together:
 ## Documentation Plan
 
 - Update parity plan/references if command/event contracts change:
-  - `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-25-feat-codex-app-server-production-parity-plan.md`
+  - `docs/plans/2026-02-25-feat-codex-app-server-production-parity-plan.md`
 - Keep rollout runbook aligned if operational gates/artifact expectations change:
-  - `/Users/jamiecraik/dev/firefly-narrative/docs/agents/hybrid-capture-rollout-runbook.md`
+  - `docs/agents/hybrid-capture-rollout-runbook.md`
 - Add changelog note if sidecar pin version changes.
 
 ## Implementation Checklist
 
-- [ ] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`**: implement strict envelope classification matrix.
-- [ ] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`**: add protocol response write path for approvals (including unknown request error path).
-- [ ] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`**: support integer + string request-id correlation.
-- [ ] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`**: align notification schema validators to current v2 payload shapes.
-- [ ] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`**: complete auth login payload mapping (`apiKey`, token refresh, login completion fields).
-- [ ] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`**: add bounded `approval_waiters` policy (`<= 128`) + deterministic overflow telemetry/handling.
-- [x] **`/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts`**: maintain type/invoke parity with updated Rust command shapes.
-- [x] **`/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/__tests__/codexAppServerContractParity.test.ts`**: extend parity assertions for envelope/classification and auth payload drift.
-- [x] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/tests/codex_app_server_schema_drift_gate.rs`** (and related): refresh method/schema expectations.
-- [x] **`/Users/jamiecraik/dev/firefly-narrative/src-tauri/bin/codex-app-server-manifest.json`**: bump sidecar pin/minimum and verify metadata.
-- [ ] **`/Users/jamiecraik/dev/firefly-narrative/scripts/verify-codex-sidecar-manifest.mjs`**: adjust constraints only if required by new manifest semantics.
+- [ ] **`src-tauri/src/codex_app_server.rs`**: implement strict envelope classification matrix.
+- [ ] **`src-tauri/src/codex_app_server.rs`**: add protocol response write path for approvals (including unknown request error path).
+- [ ] **`src-tauri/src/codex_app_server.rs`**: support integer + string request-id correlation.
+- [ ] **`src-tauri/src/codex_app_server.rs`**: align notification schema validators to current v2 payload shapes.
+- [ ] **`src-tauri/src/codex_app_server.rs`**: complete auth login payload mapping (`apiKey`, token refresh, login completion fields).
+- [ ] **`src-tauri/src/codex_app_server.rs`**: add bounded `approval_waiters` policy (`<= 128`) + deterministic overflow telemetry/handling.
+- [x] **`src/core/tauri/ingestConfig.ts`**: maintain type/invoke parity with updated Rust command shapes.
+- [x] **`src/core/tauri/__tests__/codexAppServerContractParity.test.ts`**: extend parity assertions for envelope/classification and auth payload drift.
+- [x] **`src-tauri/tests/codex_app_server_schema_drift_gate.rs`** (and related): refresh method/schema expectations.
+- [x] **`src-tauri/bin/codex-app-server-manifest.json`**: bump sidecar pin/minimum and verify metadata.
+- [ ] **`scripts/verify-codex-sidecar-manifest.mjs`**: adjust constraints only if required by new manifest semantics.
 
 ## Pseudo-code sketch
 
-File: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`
+File: `src-tauri/src/codex_app_server.rs`
 
 ```rust
 fn process_sidecar_message(msg: Value) {
@@ -506,13 +506,13 @@ fn process_sidecar_message(msg: Value) {
   - default-on parity hardening with explicit rollback gates.
 
 ### Internal References
-- Runtime implementation: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/codex_app_server.rs`
-- Command registration: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/lib.rs`
-- TS bridge contract: `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/ingestConfig.ts`
-- Parity tests: `/Users/jamiecraik/dev/firefly-narrative/src/core/tauri/__tests__/codexAppServerContractParity.test.ts`
+- Runtime implementation: `src-tauri/src/codex_app_server.rs`
+- Command registration: `src-tauri/src/lib.rs`
+- TS bridge contract: `src/core/tauri/ingestConfig.ts`
+- Parity tests: `src/core/tauri/__tests__/codexAppServerContractParity.test.ts`
 - Institutional learnings:
-  - `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`
-  - `/Users/jamiecraik/dev/firefly-narrative/docs/agents/hybrid-capture-rollout-runbook.md`
+  - `docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md`
+  - `docs/agents/hybrid-capture-rollout-runbook.md`
 
 ### External References
 - Codex app-server docs: <https://developers.openai.com/codex/app-server/>
@@ -529,5 +529,5 @@ fn process_sidecar_message(msg: Value) {
 - Latest stable Codex release (`rust-v0.106.0`, published 2026-02-26): <https://github.com/openai/codex/releases/tag/rust-v0.106.0>
 
 ### Related Work
-- Prior parity plan: `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-25-feat-codex-app-server-production-parity-plan.md`
-- Completion plan: `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-24-feat-codex-app-server-completion-plan.md`
+- Prior parity plan: `docs/plans/2026-02-25-feat-codex-app-server-production-parity-plan.md`
+- Completion plan: `docs/plans/2026-02-24-feat-codex-app-server-completion-plan.md`

@@ -1012,17 +1012,33 @@ fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
 
     let mut candidates: Vec<PathBuf> = Vec::new();
 
+    // Build target-suffixed binary name for non-Apple-Silicon hosts
+    let target_suffix = format!("-{}", SIDECAR_TARGET_TRIPLE);
+
     if let Ok(resource_dir) = app_handle.path().resource_dir() {
+        // Unsuffixed candidates (for Apple Silicon where codex-app-server is the primary artifact)
         candidates.push(resource_dir.join("codex-app-server"));
         candidates.push(resource_dir.join("codex-app-server.exe"));
         candidates.push(resource_dir.join("bin/codex-app-server"));
         candidates.push(resource_dir.join("bin/codex-app-server.exe"));
+
+        // Target-suffixed candidates (for x86_64 and Linux hosts)
+        candidates.push(resource_dir.join(format!("codex-app-server{}", target_suffix)));
+        candidates.push(resource_dir.join(format!("codex-app-server{}.exe", target_suffix)));
+        candidates.push(resource_dir.join(format!("bin/codex-app-server{}", target_suffix)));
+        candidates.push(resource_dir.join(format!("bin/codex-app-server{}.exe", target_suffix)));
 
         if let Some(app_dir) = resource_dir.parent() {
             candidates.push(app_dir.join("codex-app-server"));
             candidates.push(app_dir.join("codex-app-server.exe"));
             candidates.push(app_dir.join("MacOS").join("codex-app-server"));
             candidates.push(app_dir.join("MacOS").join("codex-app-server.exe"));
+
+            // Target-suffixed for app_dir variants
+            candidates.push(app_dir.join(format!("codex-app-server{}", target_suffix)));
+            candidates.push(app_dir.join(format!("codex-app-server{}.exe", target_suffix)));
+            candidates.push(app_dir.join("MacOS").join(format!("codex-app-server{}", target_suffix)));
+            candidates.push(app_dir.join("MacOS").join(format!("codex-app-server{}.exe", target_suffix)));
         }
     }
 
@@ -1030,6 +1046,9 @@ fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
         if let Some(bin_dir) = current_exe.parent() {
             candidates.push(bin_dir.join("codex-app-server"));
             candidates.push(bin_dir.join("codex-app-server.exe"));
+            // Target-suffixed for current_exe variants
+            candidates.push(bin_dir.join(format!("codex-app-server{}", target_suffix)));
+            candidates.push(bin_dir.join(format!("codex-app-server{}.exe", target_suffix)));
         }
     }
 
@@ -1037,6 +1056,10 @@ fn detect_sidecar_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
         candidates.push(cwd.join("src-tauri/bin/codex-app-server"));
         candidates.push(cwd.join("src-tauri/bin/codex-app-server.exe"));
         candidates.push(cwd.join("bin/codex-app-server"));
+        // Target-suffixed for cwd variants
+        candidates.push(cwd.join(format!("src-tauri/bin/codex-app-server{}", target_suffix)));
+        candidates.push(cwd.join(format!("src-tauri/bin/codex-app-server{}.exe", target_suffix)));
+        candidates.push(cwd.join(format!("bin/codex-app-server{}", target_suffix)));
     }
 
     let mut trust_errors = Vec::new();

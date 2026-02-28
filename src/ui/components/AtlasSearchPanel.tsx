@@ -157,7 +157,10 @@ export function AtlasSearchPanel(props: { repoId: number | null }) {
     try {
       // atlas_doctor_rebuild_derived expects args: { request: { repoId } }
       const env = await atlasDoctorRebuildDerived(repoId);
-      if (isStaleRebuild()) return;
+      if (isStaleRebuild()) {
+        setRebuildLoading(false);
+        return;
+      }
       if (!env.ok) {
         setRebuildLoading(false);
         setRebuildError(env.error);
@@ -168,10 +171,16 @@ export function AtlasSearchPanel(props: { repoId: number | null }) {
       setRebuildLoading(false);
 
       await refreshInfo();
-      if (isStaleRebuild()) return;
+      if (isStaleRebuild()) {
+        setRebuildLoading(false);
+        return;
+      }
       await refreshSelectedSession();
     } catch (e: unknown) {
-      if (isStaleRebuild()) return;
+      if (isStaleRebuild()) {
+        setRebuildLoading(false);
+        return;
+      }
       setRebuildLoading(false);
       setRebuildError({ code: 'INTERNAL', message: e instanceof Error ? e.message : String(e) });
     }

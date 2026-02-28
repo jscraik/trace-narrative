@@ -120,12 +120,16 @@ function applyCalibrationToHighlights(
 ): NarrativeHighlight[] {
   if (!calibration || calibration.sampleCount <= 0) return highlights;
 
+  // Scale factor: 0.8 to 1.2 based on rankingBias (-0.15 to 0.15)
+  // rankingBias amplifies (positive) or dampens (negative) per-highlight adjustments
+  const biasScale = 1 + calibration.rankingBias;
+
   return [...highlights]
     .map((highlight) => {
       const adjustment = calibration.highlightAdjustments[highlight.id] ?? 0;
-      const rankingScore = confidence(
-        highlight.confidence + adjustment + calibration.rankingBias * 0.2,
-      );
+      // Apply bias scale to per-highlight adjustment to affect sort order
+      const scaledAdjustment = adjustment * biasScale;
+      const rankingScore = confidence(highlight.confidence + scaledAdjustment);
 
       return {
         ...highlight,

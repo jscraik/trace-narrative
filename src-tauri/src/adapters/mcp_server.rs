@@ -125,7 +125,7 @@ pub fn authenticate_client(
                 .filter(|value| !value.is_empty())
                 .ok_or(McpServerAuthError::MissingResourceIndicator)?;
 
-            if provided != expected {
+            if !bool::from(provided.as_bytes().ct_eq(expected.as_bytes())) {
                 return Err(McpServerAuthError::InvalidResourceIndicator);
             }
 
