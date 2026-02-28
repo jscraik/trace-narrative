@@ -10,11 +10,11 @@ flowchart TD
   playwright_config_c5f93a12 --> setupTests_a1881263
   axe_config_5dab6a88["axe-config"]
   setupTests_a1881263 --> axe_config_5dab6a88
-  vite_config_1_736b3c02["vite.config"]
-  axe_config_5dab6a88 --> vite_config_1_736b3c02
   firefly_visual_system_v1_spec_def11f59["firefly-visual-system-v1.spec"]
-  vite_config_1_736b3c02 --> firefly_visual_system_v1_spec_def11f59
+  axe_config_5dab6a88 --> firefly_visual_system_v1_spec_def11f59
   critical_flows_spec_66db3f9a["critical-flows.spec"]
   firefly_visual_system_v1_spec_def11f59 --> critical_flows_spec_66db3f9a
+  app_spec_fe94aeca["app.spec"]
+  critical_flows_spec_66db3f9a --> app_spec_fe94aeca
   End(["End"])
-  critical_flows_spec_66db3f9a --> End
+  app_spec_fe94aeca --> End

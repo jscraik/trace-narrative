@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-02-28T13:40:38Z",
-  "commit_sha": "1e5a8a4",
+  "generated_at": "2026-02-28T15:00:35Z",
+  "commit_sha": "f3495fa",
   "repo_root": "/Users/jamiecraik/dev/firefly-narrative",
   "diagram_files": [
     "component-map.mmd",
@@ -9,5 +9,5 @@
     "auth-flow.mmd"
   ],
   "context_file": "diagram-context.md",
-  "tool_version": "diagram 1.0.0"
+  "tool_version": "diagram 1.0.8"
 }

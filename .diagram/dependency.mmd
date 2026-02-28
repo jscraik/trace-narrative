@@ -10,9 +10,6 @@ graph LR
   react_27597608["react"] --> axe_config_5dab6a88
   react_dom_de7f2df9["react-dom"] --> axe_config_5dab6a88
   _axe_core_react_aad28a5d["@axe-core/react"] --> axe_config_5dab6a88
-  vite_b16efac1["vite"] --> vite_config_1_736b3c02
-  _vitejs_plugin_react_9bd546e6["@vitejs/plugin-react"] --> vite_config_1_736b3c02
-  node_path_0e7d56ab["node:path"] --> vite_config_1_736b3c02
   _playwright_test_44c14a16["@playwright/test"] --> firefly_visual_system_v1_spec_def11f59
   node_fs_df6b52af["node:fs"] --> firefly_visual_system_v1_spec_def11f59
   node_os_e9717731["node:os"] --> firefly_visual_system_v1_spec_def11f59
@@ -20,6 +17,9 @@ graph LR
   _playwright_test_44c14a16["@playwright/test"] --> critical_flows_spec_66db3f9a
   _playwright_test_44c14a16["@playwright/test"] --> app_spec_fe94aeca
   _playwright_test_44c14a16["@playwright/test"] --> agentation_baseline_spec_7c288669
+  vite_b16efac1["vite"] --> vite_config_1_736b3c02
+  _vitejs_plugin_react_9bd546e6["@vitejs/plugin-react"] --> vite_config_1_736b3c02
+  node_path_0e7d56ab["node:path"] --> vite_config_1_736b3c02
   vitest_a9127f3d["vitest"] --> harness_integration_test_065db339
   react_27597608["react"] --> useUpdater_db2b740b
   _tauri_apps_plugin_updater_29f514c2["@tauri-apps/plugin-updater"] --> useUpdater_db2b740b
@@ -199,10 +199,10 @@ graph LR
   vitest_a9127f3d["vitest"] --> BranchView_test_9e320760
   BranchView_test_9e320760 --> branchViewEvidence_9e7c8d82
   vitest_a9127f3d["vitest"] --> branchHeaderMapper_test_8c33a8eb
-  vitest_a9127f3d["vitest"] --> narrativeTelemetry_test_7c45515b
   node_fs_df6b52af["node:fs"] --> codexAppServerContractParity_test_dfc03ace
   node_path_0e7d56ab["node:path"] --> codexAppServerContractParity_test_dfc03ace
   vitest_a9127f3d["vitest"] --> codexAppServerContractParity_test_dfc03ace
+  vitest_a9127f3d["vitest"] --> narrativeTelemetry_test_7c45515b
   vitest_a9127f3d["vitest"] --> stakeholderProjections_test_acd24bfb
   stakeholderProjections_test_acd24bfb --> stakeholderProjections_df026476
   vitest_a9127f3d["vitest"] --> rolloutGovernance_test_0319f65e
@@ -454,9 +454,6 @@ graph LR
   DiffDock_195b6999 --> DiffViewer_7e36d3d0
   _design_studio_tokens_719726b1["@design-studio/tokens"] --> AppearanceCard_05dda86e
   AppearanceCard_05dda86e --> Toggle_3d03a1de
-  _tauri_apps_plugin_shell_984b70f9["@tauri-apps/plugin-shell"] --> AutoIngestSetupSections_6d07e0ab
-  AutoIngestSetupSections_6d07e0ab --> HelpPopover_954f9250
-  AutoIngestSetupSections_6d07e0ab --> Toggle_3d03a1de
   lucide_react_cedfe168["lucide-react"] --> MetricsGrid_4b46425d
   MetricsGrid_4b46425d --> attribution_api_b53df9d9
   MetricsGrid_4b46425d --> MetricCard_0f9b6c6e
@@ -485,6 +482,9 @@ graph LR
   _testing_library_react_b35eda33["@testing-library/react"] --> DocsOverviewPanel_test_41f82ab6
   vitest_a9127f3d["vitest"] --> DocsOverviewPanel_test_41f82ab6
   DocsOverviewPanel_test_41f82ab6 --> DocsOverviewPanel_161198dc
+  _testing_library_react_b35eda33["@testing-library/react"] --> CaptureActivityStrip_test_4f2b3391
+  vitest_a9127f3d["vitest"] --> CaptureActivityStrip_test_4f2b3391
+  CaptureActivityStrip_test_4f2b3391 --> CaptureActivityStrip_ca040f21
   style vitest_a9127f3d fill:#f59e0b,color:#fff
   style _vitejs_plugin_react_9bd546e6 fill:#f59e0b,color:#fff
   style _tailwindcss_vite_6b7ae948 fill:#f59e0b,color:#fff
@@ -494,9 +494,9 @@ graph LR
   style react_27597608 fill:#f59e0b,color:#fff
   style react_dom_de7f2df9 fill:#f59e0b,color:#fff
   style _axe_core_react_aad28a5d fill:#f59e0b,color:#fff
-  style node_path_0e7d56ab fill:#f59e0b,color:#fff
   style node_fs_df6b52af fill:#f59e0b,color:#fff
   style node_os_e9717731 fill:#f59e0b,color:#fff
+  style node_path_0e7d56ab fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_updater_29f514c2 fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_process_a7086bef fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_dialog_672cd360 fill:#f59e0b,color:#fff

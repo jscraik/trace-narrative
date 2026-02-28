@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-28T13:40:38.540Z",
+  "generatedAt": "2026-02-28T15:00:35.284Z",
   "rootPath": "/Users/jamiecraik/dev/firefly-narrative",
   "diagramDir": ".diagram",
   "diagrams": [
@@ -7,8 +7,8 @@
       "type": "architecture",
       "file": "architecture.mmd",
       "outputPath": ".diagram/architecture.mmd",
-      "lines": 528,
-      "bytes": 25945,
+      "lines": 525,
+      "bytes": 25804,
       "isPlaceholder": false
     },
     {
@@ -24,7 +24,7 @@
       "file": "dependency.mmd",
       "outputPath": ".diagram/dependency.mmd",
       "lines": 525,
-      "bytes": 31730,
+      "bytes": 31751,
       "isPlaceholder": false
     },
     {
@@ -40,7 +40,7 @@
       "file": "flow.mmd",
       "outputPath": ".diagram/flow.mmd",
       "lines": 20,
-      "bytes": 924,
+      "bytes": 906,
       "isPlaceholder": false
     },
     {
@@ -55,8 +55,8 @@
       "type": "user",
       "file": "user.mmd",
       "outputPath": ".diagram/user.mmd",
-      "lines": 358,
-      "bytes": 16520,
+      "lines": 357,
+      "bytes": 16482,
       "isPlaceholder": false
     },
     {

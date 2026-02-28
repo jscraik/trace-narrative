@@ -10,17 +10,17 @@ graph TD
     main_0d6e4079["main"]
     App_0d04bfeb["App"]
   end
-  subgraph landing_d6709cd4["landing"]
-    vite_config_1_736b3c02["vite.config"]
-    main_1_24354b9b["main"]
-    FireflyLanding_fc73711c["FireflyLanding"]
-    FireflyHero_6e604372["FireflyHero"]
-  end
   subgraph e2e_6d8749c4["e2e"]
     firefly_visual_system_v1_spec_def11f59["firefly-visual-system-v1.spec"]
     critical_flows_spec_66db3f9a["critical-flows.spec"]
     app_spec_fe94aeca["app.spec"]
     agentation_baseline_spec_7c288669["agentation-baseline.spec"]
+  end
+  subgraph landing_d6709cd4["landing"]
+    vite_config_1_736b3c02["vite.config"]
+    main_1_24354b9b["main"]
+    FireflyLanding_fc73711c["FireflyLanding"]
+    FireflyHero_6e604372["FireflyHero"]
   end
   subgraph src_integration_fab67eb1["src/integration"]
     harness_integration_test_065db339["harness.integration.test"]
@@ -153,6 +153,9 @@ graph TD
   subgraph src_core_models_eab017d7["src/core/models"]
     emptyBranchModel_b002cef5["emptyBranchModel"]
   end
+  subgraph src_core_demo_e53a8aaf["src/core/demo"]
+    nearbyGridDemo_82adb7f2["nearbyGridDemo"]
+  end
   subgraph src_core_narrative_45601e5b["src/core/narrative"]
     stakeholderProjections_df026476["stakeholderProjections"]
     rolloutGovernance_513faed5["rolloutGovernance"]
@@ -186,9 +189,6 @@ graph TD
     agentTrace_bc847946["agentTrace"]
     agentSessionTools_413c0d20["agentSessionTools"]
   end
-  subgraph src_core_demo_e53a8aaf["src/core/demo"]
-    nearbyGridDemo_82adb7f2["nearbyGridDemo"]
-  end
   subgraph src_core___tests___ed539443["src/core/__tests__"]
     attribution_api_test_e7248f37["attribution-api.test"]
     useSessionImport_test_cd169d3d["useSessionImport.test"]
@@ -204,25 +204,16 @@ graph TD
     DashboardView_test_bc2935bd["DashboardView.test"]
     BranchView_test_1_123b1973["BranchView.test"]
   end
+  subgraph src_ui_components_session_excerpts_5fd0109d["src/ui/components/session-excerpts"]
+    sessionExcerpts_utils_07a2d1bb["sessionExcerpts.utils"]
+    SessionExcerptsParts_f3184ff0["SessionExcerptsParts"]
+  end
   subgraph src_ui_components_right_panel_tabs_632001a1["src/ui/components/right-panel-tabs"]
     types_1_4ecdf56e["types"]
     RightPanelTabPanels_82d72294["RightPanelTabPanels"]
     RightPanelTabBar_431349ca["RightPanelTabBar"]
     DiffDock_195b6999["DiffDock"]
     AppearanceCard_05dda86e["AppearanceCard"]
-  end
-  subgraph src_ui_components_session_excerpts_5fd0109d["src/ui/components/session-excerpts"]
-    sessionExcerpts_utils_07a2d1bb["sessionExcerpts.utils"]
-    SessionExcerptsParts_f3184ff0["SessionExcerptsParts"]
-  end
-  subgraph src_ui_components___tests___16ffd0d6["src/ui/components/__tests__"]
-    branchHeaderMapper_test_8c33a8eb["branchHeaderMapper.test"]
-    TelemetrySettingsPanel_test_50d8c8a4["TelemetrySettingsPanel.test"]
-    StoryAnchorsPanel_test_e6427ced["StoryAnchorsPanel.test"]
-    SessionImportPanel_test_2f6412b2["SessionImportPanel.test"]
-    RightPanelTabs_test_bf4d2cd2["RightPanelTabs.test"]
-    FireflySignal_test_3aabe6b2["FireflySignal.test"]
-    DocsOverviewPanel_test_41f82ab6["DocsOverviewPanel.test"]
   end
   subgraph src_ui_components_dashboard_329e77f7["src/ui/components/dashboard"]
     timeRangeUtils_e17b2759["timeRangeUtils"]
@@ -234,11 +225,21 @@ graph TD
     DashboardErrorState_eb2effe9["DashboardErrorState"]
     DashboardEmptyState_2c6487fe["DashboardEmptyState"]
   end
-  subgraph src_core_telemetry___tests___8a50de0e["src/core/telemetry/__tests__"]
-    narrativeTelemetry_test_7c45515b["narrativeTelemetry.test"]
+  subgraph src_ui_components___tests___16ffd0d6["src/ui/components/__tests__"]
+    branchHeaderMapper_test_8c33a8eb["branchHeaderMapper.test"]
+    TelemetrySettingsPanel_test_50d8c8a4["TelemetrySettingsPanel.test"]
+    StoryAnchorsPanel_test_e6427ced["StoryAnchorsPanel.test"]
+    SessionImportPanel_test_2f6412b2["SessionImportPanel.test"]
+    RightPanelTabs_test_bf4d2cd2["RightPanelTabs.test"]
+    FireflySignal_test_3aabe6b2["FireflySignal.test"]
+    DocsOverviewPanel_test_41f82ab6["DocsOverviewPanel.test"]
+    CaptureActivityStrip_test_4f2b3391["CaptureActivityStrip.test"]
   end
   subgraph src_core_tauri___tests___974a95c6["src/core/tauri/__tests__"]
     codexAppServerContractParity_test_dfc03ace["codexAppServerContractParity.test"]
+  end
+  subgraph src_core_telemetry___tests___8a50de0e["src/core/telemetry/__tests__"]
+    narrativeTelemetry_test_7c45515b["narrativeTelemetry.test"]
   end
   subgraph src_core_narrative___tests___83bc6369["src/core/narrative/__tests__"]
     stakeholderProjections_test_acd24bfb["stakeholderProjections.test"]
@@ -261,9 +262,6 @@ graph TD
   end
   subgraph src_ui_components_story_anchors_3dbc0e68["src/ui/components/story-anchors"]
     StoryAnchorsSections_793c218e["StoryAnchorsSections"]
-  end
-  subgraph src_ui_components_auto_ingest_setup_88c8363b["src/ui/components/auto-ingest-setup"]
-    AutoIngestSetupSections_6d07e0ab["AutoIngestSetupSections"]
   end
   useTraceCollector_e3f811c3 --> otelReceiver_bd752dec
   useTraceCollector_e3f811c3 --> traceConfig_7e9b1320
@@ -512,8 +510,6 @@ graph TD
   RightPanelTabBar_431349ca --> types_1_4ecdf56e
   DiffDock_195b6999 --> DiffViewer_7e36d3d0
   AppearanceCard_05dda86e --> Toggle_3d03a1de
-  AutoIngestSetupSections_6d07e0ab --> HelpPopover_954f9250
-  AutoIngestSetupSections_6d07e0ab --> Toggle_3d03a1de
   MetricsGrid_4b46425d --> attribution_api_b53df9d9
   MetricsGrid_4b46425d --> MetricCard_0f9b6c6e
   DashboardHeader_a24e8484 --> timeRangeUtils_e17b2759
@@ -524,5 +520,6 @@ graph TD
   RightPanelTabs_test_bf4d2cd2 --> RightPanelTabs_29002826
   FireflySignal_test_3aabe6b2 --> FireflySignal_b76b6c4c
   DocsOverviewPanel_test_41f82ab6 --> DocsOverviewPanel_161198dc
+  CaptureActivityStrip_test_4f2b3391 --> CaptureActivityStrip_ca040f21
   style main_0d6e4079 fill:#4f46e5,color:#fff
   style App_0d04bfeb fill:#4f46e5,color:#fff

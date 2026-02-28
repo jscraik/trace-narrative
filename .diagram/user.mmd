@@ -64,14 +64,14 @@ flowchart LR
   User --> branchViewEvidence_test_c375af04
   BranchView_test_9e320760["BranchView.test"]
   User --> BranchView_test_9e320760
-  types_1_4ecdf56e["types"]
-  User --> types_1_4ecdf56e
   sessionExcerpts_utils_07a2d1bb["sessionExcerpts.utils"]
   User --> sessionExcerpts_utils_07a2d1bb
-  branchHeaderMapper_test_8c33a8eb["branchHeaderMapper.test"]
-  User --> branchHeaderMapper_test_8c33a8eb
+  types_1_4ecdf56e["types"]
+  User --> types_1_4ecdf56e
   timeRangeUtils_e17b2759["timeRangeUtils"]
   User --> timeRangeUtils_e17b2759
+  branchHeaderMapper_test_8c33a8eb["branchHeaderMapper.test"]
+  User --> branchHeaderMapper_test_8c33a8eb
   codexAppServerContractParity_test_dfc03ace["codexAppServerContractParity.test"]
   User --> codexAppServerContractParity_test_dfc03ace
   agentTraceNormalization_test_f7097cf9["agentTraceNormalization.test"]
@@ -196,10 +196,10 @@ flowchart LR
   User --> DashboardView_test_bc2935bd
   BranchView_test_1_123b1973["BranchView.test"]
   User --> BranchView_test_1_123b1973
-  SessionExcerptsParts_f3184ff0["SessionExcerptsParts"]
-  User --> SessionExcerptsParts_f3184ff0
   StoryAnchorsSections_793c218e["StoryAnchorsSections"]
   User --> StoryAnchorsSections_793c218e
+  SessionExcerptsParts_f3184ff0["SessionExcerptsParts"]
+  User --> SessionExcerptsParts_f3184ff0
   RightPanelTabPanels_82d72294["RightPanelTabPanels"]
   User --> RightPanelTabPanels_82d72294
   RightPanelTabBar_431349ca["RightPanelTabBar"]
@@ -208,8 +208,6 @@ flowchart LR
   User --> DiffDock_195b6999
   AppearanceCard_05dda86e["AppearanceCard"]
   User --> AppearanceCard_05dda86e
-  AutoIngestSetupSections_6d07e0ab["AutoIngestSetupSections"]
-  User --> AutoIngestSetupSections_6d07e0ab
   TopFilesTable_aaff44a1["TopFilesTable"]
   User --> TopFilesTable_aaff44a1
   MetricsGrid_4b46425d["MetricsGrid"]
@@ -236,6 +234,8 @@ flowchart LR
   User --> FireflySignal_test_3aabe6b2
   DocsOverviewPanel_test_41f82ab6["DocsOverviewPanel.test"]
   User --> DocsOverviewPanel_test_41f82ab6
+  CaptureActivityStrip_test_4f2b3391["CaptureActivityStrip.test"]
+  User --> CaptureActivityStrip_test_4f2b3391
   useTraceCollector_e3f811c3 --> otelReceiver_bd752dec
   useTraceCollector_e3f811c3 --> traceConfig_7e9b1320
   useTraceCollector_e3f811c3 --> sessionLinking_8e056ceb
@@ -342,8 +342,6 @@ flowchart LR
   RightPanelTabBar_431349ca --> types_1_4ecdf56e
   DiffDock_195b6999 --> DiffViewer_7e36d3d0
   AppearanceCard_05dda86e --> Toggle_3d03a1de
-  AutoIngestSetupSections_6d07e0ab --> HelpPopover_954f9250
-  AutoIngestSetupSections_6d07e0ab --> Toggle_3d03a1de
   MetricsGrid_4b46425d --> attribution_api_b53df9d9
   MetricsGrid_4b46425d --> MetricCard_0f9b6c6e
   DashboardHeader_a24e8484 --> timeRangeUtils_e17b2759
@@ -354,5 +352,6 @@ flowchart LR
   RightPanelTabs_test_bf4d2cd2 --> RightPanelTabs_29002826
   FireflySignal_test_3aabe6b2 --> FireflySignal_b76b6c4c
   DocsOverviewPanel_test_41f82ab6 --> DocsOverviewPanel_161198dc
+  CaptureActivityStrip_test_4f2b3391 --> CaptureActivityStrip_ca040f21
   traceConfig_7e9b1320 --> narrativeFs_b94b096d
   classDef userNode fill:#16a34a,color:#fff
