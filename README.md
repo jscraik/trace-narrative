@@ -31,10 +31,13 @@ If the DMG download/install fails on macOS, use this fallback:
 2. For a direct install fallback:
    - `Control + click` / right-click the DMG (or app) and choose **Open**.
    - If macOS still blocks it, run:
+
      ```bash
      xattr -dr com.apple.quarantine '/Applications/Firefly Narrative.app'
      ```
+
    - If that still fails, install via local build:
+
      ```bash
      pnpm install
      pnpm tauri:build:full
@@ -42,12 +45,12 @@ If the DMG download/install fails on macOS, use this fallback:
 
 </div>
 
-### Supported download paths
+## Supported download paths
 
 - **GitHub Releases (recommended):** `https://github.com/jscraik/firefly-narrative/releases/latest`
 - **Local build fallback:** `pnpm tauri:build:full` (works on supported OS with Node + Rust toolchain)
 
-### OS fallback notes
+## OS fallback notes
 
 | OS | What to download | Fallback notes |
 | --- | --- | --- |
