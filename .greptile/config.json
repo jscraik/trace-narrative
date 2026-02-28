@@ -1,0 +1,13 @@
+{
+  "strictness": 2,
+  "commentTypes": ["issues", "suggestions", "architecture"],
+  "fileChangeLimit": 15,
+  "ignorePatterns": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/*.snap"
+  ]
+}

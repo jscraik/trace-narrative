@@ -29,3 +29,68 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+  harness-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          run_install: false
+
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Get changed files
+        id: changed-files
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          mkdir -p .harness
+          FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD | tr '\n' ',' | sed 's/,$//')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          echo "$FILES" > .harness/changed-files.txt
+
+      - name: Run harness policy gates
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [ ! -s .harness/changed-files.txt ]; then
+            echo "No changed files detected; skipping harness gates."
+            exit 0
+          fi
+
+          FILES_CSV=$(cat .harness/changed-files.txt)
+
+          bash scripts/harness-cli.sh blast-radius --contract harness.contract.json --files "$FILES_CSV" --verbose
+          bash scripts/harness-cli.sh risk-tier --contract harness.contract.json --files "$FILES_CSV"
+          bash scripts/harness-cli.sh policy-gate --contract harness.contract.json --files "$FILES_CSV"
+          bash scripts/harness-cli.sh preflight-gate --contract harness.contract.json --files "$FILES_CSV" --head-sha "$HEAD_SHA"
+          bash scripts/harness-cli.sh diff-budget --contract harness.contract.json --base "origin/$BASE_REF" --head "$HEAD_SHA"
+          bash scripts/harness-cli.sh evidence-verify --contract harness.contract.json --changed "$FILES_CSV"
+
+          # Check for JS/TS files and run silent-error check
+          if echo "$FILES_CSV" | grep -qE '\.(ts|tsx|js|jsx)'; then
+            JS_FILES=$(echo "$FILES_CSV" | tr ',' '\n' | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ',')
+            bash scripts/harness-cli.sh silent-error --files "$JS_FILES"
+          else
+            echo "No JS/TS files changed; skipping silent-error gate."
+          fi

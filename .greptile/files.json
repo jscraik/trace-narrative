@@ -1,0 +1,15 @@
+{
+  "schemas": [
+    "src/core/types.ts"
+  ],
+  "apiSpecs": [
+    "src-tauri/src/codex_app_server.rs",
+    "src-tauri/src/otlp_receiver.rs"
+  ],
+  "keyFiles": [
+    "src/ui/components/TopNav.tsx",
+    "src/ui/views/BranchViewLayout.tsx",
+    "src/core/story-anchors-api.ts",
+    "harness.contract.json"
+  ]
+}
