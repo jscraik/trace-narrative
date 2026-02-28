@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.14.0...firefly-narrative-v0.15.0) (2026-02-28)
+
+
+### Features
+
+* narrative truth-loop feedback calibration and coding-harness governance ([#41](https://github.com/jscraik/firefly-narrative/issues/41)) ([4caa235](https://github.com/jscraik/firefly-narrative/commit/4caa23531e49b1210e0c4299337e708b78241040))
+
 ## [0.14.0](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.13.0...firefly-narrative-v0.14.0) (2026-02-26)
 
 
