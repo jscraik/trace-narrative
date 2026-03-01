@@ -45,8 +45,10 @@
   This produces the `.app`, `.dmg`, or executable for your OS.
 
   ```bash
-  pnpm tauri build
+  pnpm tauri:build
   ```
+
+  Use `pnpm tauri:build:full` when you need the full signed/bundled build path.
 
 ## Notes
 
