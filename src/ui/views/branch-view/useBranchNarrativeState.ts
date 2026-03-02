@@ -52,6 +52,7 @@ export type UseBranchNarrativeStateOutput = {
   setDetailLevel: (level: NarrativeDetailLevel) => void;
   setAudience: (audience: StakeholderAudience) => void;
   setFeedbackActorRole: (role: NarrativeFeedbackActorRole) => void;
+  setNarrativeCalibration: (profile: NarrativeCalibrationProfile | null) => void;
   bumpObservability: (kind: keyof Omit<NarrativeObservabilityMetrics, 'lastEventAtISO'>) => void;
 };
 
@@ -237,6 +238,7 @@ export function useBranchNarrativeState(
     setDetailLevel,
     setAudience,
     setFeedbackActorRole,
+    setNarrativeCalibration,
     bumpObservability,
   };
 }

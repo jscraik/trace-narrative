@@ -1,8 +1,16 @@
 import { useEffect, useRef } from 'react';
-import { trackNarrativeEvent } from '../../../core/telemetry/narrativeTelemetry';
+import {
+  trackNarrativeEvent,
+  trackQualityRenderDecision,
+  type HeaderQualityReasonCode,
+  type NarrativeHeaderKind,
+  type NarrativeRepoStatus,
+  type NarrativeTransitionType,
+} from '../../../core/telemetry/narrativeTelemetry';
 import type {
   BranchHeaderViewModel,
   BranchNarrative,
+  NarrativeDetailLevel,
   NarrativeKillSwitchRule,
   NarrativeObservabilityMetrics,
   NarrativeRolloutReport,
@@ -12,12 +20,12 @@ import { createNarrativeViewInstanceId } from '../branchView.constants';
 export type UseBranchTelemetryInput = {
   requestIdentityKey: string;
   branchName: string | undefined;
-  source: string;
+  source: 'demo' | 'git';
   headerViewModel: BranchHeaderViewModel;
-  headerReasonCode: string;
+  headerReasonCode: HeaderQualityReasonCode;
   headerDerivationDurationMs: number;
   repoId: number | null;
-  effectiveDetailLevel: string;
+  effectiveDetailLevel: NarrativeDetailLevel;
   narrative: BranchNarrative;
   rolloutReport: NarrativeRolloutReport;
   killSwitchActive: boolean;
@@ -25,6 +33,20 @@ export type UseBranchTelemetryInput = {
   bumpObservability: (kind: keyof Omit<NarrativeObservabilityMetrics, 'lastEventAtISO'>) => void;
   narrativeViewInstanceIdRef: React.MutableRefObject<string | null>;
 };
+
+function deriveHeaderKind(viewModel: BranchHeaderViewModel): NarrativeHeaderKind {
+  if (viewModel.kind === 'hidden') return 'hidden';
+  if (viewModel.kind === 'shell') return 'shell';
+  return 'full';
+}
+
+function deriveTransition(previousKey: string | null): NarrativeTransitionType {
+  return previousKey ? 'state_change' : 'initial';
+}
+
+function deriveRepoStatus(): NarrativeRepoStatus {
+  return 'ready';
+}
 
 export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
   const {
@@ -49,26 +71,25 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
   const headerDecisionTelemetryKeyRef = useRef<string | null>(null);
   const narrativeViewedKeyRef = useRef<string | null>(null);
 
-  // Header decision telemetry
+  // Header decision telemetry - uses canonical helper with proper event name
   useEffect(() => {
     const telemetryKey = `${requestIdentityKey}:${headerViewModel.kind}:${headerReasonCode}`;
     const previousKey = headerDecisionTelemetryKeyRef.current;
     if (previousKey === telemetryKey) return;
 
-    const transition = previousKey ? 'state_change' : 'initial';
     headerDecisionTelemetryKeyRef.current = telemetryKey;
 
-    trackNarrativeEvent('quality_render_decision', {
+    trackQualityRenderDecision({
       branch: branchName,
       source,
-      headerKind: headerViewModel.kind,
-      repoStatus: 'ready',
-      transition,
+      headerKind: deriveHeaderKind(headerViewModel),
+      repoStatus: deriveRepoStatus(),
+      transition: deriveTransition(previousKey),
       reasonCode: headerReasonCode,
       durationMs: headerDerivationDurationMs,
       budgetMs: 1,
     });
-  }, [branchName, headerDerivationDurationMs, headerReasonCode, headerViewModel.kind, requestIdentityKey, source]);
+  }, [branchName, headerDerivationDurationMs, headerReasonCode, headerViewModel, requestIdentityKey, source]);
 
   // Narrative viewed telemetry
   useEffect(() => {

@@ -14,6 +14,10 @@ import type {
   NarrativeEvidenceLink,
 } from '../../../core/types';
 
+// Global monotonic counter ensures version uniqueness across all branch switches
+// This prevents A→B→A scenarios where stale responses could reuse the same version number
+let globalAskWhyVersionCounter = 0;
+
 export type UseBranchAskWhyStateInput = {
   branchScopeKey: string;
   branchName: string | undefined;
@@ -46,16 +50,16 @@ export function useBranchAskWhyState(
   const [askWhyState, setAskWhyState] = useState<AskWhyState>({ kind: 'idle' });
   const askWhyRequestVersionRef = useRef(0);
 
-  // Reset on branch change
+  // Reset on branch change (keep version counter monotonic via global counter)
   useEffect(() => {
     setAskWhyState({ kind: 'idle' });
-    askWhyRequestVersionRef.current = 0;
   }, [branchScopeKey]);
 
   const handleSubmitAskWhy = useCallback(async (question: string) => {
     if (!question.trim()) return;
 
-    const requestVersion = ++askWhyRequestVersionRef.current;
+    const requestVersion = ++globalAskWhyVersionCounter;
+    askWhyRequestVersionRef.current = requestVersion;
     const branchScopeAtRequest = branchScopeKey;
 
     setAskWhyState({ kind: 'loading', queryId: `pending-${requestVersion}` });

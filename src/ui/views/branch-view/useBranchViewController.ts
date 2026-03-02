@@ -156,6 +156,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     setDetailLevel,
     setAudience,
     setFeedbackActorRole,
+    setNarrativeCalibration,
     bumpObservability,
   } = useBranchNarrativeState({
     model,
@@ -189,7 +190,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     isMountedRef,
     feedbackContextRef,
     setActionError,
-    setNarrativeCalibration: () => {}, // Calibration profile updates handled by useBranchNarrativeState
+    setNarrativeCalibration,
     setFeedbackActorRole,
     setAudience,
   });
