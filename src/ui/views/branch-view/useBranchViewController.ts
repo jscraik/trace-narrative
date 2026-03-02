@@ -142,7 +142,6 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     detailLevel,
     audience,
     feedbackActorRole,
-    narrativeCalibration,
     githubContext,
     observability,
     narrative,

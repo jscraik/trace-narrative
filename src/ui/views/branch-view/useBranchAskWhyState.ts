@@ -51,6 +51,7 @@ export function useBranchAskWhyState(
   const askWhyRequestVersionRef = useRef(0);
 
   // Reset on branch change (keep version counter monotonic via global counter)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: branchScopeKey intentionally triggers reset
   useEffect(() => {
     setAskWhyState({ kind: 'idle' });
   }, [branchScopeKey]);
