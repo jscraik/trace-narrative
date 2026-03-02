@@ -80,17 +80,10 @@ Narrative is a Tauri desktop app that layers AI session narratives onto git hist
 - [Hybrid capture rollout runbook](docs/agents/hybrid-capture-rollout-runbook.md)
 
 ## Contradictions and cleanup
-- `README.md` (`137-146`) and `docs/agents/frontend-website-rules.md` (`50-60`) appear to de-duplicate the exact same troubleshooting surface for standalone frontend snapshots:
-  - `README.md`: hardcoded commands + naming form `node screenshot.mjs ...`, `screenshot-<N>-<label>.png`, and `ERR_CONNECTION_REFUSED` recovery.
-  - `frontend-website-rules.md`: same command family, but framed as workflow control (`agent-browser`) and naming form `screenshot-N(-label).png`.
-  - Question: should this workflow be kept only in `docs/agents/frontend-website-rules.md` and linked from README?
-- `README.md` also includes port-2000 duplicate-process guidance (`If already running, do not start another process on port 2000`) that is not present in `frontend-website-rules.md`.
+- **Resolved 2026-03-02:** Screenshot workflow canonicalized to `docs/agents/frontend-website-rules.md`. README.md now has 1-line pointer instead of duplicated commands.
 
 ## Flag for deletion (review in cleanup)
-- Keep one canonical screenshot workflow source.
-- If canonicalizing `docs/agents/frontend-website-rules.md`:
-  - remove `README.md:137-146` entire block,
-  - add a 1-line pointer from README to `docs/agents/frontend-website-rules.md`.
+- None currently flagged.
 
 ## Notes
 - For standalone landing-page work, confirm scope in `docs/agents/landing-page-separation.md` before screenshots.

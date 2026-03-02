@@ -172,16 +172,7 @@ Run `pnpm install` again. Ensure your Rust toolchain is up to date (`rustup upda
 
 ### "serve / screenshot workflow errors"
 
-For standalone frontend-only landing-page work (check `docs/agents/landing-page-separation.md` first):
-
-- Build latest assets: `pnpm build`
-- Start: `node serve.mjs` (uses `http://localhost:2000`). If already running, do not start another process on port 2000.
-- Capture required shots:
-  - `node screenshot.mjs http://localhost:2000`
-  - `node screenshot.mjs http://localhost:2000 card`
-  - `node screenshot.mjs http://localhost:2000 button`
-
-Use `temporary screenshots/screenshot-<N>-<label>.png`. If you see `ERR_CONNECTION_REFUSED`, wait for server start or stop the existing `serve.mjs` process first.
+For standalone frontend-only landing-page work, see [Frontend Website Rules](docs/agents/frontend-website-rules.md) for the complete screenshot workflow.
 
 ---
 
