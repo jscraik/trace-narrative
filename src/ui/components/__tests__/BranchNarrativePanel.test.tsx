@@ -284,4 +284,320 @@ describe('BranchNarrativePanel', () => {
     expect(screen.getByRole('button', { name: 'Open raw diff context' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Open evidence/i })).not.toBeInTheDocument();
   });
+
+  // ============================================================================
+  // Ask-Why Answer Card Tests
+  // ============================================================================
+
+  it('renders ask-why input in idle state', () => {
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{ kind: 'idle' }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Ask Why')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Why was this branch created?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ask' })).toBeInTheDocument();
+  });
+
+  it('submits ask-why question on form submit', () => {
+    const onSubmitAskWhy = vi.fn();
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{ kind: 'idle' }}
+        onSubmitAskWhy={onSubmitAskWhy}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Why was this branch created?');
+    fireEvent.change(input, { target: { value: 'Why did we add this feature?' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
+
+    expect(onSubmitAskWhy).toHaveBeenCalledWith('Why did we add this feature?');
+  });
+
+  it('does not submit empty question', () => {
+    const onSubmitAskWhy = vi.fn();
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{ kind: 'idle' }}
+        onSubmitAskWhy={onSubmitAskWhy}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
+    expect(onSubmitAskWhy).not.toHaveBeenCalled();
+  });
+
+  it('shows loading state while analyzing', () => {
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{ kind: 'loading', queryId: 'abc12345' }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Analyzing branch context...')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Asking...' })).toBeDisabled();
+  });
+
+  it('renders answer with citations in ready state', () => {
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{
+          kind: 'ready',
+          answer: {
+            queryId: 'abc12345',
+            questionHash: 'deadbeef',
+            answerParagraph: 'This branch was created to implement user authentication.',
+            confidenceBand: 'high',
+            confidence: 0.88,
+            citations: [
+              { id: 'commit:abc123', type: 'commit', label: 'Commit abc123', commitSha: 'abc123' },
+            ],
+            sentenceCitationMap: [{ sentenceIndex: 0, citationIds: ['commit:abc123'] }],
+            fallbackUsed: false,
+            generatedAtISO: '2026-03-02T00:00:00.000Z',
+          },
+        }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('This branch was created to implement user authentication.')).toBeInTheDocument();
+    expect(screen.getByText(/high 88%/i)).toBeInTheDocument();
+    expect(screen.getByText('Citations:')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Commit abc123/i })).toBeInTheDocument();
+  });
+
+  it('calls onOpenAskWhyCitation when citation clicked', () => {
+    const onOpenAskWhyCitation = vi.fn();
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{
+          kind: 'ready',
+          answer: {
+            queryId: 'abc12345',
+            questionHash: 'deadbeef',
+            answerParagraph: 'Answer text.',
+            confidenceBand: 'high',
+            confidence: 0.88,
+            citations: [
+              { id: 'commit:abc123', type: 'commit', label: 'Commit abc123', commitSha: 'abc123' },
+            ],
+            sentenceCitationMap: [{ sentenceIndex: 0, citationIds: ['commit:abc123'] }],
+            fallbackUsed: false,
+            generatedAtISO: '2026-03-02T00:00:00.000Z',
+          },
+        }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={onOpenAskWhyCitation}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Commit abc123/i }));
+    expect(onOpenAskWhyCitation).toHaveBeenCalledWith({
+      id: 'commit:abc123',
+      type: 'commit',
+      label: 'Commit abc123',
+      commitSha: 'abc123',
+    });
+  });
+
+  it('shows low-confidence fallback with raw diff CTA', () => {
+    const onOpenRawDiff = vi.fn();
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={onOpenRawDiff}
+        askWhyState={{
+          kind: 'ready',
+          answer: {
+            queryId: 'abc12345',
+            questionHash: 'deadbeef',
+            answerParagraph: 'Uncertain answer.',
+            confidenceBand: 'low',
+            confidence: 0.35,
+            citations: [],
+            sentenceCitationMap: [{ sentenceIndex: 0, citationIds: [], uncertain: true }],
+            fallbackUsed: true,
+            fallbackReasonCode: 'low_confidence_override',
+            generatedAtISO: '2026-03-02T00:00:00.000Z',
+          },
+        }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Low confidence in this answer/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Open raw diff'));
+    expect(onOpenRawDiff).toHaveBeenCalled();
+  });
+
+  it('shows error state with message', () => {
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{
+          kind: 'error',
+          queryId: 'abc12345',
+          errorType: 'no_evidence',
+          message: 'No narrative summary available.',
+        }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    // When message is provided, it's shown directly (not error type)
+    expect(screen.getByText('No narrative summary available.')).toBeInTheDocument();
+  });
+
+  it('shows error type when no message provided', () => {
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{
+          kind: 'error',
+          queryId: 'abc12345',
+          errorType: 'no_evidence',
+        }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    // When no message, error type is shown
+    expect(screen.getByText('Error: no_evidence')).toBeInTheDocument();
+  });
+
+  it('hides ask-why card in diff view when kill switch active', () => {
+    render(
+      <BranchNarrativePanel
+        narrative={narrative}
+        projections={projections}
+        audience="manager"
+        detailLevel="summary"
+        feedbackActorRole="developer"
+        killSwitchActive={true}
+        onAudienceChange={vi.fn()}
+        onFeedbackActorRoleChange={vi.fn()}
+        onDetailLevelChange={vi.fn()}
+        onSubmitFeedback={vi.fn()}
+        onOpenEvidence={vi.fn()}
+        onOpenRawDiff={vi.fn()}
+        askWhyState={{ kind: 'idle' }}
+        onSubmitAskWhy={vi.fn()}
+        onOpenAskWhyCitation={vi.fn()}
+      />
+    );
+
+    // Kill switch forces effectiveDetailLevel to 'diff', so ask-why card is not rendered
+    // The diff view shows instead
+    expect(screen.getByText('Open raw diff context')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Why was this branch created?')).not.toBeInTheDocument();
+  });
 });

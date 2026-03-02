@@ -7,6 +7,11 @@ const mockSelectFile = vi.hoisted(() => vi.fn());
 const mockFileSelectionState = vi.hoisted(() => ({ selectedFile: "preselected.ts" as string | null }));
 const mockTrackNarrativeEvent = vi.hoisted(() => vi.fn());
 const mockTrackQualityRenderDecision = vi.hoisted(() => vi.fn());
+const mockTrackAskWhySubmitted = vi.hoisted(() => vi.fn());
+const mockTrackAskWhyAnswerViewed = vi.hoisted(() => vi.fn());
+const mockTrackAskWhyEvidenceOpened = vi.hoisted(() => vi.fn());
+const mockTrackAskWhyFallbackUsed = vi.hoisted(() => vi.fn());
+const mockTrackAskWhyError = vi.hoisted(() => vi.fn());
 const mockGetLatestTestRunForCommit = vi.hoisted(() => vi.fn().mockResolvedValue(null));
 let capturedOpenEvidenceHandler: ((link: { id: string; kind: string; label: string; commitSha?: string }) => void) | null = null;
 let capturedOpenRawDiffHandler: ((laneContext?: {
@@ -14,6 +19,8 @@ let capturedOpenRawDiffHandler: ((laneContext?: {
   recallLaneItemId?: string;
   recallLaneConfidenceBand?: 'low' | 'medium' | 'high';
 }) => void) | null = null;
+let capturedSubmitAskWhyHandler: ((question: string) => void) | null = null;
+let capturedOpenAskWhyCitationHandler: ((citation: { id: string; type: string; label: string }) => void) | null = null;
 const mockLoadGitHubContext = vi.hoisted(() =>
   vi.fn().mockResolvedValue({ status: "empty", entries: [] }),
 );
@@ -57,6 +64,11 @@ vi.mock("../../../core/context/FileSelectionContext", () => ({
 vi.mock("../../../core/telemetry/narrativeTelemetry", () => ({
   trackNarrativeEvent: mockTrackNarrativeEvent,
   trackQualityRenderDecision: mockTrackQualityRenderDecision,
+  trackAskWhySubmitted: mockTrackAskWhySubmitted,
+  trackAskWhyAnswerViewed: mockTrackAskWhyAnswerViewed,
+  trackAskWhyEvidenceOpened: mockTrackAskWhyEvidenceOpened,
+  trackAskWhyFallbackUsed: mockTrackAskWhyFallbackUsed,
+  trackAskWhyError: mockTrackAskWhyError,
 }));
 
 vi.mock("../../../core/repo/testRuns", () => ({
@@ -115,6 +127,8 @@ vi.mock("../../components/BranchNarrativePanel", () => ({
     onSubmitFeedback,
     onOpenEvidence,
     onOpenRawDiff,
+    onSubmitAskWhy,
+    onOpenAskWhyCitation,
   }: {
     onSubmitFeedback: (feedback: {
       actorRole: "developer" | "reviewer";
@@ -140,9 +154,13 @@ vi.mock("../../components/BranchNarrativePanel", () => ({
       recallLaneItemId?: string;
       recallLaneConfidenceBand?: 'low' | 'medium' | 'high';
     }) => void;
+    onSubmitAskWhy?: (question: string) => void;
+    onOpenAskWhyCitation?: (citation: { id: string; type: string; label: string }) => void;
   }) => {
     capturedOpenEvidenceHandler = onOpenEvidence;
     capturedOpenRawDiffHandler = onOpenRawDiff;
+    capturedSubmitAskWhyHandler = onSubmitAskWhy ?? null;
+    capturedOpenAskWhyCitationHandler = onOpenAskWhyCitation ?? null;
     return (
       <>
         <button
@@ -174,6 +192,24 @@ vi.mock("../../components/BranchNarrativePanel", () => ({
         </button>
         <button type="button" onClick={onOpenRawDiff}>
           open-raw-diff
+        </button>
+        <button
+          type="button"
+          onClick={() => onSubmitAskWhy?.("Why was this branch created?")}
+        >
+          submit-ask-why
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            onOpenAskWhyCitation?.({
+              id: "commit:aaaa1111",
+              type: "commit",
+              label: "Commit aaaa1111",
+            })
+          }
+        >
+          open-ask-why-citation
         </button>
       </>
     );
@@ -367,6 +403,8 @@ describe("BranchView transition and integration coverage", () => {
     mockFileSelectionState.selectedFile = "preselected.ts";
     capturedOpenEvidenceHandler = null;
     capturedOpenRawDiffHandler = null;
+    capturedSubmitAskWhyHandler = null;
+    capturedOpenAskWhyCitationHandler = null;
     mockGetLatestTestRunForCommit.mockResolvedValue(null);
     mockLoadGitHubContext.mockResolvedValue({ status: "empty", entries: [] });
     mockEvaluateNarrativeRollout.mockReturnValue({
@@ -531,6 +569,49 @@ describe("BranchView transition and integration coverage", () => {
     });
     await waitFor(() => {
       expect(mockTrackNarrativeEvent).toHaveBeenCalledTimes(preCurrentCalls + 1);
+    });
+  });
+
+  it("ignores stale ask-why handlers after branch scope changes", async () => {
+    const props = buildProps();
+    const { rerender } = render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      expect(capturedSubmitAskWhyHandler).toBeInstanceOf(Function);
+      expect(capturedOpenAskWhyCitationHandler).toBeInstanceOf(Function);
+    });
+
+    const staleSubmitAskWhy = capturedSubmitAskWhyHandler;
+    const staleOpenCitation = capturedOpenAskWhyCitationHandler;
+
+    const updatedModel = createModel({
+      meta: {
+        ...props.model.meta,
+        branchName: "feature/ask-why-switch",
+      },
+    });
+    rerender(<BranchView {...buildProps({ model: updatedModel })} />);
+
+    await waitFor(() => {
+      expect(capturedSubmitAskWhyHandler).toBeInstanceOf(Function);
+      expect(capturedSubmitAskWhyHandler).not.toBe(staleSubmitAskWhy);
+    });
+
+    const beforeStaleCalls = mockTrackAskWhySubmitted.mock.calls.length;
+    await act(async () => {
+      staleSubmitAskWhy?.("Why was this branch created?");
+      staleOpenCitation?.({ id: "commit:abc", type: "commit", label: "Commit" });
+      await Promise.resolve();
+    });
+    expect(mockTrackAskWhySubmitted).toHaveBeenCalledTimes(beforeStaleCalls);
+
+    const preCurrentCalls = mockTrackAskWhySubmitted.mock.calls.length;
+    await act(async () => {
+      capturedSubmitAskWhyHandler?.("Why was this branch created?");
+      await Promise.resolve();
+    });
+    await waitFor(() => {
+      expect(mockTrackAskWhySubmitted).toHaveBeenCalledTimes(preCurrentCalls + 1);
     });
   });
 
