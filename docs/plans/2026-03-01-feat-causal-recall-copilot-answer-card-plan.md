@@ -51,17 +51,17 @@ This plan carries forward all brainstorm decisions: selected Approach A (ask-why
 
 ## Research Consolidation
 ### Local repository patterns
-- Narrative confidence, fallback messaging, and evidence links already exist in `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/composeBranchNarrative.ts:152-217`.
-- Deterministic summary prioritization already exists in `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/recallLane.ts:113-136`.
-- Recall-lane evidence routing and telemetry context already exist in `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/BranchNarrativePanel.tsx:102-127` and `/Users/jamiecraik/dev/firefly-narrative/src/ui/views/branch-view/useBranchViewController.ts:559-627`.
-- Atlas retrieval primitives and stale-request guards already exist in `/Users/jamiecraik/dev/firefly-narrative/src/hooks/useAtlasSearch.ts:49-120` and `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/AtlasSearchPanel.tsx:81-187`.
-- Typed Atlas envelopes and budgets exist in `/Users/jamiecraik/dev/firefly-narrative/src/core/atlas-api.ts:10-222`.
-- Atlas query constraints and deterministic truncation exist in `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/atlas/commands.rs:171-203` and `:266-279`.
-- Existing right-panel/tab extension surface exists in `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/right-panel-tabs/types.ts:19-33` and `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/right-panel-tabs/RightPanelTabPanels.tsx:235-239`.
+- Narrative confidence, fallback messaging, and evidence links already exist in `src/core/narrative/composeBranchNarrative.ts:152-217`.
+- Deterministic summary prioritization already exists in `src/core/narrative/recallLane.ts:113-136`.
+- Recall-lane evidence routing and telemetry context already exist in `src/ui/components/BranchNarrativePanel.tsx:102-127` and `src/ui/views/branch-view/useBranchViewController.ts:559-627`.
+- Atlas retrieval primitives and stale-request guards already exist in `src/hooks/useAtlasSearch.ts:49-120` and `src/ui/components/AtlasSearchPanel.tsx:81-187`.
+- Typed Atlas envelopes and budgets exist in `src/core/atlas-api.ts:10-222`.
+- Atlas query constraints and deterministic truncation exist in `src-tauri/src/atlas/commands.rs:171-203` and `:266-279`.
+- Existing right-panel/tab extension surface exists in `src/ui/components/right-panel-tabs/types.ts:19-33` and `src/ui/components/right-panel-tabs/RightPanelTabPanels.tsx:235-239`.
 
 ### Institutional learnings (`docs/solutions`)
-- Deterministic precedence and dedupe are critical to avoid narrative drift (transfer principle) from `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md:49-67`.
-- Fallback runbook behavior should be explicit and fast when quality degrades from `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md:111-117`.
+- Deterministic precedence and dedupe are critical to avoid narrative drift (transfer principle) from `docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md:49-67`.
+- Fallback runbook behavior should be explicit and fast when quality degrades from `docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md:111-117`.
 
 ### External research decision
 Skipped external research. This feature is local-first, non-regulatory, and the codebase already has mature patterns for confidence, retrieval, fallback, and telemetry.
@@ -98,22 +98,22 @@ flowchart TD
 
 ### Implementation Phases
 #### Phase 1: Foundation (scope + contracts)
-- Define ask-why domain types in `/Users/jamiecraik/dev/firefly-narrative/src/core/types.ts` (question input, answer payload, citation model, confidence band).
-- Add question/answer orchestration module (for example `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/causalRecall.ts`) using existing narrative + Atlas adapters.
-- Define telemetry event extensions in `/Users/jamiecraik/dev/firefly-narrative/src/core/telemetry/narrativeTelemetry.ts` for ask-why viewed/submitted/resolved/fallback, including a deterministic `queryId` for dedupe.
+- Define ask-why domain types in `src/core/types.ts` (question input, answer payload, citation model, confidence band).
+- Add question/answer orchestration module (for example `src/core/narrative/causalRecall.ts`) using existing narrative + Atlas adapters.
+- Define telemetry event extensions in `src/core/telemetry/narrativeTelemetry.ts` for ask-why viewed/submitted/resolved/fallback, including a deterministic `queryId` for dedupe.
 - Deliverable: compile-safe type contracts and deterministic ordering/citation rules.
 
 #### Phase 2: Core implementation (UI + orchestration)
-- Add Ask-Why Answer Card surface in existing BranchNarrativePanel (`/Users/jamiecraik/dev/firefly-narrative/src/ui/components/BranchNarrativePanel.tsx`) — colocated with narrative context for tight coupling to branch-scope state and evidence handlers. Extraction to a dedicated component is deferred until usage patterns emerge.
-- Wire controller in `/Users/jamiecraik/dev/firefly-narrative/src/ui/views/branch-view/useBranchViewController.ts` with branch-scope stale-guard protections matching existing patterns.
+- Add Ask-Why Answer Card surface in existing BranchNarrativePanel (`src/ui/components/BranchNarrativePanel.tsx`) — colocated with narrative context for tight coupling to branch-scope state and evidence handlers. Extraction to a dedicated component is deferred until usage patterns emerge.
+- Wire controller in `src/ui/views/branch-view/useBranchViewController.ts` with branch-scope stale-guard protections matching existing patterns.
 - Reuse existing evidence navigation handlers (`onOpenEvidence`, `onOpenRawDiff`) for citations.
 - Deliverable: end-to-end user flow from question to answer to evidence click.
 
 #### Phase 3: Polish & optimization (quality + measurement)
 - Add test coverage for stale async handling, low-confidence fallback, and citation determinism in:
-  - `/Users/jamiecraik/dev/firefly-narrative/src/ui/views/__tests__/BranchView.test.tsx`
-  - `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/__tests__/BranchNarrativePanel.test.tsx`
-  - new tests under `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/__tests__/`.
+  - `src/ui/views/__tests__/BranchView.test.tsx`
+  - `src/ui/components/__tests__/BranchNarrativePanel.test.tsx`
+  - new tests under `src/core/narrative/__tests__/`.
 - Add telemetry-derived KPI reporting hooks for time-to-understanding.
 - Deliverable: feature-flagged, measurable v1 release candidate.
 
@@ -202,7 +202,7 @@ flowchart TD
 - [ ] Low-confidence answers explicitly indicate uncertainty and offer fallback CTA to raw diff (see brainstorm: docs/brainstorms/2026-03-01-causal-recall-copilot-brainstorm.md).
 - [ ] Feature remains local-first and does not call external connectors/services (see brainstorm: docs/brainstorms/2026-03-01-causal-recall-copilot-brainstorm.md).
 - [ ] Answer text is grounded: each sentence is attributable to at least one citation or marked as uncertainty.
-- [ ] **Citation grounding is machine-checkable**: answer payload includes `sentenceCitationMap: Array<{ sentenceIndex: number; citationIds: string[] }>` enabling automated validation that every sentence has ≥1 citation or is explicitly marked `uncertain: true`.
+- [ ] **Citation grounding is machine-checkable**: answer payload includes `sentenceCitationMap: Array<{ sentenceIndex: number; citationIds: string[]; uncertain?: boolean }>` enabling automated validation that every sentence has ≥1 `citationId` or `uncertain: true`.
 
 ### Non-Functional Requirements
 - [ ] Deterministic answer/citation ordering for identical inputs.
@@ -218,15 +218,15 @@ flowchart TD
 
 ## Testing Strategy
 - Unit tests:
-  - answer composition ranking and confidence band mapping in `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/__tests__/causalRecall.test.ts`.
-  - citation normalization/fallback behavior in `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/__tests__/causalRecall.test.ts`.
-  - **Citation grounding validation:** assert `sentenceCitationMap` has entry for every sentence index, and each entry has ≥1 `citationId` or `uncertain: true` flag.
+  - answer composition ranking and confidence band mapping in `src/core/narrative/__tests__/causalRecall.test.ts`.
+  - citation normalization/fallback behavior in `src/core/narrative/__tests__/causalRecall.test.ts`.
+  - **Citation grounding validation:** assert `sentenceCitationMap` has entry for every sentence index, and each entry has ≥1 `citationId` or `uncertain: true`.
 - Component tests:
-  - ask input, answer rendering, low-confidence state, and CTA behavior in `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/__tests__/BranchNarrativePanel.test.tsx`.
+  - ask input, answer rendering, low-confidence state, and CTA behavior in `src/ui/components/__tests__/BranchNarrativePanel.test.tsx`.
 - Controller integration tests:
-  - stale branch-switch response suppression and telemetry payload assertions in `/Users/jamiecraik/dev/firefly-narrative/src/ui/views/__tests__/BranchView.test.tsx`.
+  - stale branch-switch response suppression and telemetry payload assertions in `src/ui/views/__tests__/BranchView.test.tsx`.
 - Regression tests:
-  - preserve Atlas tab behavior in `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/__tests__/AtlasSearchPanel.test.tsx`.
+  - preserve Atlas tab behavior in `src/ui/components/__tests__/AtlasSearchPanel.test.tsx`.
 
 ## Success Metrics
 
@@ -294,29 +294,29 @@ WHERE first_understanding_action IS NOT NULL
 
 ## Documentation Plan
 Update after implementation:
-- `/Users/jamiecraik/dev/firefly-narrative/README.md` (feature highlight and usage).
-- `/Users/jamiecraik/dev/firefly-narrative/docs/README.md` (new capability index entry).
-- `/Users/jamiecraik/dev/firefly-narrative/docs/agents/testing.md` if new test commands or test slices are introduced.
-- Add a solution note under `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/` for rollout learnings.
+- `README.md` (feature highlight and usage).
+- `docs/README.md` (new capability index entry).
+- `docs/agents/testing.md` if new test commands or test slices are introduced.
+- Add a solution note under `docs/solutions/` for rollout learnings.
 
 ## Sources & References
 ### Origin
-- **Brainstorm document:** `/Users/jamiecraik/dev/firefly-narrative/docs/brainstorms/2026-03-01-causal-recall-copilot-brainstorm.md`  
+- **Brainstorm document:** `docs/brainstorms/2026-03-01-causal-recall-copilot-brainstorm.md`  
   Key decisions carried forward: returning-developer focus, ask-why answer card, low-confidence fallback, time-to-understanding KPI.
 
 ### Internal References
-- Narrative model + confidence/fallback: `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/composeBranchNarrative.ts:152-217`
-- Recall-lane derivation: `/Users/jamiecraik/dev/firefly-narrative/src/core/narrative/recallLane.ts:113-136`
-- Narrative panel recall-lane UX: `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/BranchNarrativePanel.tsx:102-200`
-- Branch controller orchestration + telemetry: `/Users/jamiecraik/dev/firefly-narrative/src/ui/views/branch-view/useBranchViewController.ts:215-227` and `:559-627`
-- Atlas API contract: `/Users/jamiecraik/dev/firefly-narrative/src/core/atlas-api.ts:10-222`
-- Atlas UI + stale-guard patterns: `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/AtlasSearchPanel.tsx:81-187`
-- Atlas hook stale-request handling: `/Users/jamiecraik/dev/firefly-narrative/src/hooks/useAtlasSearch.ts:49-120`
-- Atlas query constraints/budgets: `/Users/jamiecraik/dev/firefly-narrative/src-tauri/src/atlas/commands.rs:171-203` and `:730-763`
-- Existing Atlas tests: `/Users/jamiecraik/dev/firefly-narrative/src/ui/components/__tests__/AtlasSearchPanel.test.tsx:130-260`, `/Users/jamiecraik/dev/firefly-narrative/src/hooks/__tests__/useAtlasSearch.test.ts:83-207`
+- Narrative model + confidence/fallback: `src/core/narrative/composeBranchNarrative.ts:152-217`
+- Recall-lane derivation: `src/core/narrative/recallLane.ts:113-136`
+- Narrative panel recall-lane UX: `src/ui/components/BranchNarrativePanel.tsx:102-200`
+- Branch controller orchestration + telemetry: `src/ui/views/branch-view/useBranchViewController.ts:215-227` and `:559-627`
+- Atlas API contract: `src/core/atlas-api.ts:10-222`
+- Atlas UI + stale-guard patterns: `src/ui/components/AtlasSearchPanel.tsx:81-187`
+- Atlas hook stale-request handling: `src/hooks/useAtlasSearch.ts:49-120`
+- Atlas query constraints/budgets: `src-tauri/src/atlas/commands.rs:171-203` and `:730-763`
+- Existing Atlas tests: `src/ui/components/__tests__/AtlasSearchPanel.test.tsx:130-260`, `src/hooks/__tests__/useAtlasSearch.test.ts:83-207`
 
 ### Institutional Learnings
-- Deterministic precedence + fallback discipline: `/Users/jamiecraik/dev/firefly-narrative/docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md:49-67` and `:111-117`
+- Deterministic precedence + fallback discipline: `docs/solutions/integration-issues/codex-app-server-claude-otel-stream-reliability-auth-migration-hardening.md:49-67` and `:111-117`
 
 ### Related Work
-- Prior recall lane plan: `/Users/jamiecraik/dev/firefly-narrative/docs/plans/2026-02-27-feat-add-recall-lane-comprehension-plan.md`
+- Prior recall lane plan: `docs/plans/2026-02-27-feat-add-recall-lane-comprehension-plan.md`
