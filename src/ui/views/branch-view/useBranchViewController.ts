@@ -185,7 +185,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     calibrationEnabled,
     feedbackActorRole,
     audience,
-    narrativeViewInstanceId: narrativeViewInstanceIdRef.current,
+    narrativeViewInstanceIdRef,
     isMountedRef,
     feedbackContextRef,
     setActionError,

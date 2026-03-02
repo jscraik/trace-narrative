@@ -17,7 +17,7 @@ export type UseBranchFeedbackHandlerInput = {
   calibrationEnabled: boolean;
   feedbackActorRole: NarrativeFeedbackActorRole;
   audience: StakeholderAudience;
-  narrativeViewInstanceId: string | null;
+  narrativeViewInstanceIdRef: React.MutableRefObject<string | null>;
   isMountedRef: React.MutableRefObject<boolean>;
   feedbackContextRef: React.MutableRefObject<string>;
   setActionError: (error: string | null) => void;
@@ -43,7 +43,7 @@ export function useBranchFeedbackHandler(
     calibrationEnabled,
     feedbackActorRole,
     audience,
-    narrativeViewInstanceId,
+    narrativeViewInstanceIdRef,
     isMountedRef,
     feedbackContextRef,
     setActionError,
@@ -78,7 +78,8 @@ export function useBranchFeedbackHandler(
         feedbackType: feedback.feedbackType,
         feedbackTargetKind: feedback.targetKind,
         feedbackActorRole: result.verifiedActorRole,
-        viewInstanceId: narrativeViewInstanceId ?? undefined,
+        // Read view instance id lazily from ref at submit time
+        viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
       });
     } catch (error) {
       if (!isMountedRef.current) return;
@@ -95,7 +96,7 @@ export function useBranchFeedbackHandler(
     setNarrativeCalibration,
     isMountedRef,
     feedbackContextRef,
-    narrativeViewInstanceId,
+    narrativeViewInstanceIdRef,
   ]);
 
   const handleFeedbackRoleChange = useCallback((role: NarrativeFeedbackActorRole) => {
