@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.17.0...firefly-narrative-v0.17.1) (2026-03-02)
+
+
+### Bug Fixes
+
+* **ci:** add npm auth for private [@brainwav](https://github.com/brainwav) packages in release workflow ([#62](https://github.com/jscraik/firefly-narrative/issues/62)) ([aaafc9c](https://github.com/jscraik/firefly-narrative/commit/aaafc9cf350e889aaf66067bb0f6cb102adb55ec))
+
 ## [0.17.0](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.16.0...firefly-narrative-v0.17.0) (2026-03-02)
 
 
