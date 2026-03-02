@@ -53,10 +53,12 @@ if [[ -z "$COMMAND" ]]; then
   exit 1
 fi
 
-# Count files
+# Count files (temporarily disable pipefail for grep which returns 1 when no matches)
 FILE_COUNT=0
 if [[ -n "$FILES" ]]; then
+  set +o pipefail
   FILE_COUNT=$(echo "$FILES" | tr ',' '\n' | grep -c . || echo 0)
+  set -o pipefail
 fi
 
 # Get diff budget from contract
