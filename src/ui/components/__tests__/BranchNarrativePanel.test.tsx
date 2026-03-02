@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { AskWhyState, BranchNarrative, NarrativeRecallLaneItem, StakeholderProjections } from '../../../core/types';
+import type { BranchNarrative, NarrativeRecallLaneItem, StakeholderProjections } from '../../../core/types';
 import { BranchNarrativePanel } from '../BranchNarrativePanel';
 
 const narrative: BranchNarrative = {

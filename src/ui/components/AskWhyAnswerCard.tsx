@@ -2,7 +2,6 @@ import type {
   AskWhyAnswerPayload,
   AskWhyCitation,
   AskWhyState,
-  NarrativeEvidenceLink,
 } from '../../core/types';
 
 type AskWhyAnswerCardProps = {

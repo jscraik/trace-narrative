@@ -436,13 +436,13 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
       fallbackUsedCount: 0,
       killSwitchTriggeredCount: 0,
     });
-  }, [branchScopeKey]);
+  }, [branchScopeKey]); // biome-ignore lint/correctness/useExhaustiveDependencies: branchScopeKey triggers reset on branch change
 
   useEffect(() => {
     void branchScopeKey;
     pulsedCommits.current.clear();
     setPulseCommitId(null);
-  }, [branchScopeKey]);
+  }, [branchScopeKey]); // biome-ignore lint/correctness/useExhaustiveDependencies: branchScopeKey triggers reset on branch change
 
   useEffect(() => {
     if (!repoId) return;
@@ -809,7 +809,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
   useEffect(() => {
     setAskWhyState({ kind: 'idle' });
     askWhyRequestVersionRef.current++;
-  }, [branchScopeKey]);
+  }, [branchScopeKey]); // biome-ignore lint/correctness/useExhaustiveDependencies: branchScopeKey triggers reset on branch change
 
   const { importJUnitForCommit } = useTestImport({
     repoRoot,

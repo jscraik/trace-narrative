@@ -101,6 +101,9 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
     onSubmitFeedback,
     onOpenEvidence,
     onOpenRawDiff,
+    askWhyState,
+    onSubmitAskWhy,
+    onOpenAskWhyCitation,
   } = props;
   const projection = projections[audience] ?? projectionFallback(audience, narrative);
   const effectiveDetailLevel: NarrativeDetailLevel = killSwitchActive ? 'diff' : detailLevel;
@@ -204,6 +207,14 @@ export function BranchNarrativePanel(props: BranchNarrativePanelProps) {
               </ol>
             )}
           </div>
+
+          <AskWhyAnswerCard
+            state={askWhyState}
+            onSubmit={onSubmitAskWhy}
+            onOpenCitation={onOpenAskWhyCitation}
+            onOpenRawDiff={onOpenRawDiff}
+            disabled={killSwitchActive}
+          />
 
           <div className="flex items-center gap-1">
             {(['executive', 'manager', 'engineer'] as const).map((option) => (
