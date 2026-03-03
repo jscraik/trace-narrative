@@ -1,6 +1,6 @@
 {
   "repo": "firefly-narrative",
-  "session_id": "repo:firefly-narrative:task:harness-optional-tailoring",
+  "session_id": "repo:firefly-narrative:task:harness-enforcement-tailoring",
   "preamble": {
     "bootstrap": true,
     "search": true
@@ -8,13 +8,13 @@
   "entries": [
     {
       "level": "observation",
-      "content": "Harness optional components are present and tailored for the firefly-narrative workflow.",
+      "content": "Harness governance components are enforced and tailored for the firefly-narrative workflow.",
       "tags": [
         "repo:firefly-narrative",
         "area:harness",
         "type:setup"
       ],
-      "session_id": "repo:firefly-narrative:task:harness-optional-tailoring",
+      "session_id": "repo:firefly-narrative:task:harness-enforcement-tailoring",
       "source": "harness init",
       "observed_at": "2026-03-03T00:00:00.000Z"
     }
