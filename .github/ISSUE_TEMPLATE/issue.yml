@@ -54,4 +54,4 @@ body:
       label: Logs/Screenshots
       description: Add any relevant logs, stack traces, terminal output, or screenshots
     validations:
-      required: false
+      required: true
