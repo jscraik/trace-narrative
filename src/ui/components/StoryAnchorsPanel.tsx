@@ -285,7 +285,7 @@ export function StoryAnchorsPanel(props: {
   // Build status summary for collapsed view
   const hooksLabel = hookInstalled === null ? 'hooks: ?' : hookInstalled ? 'hooks: on' : 'hooks: off';
   const hooksColor = hookInstalled === null ? 'text-text-muted' : hookInstalled ? 'text-accent-green' : 'text-text-muted';
-  const anchorsLabel = repoCounts ? `${repoCounts.complete}/${repoCounts.total} anchors` : '0 anchors';
+  const anchorsLabel = repoCounts ? `${repoCounts.complete}/${repoCounts.total} anchors` : '? anchors';
 
   if (!canRun) {
     return (

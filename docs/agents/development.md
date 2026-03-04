@@ -48,7 +48,7 @@
   pnpm tauri:build
   ```
 
-  Use `pnpm tauri:build:full` when you need the full signed/default Tauri build path.
+  Use `pnpm tauri:build:full` when you need the full signed/bundled build path.
 
 ## Notes
 
