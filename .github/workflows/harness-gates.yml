@@ -37,6 +37,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.5"
+
+      - name: Install ralph CLI
+        run: |
+          set -euo pipefail
+          uv tool install "ralph-gold==1.0.0"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/ralph" --version
+
       - name: Authorization gate
         run: |
           set -euo pipefail
@@ -79,6 +91,9 @@ jobs:
 
       - name: Run harness policy gates
         shell: bash
+        env:
+          HAS_DIFF_BUDGET_OVERRIDE: ${{ contains(github.event.pull_request.labels.*.name, 'diff-budget-override') }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: |
           set -euo pipefail
 
@@ -93,7 +108,23 @@ jobs:
           bash scripts/harness-cli.sh risk-tier --contract harness.contract.json --files "$FILES_CSV"
           bash scripts/harness-cli.sh policy-gate --contract harness.contract.json --files "$FILES_CSV"
           bash scripts/harness-cli.sh preflight-gate --contract harness.contract.json --files "$FILES_CSV" --head-sha "${{ github.event.pull_request.head.sha }}"
-          bash scripts/harness-cli.sh diff-budget --contract harness.contract.json --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
+
+          if [ "$HAS_DIFF_BUDGET_OVERRIDE" = "true" ]; then
+            cat > .harness/diff-budget-override.json <<JSON
+          {"reason":"Approved via diff-budget-override PR label","approvedBy":"$GITHUB_ACTOR","timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
+          JSON
+          fi
+
+          diff_budget_args=(
+            --contract harness.contract.json
+            --base "${{ github.event.pull_request.base.sha }}"
+            --head "${{ github.event.pull_request.head.sha }}"
+          )
+          if [ -f .harness/diff-budget-override.json ]; then
+            diff_budget_args+=(--override .harness/diff-budget-override.json)
+          fi
+          bash scripts/harness-cli.sh diff-budget "${diff_budget_args[@]}"
+
           bash scripts/harness-cli.sh evidence-verify --contract harness.contract.json --changed "$FILES_CSV"
 
           if [ -s .harness/changed-js-files.txt ]; then
