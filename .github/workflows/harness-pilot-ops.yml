@@ -1,0 +1,127 @@
+name: harness-pilot-ops
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Operation to run"
+        required: true
+        type: choice
+        options:
+          - gap-case-open
+          - gap-case-resolve
+          - pilot-evaluate
+      incident_id:
+        description: "Incident ID (for gap-case-open)"
+        required: false
+        type: string
+      summary:
+        description: "Summary (for gap-case-open)"
+        required: false
+        type: string
+      severity:
+        description: "Severity high|medium|low (for gap-case-open)"
+        required: false
+        type: string
+      owner:
+        description: "Owner handle (for gap-case-open)"
+        required: false
+        type: string
+      case_id:
+        description: "Case ID (for gap-case-resolve)"
+        required: false
+        type: string
+      evidence_url:
+        description: "HTTPS evidence URL (for gap-case-resolve)"
+        required: false
+        type: string
+      artifacts_dir:
+        description: "Artifacts directory (for pilot-evaluate)"
+        required: false
+        default: "artifacts/pilot"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  pilot-ops:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          run_install: false
+
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run selected operation
+        shell: bash
+        run: |
+          set -euo pipefail
+          OP="${{ inputs.operation }}"
+          INCIDENT_ID="${{ inputs.incident_id }}"
+          SUMMARY="${{ inputs.summary }}"
+          SEVERITY="${{ inputs.severity }}"
+          OWNER="${{ inputs.owner }}"
+          CASE_ID="${{ inputs.case_id }}"
+          EVIDENCE_URL="${{ inputs.evidence_url }}"
+          ARTIFACTS_DIR="${{ inputs.artifacts_dir }}"
+
+          case "$OP" in
+            gap-case-open)
+              if [ -z "$INCIDENT_ID" ] || [ -z "$SUMMARY" ] || [ -z "$SEVERITY" ] || [ -z "$OWNER" ]; then
+                echo "incident_id, summary, severity, and owner are required for gap-case-open"
+                exit 2
+              fi
+
+              bash scripts/harness-cli.sh gap-case open \
+                --contract harness.contract.json \
+                --incident-id "$INCIDENT_ID" \
+                --summary "$SUMMARY" \
+                --severity "$SEVERITY" \
+                --owner "$OWNER"
+              ;;
+
+            gap-case-resolve)
+              if [ -z "$CASE_ID" ] || [ -z "$EVIDENCE_URL" ]; then
+                echo "case_id and evidence_url are required for gap-case-resolve"
+                exit 2
+              fi
+
+              bash scripts/harness-cli.sh gap-case resolve \
+                --contract harness.contract.json \
+                --case-id "$CASE_ID" \
+                --evidence-url "$EVIDENCE_URL"
+              ;;
+
+            pilot-evaluate)
+              if [ -z "$ARTIFACTS_DIR" ]; then
+                echo "artifacts_dir is required for pilot-evaluate"
+                exit 2
+              fi
+              bash scripts/harness-cli.sh pilot-evaluate \
+                --contract harness.contract.json \
+                --artifacts "$ARTIFACTS_DIR" \
+                --output artifacts/pilot/evaluation.json
+              ;;
+
+            *)
+              echo "Unsupported operation: $OP"
+              exit 2
+              ;;
+          esac

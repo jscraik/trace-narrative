@@ -74,8 +74,8 @@
     "maxFileSizeBytes": 1048576
   },
   "diffBudget": {
-    "maxFiles": 15,
-    "maxNetLOC": 2500,
+    "maxFiles": 10,
+    "maxNetLOC": 400,
     "overrideLabel": "diff-budget-override"
   },
   "uiLoopPolicy": {
@@ -174,36 +174,5 @@
     "caseIdPrefix": "gap-",
     "caseStore": ".harness/gap-cases.json",
     "allowEvidencelessResolve": false
-  },
-  "pilotAuthzPolicy": {
-    "githubScopeAllowlist": [
-      "pull_requests:write",
-      "contents:read",
-      "issues:write"
-    ],
-    "repoAllowlist": [
-      "jscraik/firefly-narrative"
-    ],
-    "branchAllowlist": [
-      "**"
-    ],
-    "protectedBranchDenylist": [
-      "main",
-      "master",
-      "release/*"
-    ],
-    "enforceBranchProtection": true
-  },
-  "pilotGapCasePolicy": {
-    "enabled": true,
-    "defaultSlaHours": 72,
-    "requireClosureEvidence": true,
-    "storePath": ".harness/gap-cases.v1.json"
-  },
-  "pilotRollbackPolicy": {
-    "autoTrigger": true,
-    "requireManualRelease": true,
-    "completionMarkerPath": ".harness/rollback-marker.json",
-    "mode": "manual"
   }
 }

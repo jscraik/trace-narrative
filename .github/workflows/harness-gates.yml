@@ -1,0 +1,111 @@
+name: harness-gates
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  harness-gates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          run_install: false
+
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Authorization gate
+        run: |
+          set -euo pipefail
+          bash scripts/harness-cli.sh check-authz \
+            --contract harness.contract.json \
+            --repo "${{ github.repository }}" \
+            --branch "${{ github.head_ref }}"
+
+      - name: Environment gate
+        env:
+          CLAUDE_APPROVAL_POSTURE: require
+          CODEX_SANDBOX_MODE: sandboxed
+        run: |
+          set -euo pipefail
+          mkdir -p .harness
+          bash scripts/harness-cli.sh check-environment \
+            --contract harness.contract.json \
+            --attestation .harness/environment-attestation.json
+
+      - name: Memory gate
+        run: |
+          set -euo pipefail
+          bash scripts/harness-cli.sh memory-gate \
+            --memory memory.json \
+            --forjamie README.md \
+            --metrics "$RUNNER_TEMP/harness-memory-metrics.json"
+
+      - name: Collect changed files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .harness
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" | sed '/^$/d' > .harness/changed-files.txt
+
+          node -e "const fs = require('fs'); const files = fs.readFileSync('.harness/changed-files.txt', 'utf8').split(/\r?\n/).filter(Boolean); const jsFiles = files.filter((f) => /\.(?:c|m)?(?:ts|js)x?$/.test(f)); fs.writeFileSync('.harness/changed-js-files.txt', jsFiles.length > 0 ? jsFiles.join('\n') + '\n' : '');"
+
+      - name: Run harness policy gates
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -s .harness/changed-files.txt ]; then
+            echo "No changed files detected; skipping harness gates."
+            exit 0
+          fi
+
+          FILES_CSV="$(node -e "const fs=require('fs'); const files=fs.readFileSync('.harness/changed-files.txt','utf8').split(/\r?\n/).filter(Boolean); process.stdout.write(files.join(','));")"
+
+          bash scripts/harness-cli.sh blast-radius --contract harness.contract.json --files "$FILES_CSV" --verbose
+          bash scripts/harness-cli.sh risk-tier --contract harness.contract.json --files "$FILES_CSV"
+          bash scripts/harness-cli.sh policy-gate --contract harness.contract.json --files "$FILES_CSV"
+          bash scripts/harness-cli.sh preflight-gate --contract harness.contract.json --files "$FILES_CSV" --head-sha "${{ github.event.pull_request.head.sha }}"
+          bash scripts/harness-cli.sh diff-budget --contract harness.contract.json --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
+          bash scripts/harness-cli.sh evidence-verify --contract harness.contract.json --changed "$FILES_CSV"
+
+          if [ -s .harness/changed-js-files.txt ]; then
+            JS_FILES_CSV="$(node -e "const fs=require('fs'); const files=fs.readFileSync('.harness/changed-js-files.txt','utf8').split(/\r?\n/).filter(Boolean); process.stdout.write(files.join(','));")"
+            bash scripts/harness-cli.sh silent-error --files "$JS_FILES_CSV"
+          else
+            echo "No JS/TS files changed; skipping silent-error gate."
+          fi
+
+      - name: Upload harness attestation artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-environment-attestation
+          path: .harness/environment-attestation.json

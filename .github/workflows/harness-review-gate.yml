@@ -1,0 +1,67 @@
+name: harness-review-gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: number
+      check_name:
+        description: "Check run name to require"
+        required: false
+        default: "harness-gates"
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  review-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          run_install: false
+
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Resolve PR head SHA
+        id: pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEAD_SHA="$(gh api repos/${{ github.repository }}/pulls/${{ inputs.pr_number }} --jq '.head.sha')"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Run harness review gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash scripts/harness-cli.sh review-gate \
+            --token "$GITHUB_TOKEN" \
+            --owner "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --pr "${{ inputs.pr_number }}" \
+            --sha "${{ steps.pr.outputs.head_sha }}" \
+            --check "${{ inputs.check_name }}" \
+            --contract harness.contract.json
