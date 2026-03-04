@@ -11,7 +11,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -62,9 +62,10 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           mkdir -p .harness
-          FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD | tr '\n' ',' | sed 's/,$//')
-          echo "files=$FILES" >> $GITHUB_OUTPUT
-          echo "$FILES" > .harness/changed-files.txt
+          git diff --name-only "origin/$BASE_REF"...HEAD | sed '/^$/d' > .harness/changed-files.txt
+          FILES_CSV=$(node -e "const fs=require('fs');const files=fs.readFileSync('.harness/changed-files.txt','utf8').split(/\r?\n/).filter(Boolean);process.stdout.write(files.join(','));")
+          echo "files=$FILES_CSV" >> "$GITHUB_OUTPUT"
+          node -e "const fs=require('fs');const files=fs.readFileSync('.harness/changed-files.txt','utf8').split(/\r?\n/).filter(Boolean);const jsFiles=files.filter((f)=>/\\.(?:c|m)?(?:ts|js)x?$/.test(f));fs.writeFileSync('.harness/changed-js-files.txt',jsFiles.length>0?jsFiles.join('\n')+'\\n':'');"
 
       - name: Run harness policy gates
         env:
@@ -80,7 +81,11 @@ jobs:
             exit 0
           fi
 
-          FILES_CSV=$(cat .harness/changed-files.txt)
+          FILES_CSV="$(node -e "const fs=require('fs');const files=fs.readFileSync('.harness/changed-files.txt','utf8').split(/\r?\n/).filter(Boolean);process.stdout.write(files.join(','));")"
+          if [ -z "$FILES_CSV" ]; then
+            echo "No changed files detected after normalization; skipping harness gates."
+            exit 0
+          fi
 
           bash scripts/harness-cli.sh blast-radius --contract harness.contract.json --files "$FILES_CSV" --verbose
           bash scripts/harness-cli.sh risk-tier --contract harness.contract.json --files "$FILES_CSV"
@@ -105,18 +110,9 @@ jobs:
 
           bash scripts/harness-cli.sh evidence-verify --contract harness.contract.json --changed "$FILES_CSV"
 
-          # Check for JS/TS files and run silent-error check (grep may return 1 when no matches)
-          JS_TS_FOUND=false
-          if echo "$FILES_CSV" | grep -qE '\.(ts|tsx|js|jsx)' 2>/dev/null; then
-            JS_TS_FOUND=true
-          fi
-          if [ "$JS_TS_FOUND" = true ]; then
-            JS_FILES=$(echo "$FILES_CSV" | tr ',' '\n' | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ',' || true)
-            if [[ -n "$JS_FILES" && "$JS_FILES" != "," ]]; then
-              bash scripts/harness-cli.sh silent-error --files "$JS_FILES"
-            else
-              echo "No JS/TS files changed; skipping silent-error gate."
-            fi
+          if [ -s .harness/changed-js-files.txt ]; then
+            JS_FILES_CSV="$(node -e "const fs=require('fs');const files=fs.readFileSync('.harness/changed-js-files.txt','utf8').split(/\r?\n/).filter(Boolean);process.stdout.write(files.join(','));")"
+            bash scripts/harness-cli.sh silent-error --files "$JS_FILES_CSV"
           else
             echo "No JS/TS files changed; skipping silent-error gate."
           fi
