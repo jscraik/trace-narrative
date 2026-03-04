@@ -1,0 +1,83 @@
+name: greptile-rerun
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to rerun harness checks for"
+        required: true
+        type: number
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+  actions: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  rerun:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       contains(github.event.comment.body, '<!-- harness-remediation-rerun -->'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve PR number
+        id: pr
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ inputs.pr_number }}"
+          else
+            PR_NUMBER="${{ github.event.issue.number }}"
+          fi
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve PR head branch
+        id: head
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEAD_REF="$(gh api repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.pr_number }} --jq '.head.ref')"
+          echo "head_ref=$HEAD_REF" >> "$GITHUB_OUTPUT"
+
+      - name: Rerun harness checks
+        id: rerun
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rerun_workflow() {
+            local workflow="$1"
+            local run_id
+            run_id="$(gh run list --workflow "$workflow" --branch "${{ steps.head.outputs.head_ref }}" --limit 1 --json databaseId --jq '.[0].databaseId')"
+            if [ -n "$run_id" ] && [ "$run_id" != "null" ]; then
+              gh run rerun "$run_id"
+              echo "reran:$workflow:$run_id"
+            else
+              echo "missing:$workflow"
+            fi
+          }
+
+          rerun_workflow "harness-gates.yml"
+          rerun_workflow "gov-security-gates.yml"
+
+      - name: Comment rerun result
+        if: github.event_name == 'issue_comment'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh issue comment "${{ steps.pr.outputs.pr_number }}" \
+            --repo "${{ github.repository }}" \
+            --body "Harness remediation rerun requested. Attempted rerun for \`harness-gates.yml\` and \`gov-security-gates.yml\` on branch \`${{ steps.head.outputs.head_ref }}\`."

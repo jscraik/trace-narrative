@@ -65,6 +65,7 @@ tmp/
 app-state.png
 app-working.png
 .agents/
+.harness/backups/
 agentation-open.md
 annotation-form.md
 docs/exec-plans/

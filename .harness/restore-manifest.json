@@ -1,0 +1,25 @@
+{
+  "harnessVersion": "0.5.3",
+  "files": [
+    {
+      "path": "harness.contract.json",
+      "action": "modified",
+      "backupHash": "367515e7c11972e1"
+    },
+    {
+      "path": ".github/workflows/pr-pipeline.yml",
+      "action": "modified",
+      "backupHash": "e45cc7ad4955fa1d"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "action": "modified",
+      "backupHash": "eca12c0a30e25b4b"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "action": "modified",
+      "backupHash": "18813c86948efc57"
+    }
+  ]
+}

@@ -29,7 +29,7 @@ jobs:
         id: update-check
         run: |
           set -euo pipefail
-          if OUTPUT=$(pnpm exec harness init --check-updates 2>&1); then
+          if OUTPUT=$(bash scripts/harness-cli.sh init --check-updates 2>&1); then
             echo "$OUTPUT"
             if [[ "$OUTPUT" == *"Update available:"* ]]; then
               echo "has_updates=true" >> "$GITHUB_OUTPUT"
@@ -45,7 +45,7 @@ jobs:
         if: steps.update-check.outputs.has_updates == 'true'
         run: |
           set -euo pipefail
-          pnpm exec harness init --update
+          bash scripts/harness-cli.sh init --update
 
       - name: Open maintenance PR
         if: steps.update-check.outputs.has_updates == 'true'

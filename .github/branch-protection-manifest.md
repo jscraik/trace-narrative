@@ -18,6 +18,7 @@
 
 ## Required status checks (minimum)
 
+- `harness-gates`
 - `gov-security-gates`
 - Existing project checks (repo-specific CI / docs lint / build)
 
