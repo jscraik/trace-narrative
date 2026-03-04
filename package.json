@@ -115,7 +115,7 @@
   "simple-git-hooks": {
     "pre-commit": "pnpm lint && pnpm docs:lint && pnpm typecheck",
     "commit-msg": "node scripts/validate-commit-msg.js $1",
-    "pre-push": "pnpm check && pnpm test:deep"
+    "pre-push": "pnpm lint && pnpm docs:lint && pnpm typecheck && pnpm audit && pnpm test:deep"
   },
   "pnpm": {
     "overrides": {

@@ -17,6 +17,11 @@ import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 
 const PACKAGE_JSON_PATH = resolve(process.cwd(), "package.json");
+const REQUIRED_HOOKS = {
+	"pre-commit": "pnpm lint && pnpm docs:lint && pnpm typecheck",
+	"commit-msg": "node scripts/validate-commit-msg.js $1",
+	"pre-push": "pnpm lint && pnpm docs:lint && pnpm typecheck && pnpm audit && pnpm test:deep",
+};
 
 function main() {
 	if (!existsSync(PACKAGE_JSON_PATH)) {
@@ -68,17 +73,17 @@ function main() {
 		modified = true;
 	}
 
-	// Add simple-git-hooks configuration
+	// Add or align simple-git-hooks configuration with repository policy
 	if (!packageJson["simple-git-hooks"]) {
-		packageJson["simple-git-hooks"] = {
-			"pre-commit": "pnpm lint && pnpm typecheck",
-			"commit-msg": "node scripts/validate-commit-msg.js $1",
-			"pre-push": "pnpm test",
-		};
-		console.info("✓ Added simple-git-hooks configuration");
-		modified = true;
-	} else {
-		console.info("✓ simple-git-hooks configuration already exists");
+		packageJson["simple-git-hooks"] = {};
+	}
+	const hooks = packageJson["simple-git-hooks"];
+	for (const [hookName, hookCommand] of Object.entries(REQUIRED_HOOKS)) {
+		if (hooks[hookName] !== hookCommand) {
+			hooks[hookName] = hookCommand;
+			console.info(`✓ Set ${hookName} hook`);
+			modified = true;
+		}
 	}
 
 	// Write changes if modified
@@ -93,9 +98,9 @@ function main() {
 		execFileSync("pnpm", ["install"], { stdio: "inherit" });
 		console.info("\n✓ Git hooks installed and active!");
 		console.info("\nHooks enabled:");
-		console.info("  • pre-commit: pnpm lint && pnpm typecheck");
+		console.info("  • pre-commit: pnpm lint && pnpm docs:lint && pnpm typecheck");
 		console.info("  • commit-msg: validates conventional commit format");
-		console.info("  • pre-push: pnpm test");
+		console.info("  • pre-push: pnpm lint && pnpm docs:lint && pnpm typecheck && pnpm audit && pnpm test:deep");
 	} catch {
 		console.error("\n⚠️  Failed to run pnpm install. Run it manually to activate hooks.");
 	}
