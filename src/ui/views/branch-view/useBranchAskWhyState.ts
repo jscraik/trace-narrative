@@ -20,6 +20,7 @@ let globalAskWhyVersionCounter = 0;
 
 export type UseBranchAskWhyStateInput = {
   branchScopeKey: string;
+  branchScope: string;
   branchName: string | undefined;
   repoId: number | null;
   narrative: BranchNarrative;
@@ -39,6 +40,7 @@ export function useBranchAskWhyState(
 ): UseBranchAskWhyStateOutput {
   const {
     branchScopeKey,
+    branchScope,
     branchName,
     repoId,
     narrative,
@@ -49,6 +51,7 @@ export function useBranchAskWhyState(
 
   const [askWhyState, setAskWhyState] = useState<AskWhyState>({ kind: 'idle' });
   const askWhyRequestVersionRef = useRef(0);
+  const askWhyStartedAtByVersionRef = useRef(new Map<number, number>());
 
   // Reset on branch change (keep version counter monotonic via global counter)
   // biome-ignore lint/correctness/useExhaustiveDependencies: branchScopeKey intentionally triggers reset
@@ -62,8 +65,11 @@ export function useBranchAskWhyState(
     const requestVersion = ++globalAskWhyVersionCounter;
     askWhyRequestVersionRef.current = requestVersion;
     const branchScopeAtRequest = branchScopeKey;
+    const queryId = `pending-${requestVersion}`;
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    askWhyStartedAtByVersionRef.current.set(requestVersion, startedAt);
 
-    setAskWhyState({ kind: 'loading', queryId: `pending-${requestVersion}` });
+    setAskWhyState({ kind: 'loading', queryId });
 
     const askWhyInput = {
       question,
@@ -75,9 +81,18 @@ export function useBranchAskWhyState(
       const result = await composeAskWhyAnswer(askWhyInput, narrative);
 
       // Stale-guard: drop response if branch changed or newer request in flight
-      if (!isMountedRef.current) return;
-      if (activeBranchScopeRef.current !== branchScopeAtRequest) return;
-      if (askWhyRequestVersionRef.current !== requestVersion) return;
+      if (!isMountedRef.current) {
+        trackAskWhyError({ queryId, errorType: 'stale_ignored', branchScope, eventOutcome: 'stale_ignored' });
+        return;
+      }
+      if (activeBranchScopeRef.current !== branchScopeAtRequest) {
+        trackAskWhyError({ queryId, errorType: 'stale_ignored', branchScope, eventOutcome: 'stale_ignored' });
+        return;
+      }
+      if (askWhyRequestVersionRef.current !== requestVersion) {
+        trackAskWhyError({ queryId, errorType: 'stale_ignored', branchScope, eventOutcome: 'stale_ignored' });
+        return;
+      }
 
       if (result.kind === 'error') {
         setAskWhyState({
@@ -86,43 +101,67 @@ export function useBranchAskWhyState(
           errorType: result.errorType,
           message: result.message,
         });
-        trackAskWhyError({ queryId: result.queryId, errorType: result.errorType });
+        trackAskWhyError({ queryId: result.queryId, errorType: result.errorType, branchScope });
         return;
       }
 
       setAskWhyState({ kind: 'ready', answer: result.answer });
+      const startedAtForVersion = askWhyStartedAtByVersionRef.current.get(requestVersion);
+      const elapsedMs =
+        startedAtForVersion === undefined
+          ? undefined
+          : (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAtForVersion;
 
       trackAskWhySubmitted({
         queryId: result.answer.queryId,
         branchId: askWhyInput.branchId,
         questionHash: result.answer.questionHash,
+        branchScope,
+        funnelSessionId: `${branchScope}:${result.answer.queryId}`,
       });
       trackAskWhyAnswerViewed({
         queryId: result.answer.queryId,
+        branchScope,
         confidence: result.answer.confidenceBand,
         citationCount: result.answer.citations.length,
         fallbackUsed: result.answer.fallbackUsed,
+        funnelSessionId: `${branchScope}:${result.answer.queryId}`,
+        flowLatencyMs: elapsedMs,
       });
       if (result.answer.fallbackUsed && result.answer.fallbackReasonCode) {
         trackAskWhyFallbackUsed({
           queryId: result.answer.queryId,
           reasonCode: result.answer.fallbackReasonCode,
+          branchScope,
+          funnelSessionId: `${branchScope}:${result.answer.queryId}`,
         });
       }
     } catch (error) {
-      if (!isMountedRef.current) return;
-      if (activeBranchScopeRef.current !== branchScopeAtRequest) return;
-      if (askWhyRequestVersionRef.current !== requestVersion) return;
+      if (!isMountedRef.current) {
+        trackAskWhyError({ queryId, errorType: 'stale_ignored', branchScope, eventOutcome: 'stale_ignored' });
+        return;
+      }
+      if (activeBranchScopeRef.current !== branchScopeAtRequest) {
+        trackAskWhyError({ queryId, errorType: 'stale_ignored', branchScope, eventOutcome: 'stale_ignored' });
+        return;
+      }
+      if (askWhyRequestVersionRef.current !== requestVersion) {
+        trackAskWhyError({ queryId, errorType: 'stale_ignored', branchScope, eventOutcome: 'stale_ignored' });
+        return;
+      }
 
       const errorMessage = error instanceof Error ? error.message : String(error);
       setAskWhyState({
         kind: 'error',
-        queryId: `error-${requestVersion}`,
+        queryId,
         errorType: 'internal',
         message: errorMessage,
       });
+      trackAskWhyError({ queryId, errorType: 'internal', branchScope, eventOutcome: 'failed' });
+    } finally {
+      askWhyStartedAtByVersionRef.current.delete(requestVersion);
     }
-  }, [branchScopeKey, branchName, repoId, narrative, isMountedRef, activeBranchScopeRef]);
+  }, [branchScope, branchScopeKey, branchName, repoId, narrative, isMountedRef, activeBranchScopeRef]);
 
   const handleOpenAskWhyCitation = useCallback((citation: AskWhyCitation) => {
     if (activeBranchScopeRef.current !== branchScopeKey) return;
@@ -139,13 +178,15 @@ export function useBranchAskWhyState(
     if (askWhyState.kind === 'ready') {
       trackAskWhyEvidenceOpened({
         queryId: askWhyState.answer.queryId,
+        branchScope,
         citationType: citation.type,
         citationId: citation.id,
+        funnelSessionId: `${branchScope}:${askWhyState.answer.queryId}`,
       });
     }
 
     handleOpenEvidence(link);
-  }, [activeBranchScopeRef, branchScopeKey, handleOpenEvidence, askWhyState]);
+  }, [activeBranchScopeRef, branchScope, branchScopeKey, handleOpenEvidence, askWhyState]);
 
   return {
     askWhyState,

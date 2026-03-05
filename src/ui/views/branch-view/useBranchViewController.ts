@@ -3,7 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFileSelection } from '../../../core/context/FileSelectionContext';
 import { testRuns } from '../../../core/demo/nearbyGridDemo';
 import { getLatestTestRunForCommit } from '../../../core/repo/testRuns';
-import { trackNarrativeEvent } from '../../../core/telemetry/narrativeTelemetry';
+import {
+  createTelemetryBranchScope,
+  setNarrativeTelemetryRuntimeConfig,
+  trackNarrativeEvent,
+} from '../../../core/telemetry/narrativeTelemetry';
 import type {
   NarrativeDetailLevel,
   NarrativeEvidenceLink,
@@ -116,6 +120,10 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
 
   const calibrationEnabled = (import.meta.env.VITE_NARRATIVE_CALIBRATION_V1 ?? 'true') !== 'false';
   const branchScopeKey = `${model.meta?.repoPath ?? ''}:${model.meta?.branchName ?? ''}`;
+  const telemetryBranchScope = useMemo(
+    () => createTelemetryBranchScope(model.meta?.repoId ?? null, model.meta?.branchName),
+    [model.meta?.branchName, model.meta?.repoId]
+  );
   activeBranchScopeRef.current = branchScopeKey;
 
   const requestIdentityKey = useMemo(
@@ -136,6 +144,13 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
   useEffect(() => () => {
     isMountedRef.current = false;
   }, []);
+
+  useEffect(() => {
+    const consentGranted = ingestConfig?.consent.codexTelemetryGranted;
+    setNarrativeTelemetryRuntimeConfig({
+      consentGranted: consentGranted === undefined ? true : consentGranted,
+    });
+  }, [ingestConfig?.consent.codexTelemetryGranted]);
 
   // Narrative state extracted to dedicated hook
   const {
@@ -331,11 +346,14 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
   useBranchTelemetry({
     requestIdentityKey,
     branchName: model.meta?.branchName,
+    branchScope: telemetryBranchScope,
     source: model.source,
     headerViewModel,
     headerReasonCode,
     headerDerivationDurationMs: headerDerivationDurationMsRef.current,
     repoId,
+    selectedNodeId,
+    selectedFile,
     effectiveDetailLevel,
     narrative,
     rolloutReport,
@@ -371,10 +389,20 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     bumpObservability('layerSwitchedCount');
     trackNarrativeEvent('layer_switched', {
       branch: model.meta?.branchName,
+      branchScope: telemetryBranchScope,
       detailLevel: level,
       confidence: narrative.confidence,
+      eventOutcome: 'success',
     });
-  }, [bumpObservability, detailLevel, killSwitchActive, model.meta?.branchName, narrative.confidence, setDetailLevel]);
+  }, [
+    bumpObservability,
+    detailLevel,
+    killSwitchActive,
+    model.meta?.branchName,
+    narrative.confidence,
+    setDetailLevel,
+    telemetryBranchScope,
+  ]);
 
   const handleOpenRawDiff = useCallback((laneContext?: {
     source?: 'recall_lane';
@@ -392,12 +420,17 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     bumpObservability('fallbackUsedCount');
     trackNarrativeEvent('fallback_used', {
       branch: model.meta?.branchName,
+      branchScope: telemetryBranchScope,
       detailLevel: 'diff',
       confidence: narrative.confidence,
       source: laneContext?.source === 'recall_lane' ? 'recall_lane' : model.source,
       recallLaneItemId: laneContext?.recallLaneItemId,
       recallLaneConfidenceBand: laneContext?.recallLaneConfidenceBand,
       viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
+      itemId: laneContext?.recallLaneItemId ?? selectedNodeId ?? undefined,
+      funnelStep: 'evidence_requested',
+      eventOutcome: 'fallback',
+      funnelSessionId: `${telemetryBranchScope}:${selectedNodeId ?? 'none'}:${selectedFile ?? 'no-file'}`,
     });
   }, [
     bumpObservability,
@@ -407,8 +440,10 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     narrative.confidence,
     selectFile,
     selectedFile,
+    selectedNodeId,
     branchScopeKey,
     setDetailLevel,
+    telemetryBranchScope,
   ]);
 
   const handleOpenEvidence = useCallback(
@@ -428,7 +463,8 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
         setTrackingSettledNodeId(null);
         setSelectedNodeId(link.commitSha);
       }
-      if (shouldRouteEvidenceToRawDiff(link)) {
+      const routedToRawDiff = shouldRouteEvidenceToRawDiff(link);
+      if (routedToRawDiff) {
         handleOpenRawDiff(laneContext);
       }
       if (link.filePath) {
@@ -444,6 +480,11 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
         recallLaneItemId: laneContext?.recallLaneItemId,
         recallLaneConfidenceBand: laneContext?.recallLaneConfidenceBand,
         viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
+        branchScope: telemetryBranchScope,
+        itemId: link.id,
+        funnelStep: 'evidence_requested',
+        eventOutcome: routedToRawDiff ? 'fallback' : 'success',
+        funnelSessionId: `${telemetryBranchScope}:${link.id}:${selectedNodeId ?? 'none'}`,
       });
     },
     [
@@ -455,6 +496,8 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
       model.source,
       narrative.confidence,
       selectFile,
+      selectedNodeId,
+      telemetryBranchScope,
     ]
   );
 
@@ -477,6 +520,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
   // Ask-Why state extracted to dedicated hook
   const { askWhyState, handleSubmitAskWhy, handleOpenAskWhyCitation } = useBranchAskWhyState({
     branchScopeKey,
+    branchScope: telemetryBranchScope,
     branchName: model.meta?.branchName,
     repoId: model.meta?.repoId ?? null,
     narrative,

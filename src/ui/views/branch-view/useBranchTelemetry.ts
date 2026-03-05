@@ -20,11 +20,14 @@ import { createNarrativeViewInstanceId } from '../branchView.constants';
 export type UseBranchTelemetryInput = {
   requestIdentityKey: string;
   branchName: string | undefined;
+  branchScope: string;
   source: 'demo' | 'git';
   headerViewModel: BranchHeaderViewModel;
   headerReasonCode: HeaderQualityReasonCode;
   headerDerivationDurationMs: number;
   repoId: number | null;
+  selectedNodeId: string | null;
+  selectedFile: string | null;
   effectiveDetailLevel: NarrativeDetailLevel;
   narrative: BranchNarrative;
   rolloutReport: NarrativeRolloutReport;
@@ -52,11 +55,14 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
   const {
     requestIdentityKey,
     branchName,
+    branchScope,
     source,
     headerViewModel,
     headerReasonCode,
     headerDerivationDurationMs,
     repoId,
+    selectedNodeId,
+    selectedFile,
     effectiveDetailLevel,
     narrative,
     rolloutReport,
@@ -70,6 +76,7 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
   const killSwitchReasonRef = useRef<string | null>(null);
   const headerDecisionTelemetryKeyRef = useRef<string | null>(null);
   const narrativeViewedKeyRef = useRef<string | null>(null);
+  const whatReadyKeyRef = useRef<string | null>(null);
 
   // Header decision telemetry - uses canonical helper with proper event name
   useEffect(() => {
@@ -103,11 +110,54 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
 
     trackNarrativeEvent('narrative_viewed', {
       branch: branchName,
+      branchScope,
       detailLevel: effectiveDetailLevel,
       confidence: narrative.confidence,
       viewInstanceId,
+      funnelStep: 'what_ready',
+      eventOutcome: 'success',
+      itemId: selectedNodeId ?? undefined,
+      funnelSessionId: `${key}:${selectedNodeId ?? 'none'}`,
     });
-  }, [branchName, effectiveDetailLevel, narrative.confidence, narrativeViewInstanceIdRef, repoId]);
+  }, [
+    branchName,
+    branchScope,
+    effectiveDetailLevel,
+    narrative.confidence,
+    narrativeViewInstanceIdRef,
+    repoId,
+    selectedNodeId,
+  ]);
+
+  // Commit-scoped first-win anchor for timing (`what_ready`)
+  useEffect(() => {
+    if (!repoId) return;
+    if (!selectedNodeId) return;
+    const key = `${repoId}:${branchName ?? 'unknown'}:${selectedNodeId}`;
+    if (whatReadyKeyRef.current === key) return;
+    whatReadyKeyRef.current = key;
+
+    trackNarrativeEvent('what_ready', {
+      branch: branchName,
+      branchScope,
+      detailLevel: effectiveDetailLevel,
+      confidence: narrative.confidence,
+      viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
+      itemId: selectedNodeId,
+      funnelStep: 'what_ready',
+      eventOutcome: 'success',
+      funnelSessionId: `${key}:${selectedFile ?? 'no-file'}`,
+    });
+  }, [
+    branchName,
+    branchScope,
+    effectiveDetailLevel,
+    narrative.confidence,
+    narrativeViewInstanceIdRef,
+    repoId,
+    selectedFile,
+    selectedNodeId,
+  ]);
 
   // Rollout scored telemetry
   useEffect(() => {
@@ -117,11 +167,12 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
 
     trackNarrativeEvent('rollout_scored', {
       branch: branchName,
+      branchScope,
       confidence: narrative.confidence,
       rolloutStatus: rolloutReport.status,
       score: rolloutReport.averageScore,
     });
-  }, [branchName, narrative.confidence, rolloutReport.averageScore, rolloutReport.status]);
+  }, [branchName, branchScope, narrative.confidence, rolloutReport.averageScore, rolloutReport.status]);
 
   // Kill switch triggered telemetry
   useEffect(() => {
@@ -137,6 +188,7 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
 
     trackNarrativeEvent('kill_switch_triggered', {
       branch: branchName,
+      branchScope,
       confidence: narrative.confidence,
       rolloutStatus: rolloutReport.status,
       reason,
@@ -144,6 +196,7 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
   }, [
     bumpObservability,
     branchName,
+    branchScope,
     criticalRule?.id,
     killSwitchActive,
     narrative.confidence,

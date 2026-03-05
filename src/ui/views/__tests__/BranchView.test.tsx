@@ -12,6 +12,8 @@ const mockTrackAskWhyAnswerViewed = vi.hoisted(() => vi.fn());
 const mockTrackAskWhyEvidenceOpened = vi.hoisted(() => vi.fn());
 const mockTrackAskWhyFallbackUsed = vi.hoisted(() => vi.fn());
 const mockTrackAskWhyError = vi.hoisted(() => vi.fn());
+const mockSetNarrativeTelemetryRuntimeConfig = vi.hoisted(() => vi.fn());
+const mockCreateTelemetryBranchScope = vi.hoisted(() => vi.fn((_repoId?: number | null, branch?: string) => `scope:${branch ?? 'unknown'}`));
 const mockGetLatestTestRunForCommit = vi.hoisted(() => vi.fn().mockResolvedValue(null));
 let capturedOpenEvidenceHandler: ((link: { id: string; kind: string; label: string; commitSha?: string }) => void) | null = null;
 let capturedOpenRawDiffHandler: ((laneContext?: {
@@ -69,6 +71,8 @@ vi.mock("../../../core/telemetry/narrativeTelemetry", () => ({
   trackAskWhyEvidenceOpened: mockTrackAskWhyEvidenceOpened,
   trackAskWhyFallbackUsed: mockTrackAskWhyFallbackUsed,
   trackAskWhyError: mockTrackAskWhyError,
+  setNarrativeTelemetryRuntimeConfig: mockSetNarrativeTelemetryRuntimeConfig,
+  createTelemetryBranchScope: mockCreateTelemetryBranchScope,
 }));
 
 vi.mock("../../../core/repo/testRuns", () => ({
@@ -381,6 +385,7 @@ function buildProps(overrides: {
   loadTraceRangesForFile?: (nodeId: string, filePath: string) => Promise<TraceRange[]>;
   onClearFilter?: () => void;
   dashboardFilter?: { type: "file"; value: string };
+  ingestConfig?: unknown;
 } = {}) {
   return {
     model: overrides.model ?? createModel(),
@@ -394,6 +399,7 @@ function buildProps(overrides: {
     setActionError: vi.fn(),
     onClearFilter: overrides.onClearFilter,
     dashboardFilter: overrides.dashboardFilter,
+    ingestConfig: overrides.ingestConfig as never,
   };
 }
 
@@ -557,7 +563,9 @@ describe("BranchView transition and integration coverage", () => {
     });
     expect(mockTrackNarrativeEvent).toHaveBeenCalledTimes(beforeStaleCalls);
 
-    const preCurrentCalls = mockTrackNarrativeEvent.mock.calls.length;
+    const preCurrentEvidenceOpenedCalls = mockTrackNarrativeEvent.mock.calls.filter(
+      (call) => call[0] === "evidence_opened",
+    ).length;
     await act(async () => {
       capturedOpenEvidenceHandler?.({
         id: "commit:bbbb2222",
@@ -568,7 +576,9 @@ describe("BranchView transition and integration coverage", () => {
       await Promise.resolve();
     });
     await waitFor(() => {
-      expect(mockTrackNarrativeEvent).toHaveBeenCalledTimes(preCurrentCalls + 1);
+      expect(mockTrackNarrativeEvent.mock.calls.filter((call) => call[0] === "evidence_opened").length).toBe(
+        preCurrentEvidenceOpenedCalls + 1,
+      );
     });
   });
 
@@ -897,6 +907,58 @@ describe("BranchView transition and integration coverage", () => {
     const secondPayload = viewedEvents[1]?.[1] as Record<string, unknown>;
     expect(secondPayload.viewInstanceId).toEqual(expect.any(String));
     expect(secondPayload.viewInstanceId).not.toBe(firstPayload.viewInstanceId);
+  });
+
+  it("emits commit-scoped what_ready telemetry for selected commits", async () => {
+    const props = buildProps();
+    render(<BranchView {...props} />);
+
+    await waitFor(() => {
+      const whatReadyEvents = mockTrackNarrativeEvent.mock.calls.filter(([eventName]) => eventName === "what_ready");
+      expect(whatReadyEvents).toHaveLength(1);
+    });
+
+    const initialPayload = mockTrackNarrativeEvent.mock.calls.find(
+      ([eventName]) => eventName === "what_ready",
+    )?.[1] as Record<string, unknown>;
+
+    expect(initialPayload.itemId).toBe("aaaa1111");
+    expect(initialPayload.eventOutcome).toBe("success");
+    expect(initialPayload.funnelStep).toBe("what_ready");
+    expect(initialPayload.branchScope).toBe("scope:feature/race-tests");
+
+    fireEvent.click(screen.getByRole("button", { name: "Commit B" }));
+
+    await waitFor(() => {
+      const whatReadyEvents = mockTrackNarrativeEvent.mock.calls.filter(([eventName]) => eventName === "what_ready");
+      expect(whatReadyEvents).toHaveLength(2);
+    });
+  });
+
+  it("updates telemetry runtime consent config when ingest consent changes", async () => {
+    const granted = buildProps({
+      ingestConfig: {
+        consent: { codexTelemetryGranted: true },
+      },
+    });
+
+    const { rerender } = render(<BranchView {...granted} />);
+
+    await waitFor(() => {
+      expect(mockSetNarrativeTelemetryRuntimeConfig).toHaveBeenCalledWith({ consentGranted: true });
+    });
+
+    const revoked = buildProps({
+      ingestConfig: {
+        consent: { codexTelemetryGranted: false },
+      },
+    });
+
+    rerender(<BranchView {...revoked} />);
+
+    await waitFor(() => {
+      expect(mockSetNarrativeTelemetryRuntimeConfig).toHaveBeenCalledWith({ consentGranted: false });
+    });
   });
 
   it("ignores feedback submission completion after branch context changes", async () => {
