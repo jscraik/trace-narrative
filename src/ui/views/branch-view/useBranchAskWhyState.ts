@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { composeAskWhyAnswer } from '../../../core/narrative/causalRecall';
+import { composeAskWhyAnswer, fingerprintQuestion, generateQueryId } from '../../../core/narrative/causalRecall';
 import {
   trackAskWhyAnswerViewed,
   trackAskWhyError,
@@ -69,29 +69,29 @@ export function useBranchAskWhyState(
     const requestVersion = ++globalAskWhyVersionCounter;
     askWhyRequestVersionRef.current = requestVersion;
     const branchScopeAtRequest = branchScopeKey;
-    const queryId = `pending-${requestVersion}`;
-    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
-    askWhyStartedAtByVersionRef.current.set(requestVersion, startedAt);
-
-    setAskWhyState({ kind: 'loading', queryId });
-
     const askWhyInput = {
       question,
       branchId: branchName ?? 'unknown',
       repoId: repoId ?? undefined,
     };
+    const queryId = generateQueryId(askWhyInput);
+    const questionHash = fingerprintQuestion(question);
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    askWhyStartedAtByVersionRef.current.set(requestVersion, startedAt);
+
+    setAskWhyState({ kind: 'loading', queryId });
 
     trackAskWhySubmitted({
       queryId,
       attemptId,
       branchId: askWhyInput.branchId,
-      questionHash: '',
+      questionHash,
       branchScope,
       funnelSessionId: `${branchScope}:${queryId}`,
     });
 
     try {
-      const result = await composeAskWhyAnswer(askWhyInput, narrative);
+      const result = await composeAskWhyAnswer(askWhyInput, narrative, { queryId, questionHash });
 
       // Stale-guard: drop response if branch changed or newer request in flight
       if (!isMountedRef.current) {

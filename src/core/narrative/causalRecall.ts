@@ -21,9 +21,16 @@ function simpleHash(str: string): string {
   return Math.abs(hash >>> 0).toString(16).padStart(8, '0');
 }
 
+export function fingerprintQuestion(question: string): string {
+  return simpleHash(question).slice(0, 8);
+}
+
 // SHA-256 hash for question fingerprinting (per telemetry contract)
 // Returns first 8 chars of SHA-256 hex digest
 export async function hashQuestion(question: string): Promise<string> {
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    return fingerprintQuestion(question);
+  }
   const encoder = new TextEncoder();
   const data = encoder.encode(question);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -77,15 +84,19 @@ export type ComposeAskWhyResult =
 
 export async function composeAskWhyAnswer(
   input: AskWhyQuestionInput,
-  narrative: BranchNarrative
+  narrative: BranchNarrative,
+  precomputed?: {
+    queryId?: string;
+    questionHash?: string;
+  }
 ): Promise<ComposeAskWhyResult> {
-  const queryId = generateQueryId(input);
+  const queryId = precomputed?.queryId ?? generateQueryId(input);
 
   if (!input.question?.trim()) {
     return { kind: 'error', queryId, errorType: 'invalid_input', message: 'Question cannot be blank.' };
   }
 
-  const questionHash = await hashQuestion(input.question);
+  const questionHash = precomputed?.questionHash ?? await hashQuestion(input.question);
 
   if (!narrative.summary?.trim()) {
     return { kind: 'error', queryId, errorType: 'no_evidence', message: 'No narrative summary available.' };
