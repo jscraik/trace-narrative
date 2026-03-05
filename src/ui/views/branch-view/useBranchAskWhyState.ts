@@ -28,6 +28,7 @@ export type UseBranchAskWhyStateInput = {
   isMountedRef: React.MutableRefObject<boolean>;
   activeBranchScopeRef: React.MutableRefObject<string | null>;
   handleOpenEvidence: (link: NarrativeEvidenceLink) => void;
+  emitFirstWinCompleted: (eventOutcome: 'success' | 'fallback' | 'failed' | 'stale_ignored', itemId?: string) => void;
 };
 
 export type UseBranchAskWhyStateOutput = {
@@ -49,6 +50,7 @@ export function useBranchAskWhyState(
     isMountedRef,
     activeBranchScopeRef,
     handleOpenEvidence,
+    emitFirstWinCompleted,
   } = input;
 
   const [askWhyState, setAskWhyState] = useState<AskWhyState>({ kind: 'idle' });
@@ -79,6 +81,15 @@ export function useBranchAskWhyState(
       repoId: repoId ?? undefined,
     };
 
+    trackAskWhySubmitted({
+      queryId,
+      attemptId,
+      branchId: askWhyInput.branchId,
+      questionHash: '',
+      branchScope,
+      funnelSessionId: `${branchScope}:${queryId}`,
+    });
+
     try {
       const result = await composeAskWhyAnswer(askWhyInput, narrative);
 
@@ -104,6 +115,7 @@ export function useBranchAskWhyState(
           message: result.message,
         });
         trackAskWhyError({ queryId: result.queryId, attemptId, errorType: result.errorType, branchScope });
+        emitFirstWinCompleted('failed', result.queryId);
         return;
       }
 
@@ -114,14 +126,6 @@ export function useBranchAskWhyState(
           ? undefined
           : (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAtForVersion;
 
-      trackAskWhySubmitted({
-        queryId: result.answer.queryId,
-        attemptId,
-        branchId: askWhyInput.branchId,
-        questionHash: result.answer.questionHash,
-        branchScope,
-        funnelSessionId: `${branchScope}:${result.answer.queryId}`,
-      });
       trackAskWhyAnswerViewed({
         queryId: result.answer.queryId,
         attemptId,
@@ -163,10 +167,11 @@ export function useBranchAskWhyState(
         message: errorMessage,
       });
       trackAskWhyError({ queryId, attemptId, errorType: 'internal', branchScope, eventOutcome: 'failed' });
+      emitFirstWinCompleted('failed', queryId);
     } finally {
       askWhyStartedAtByVersionRef.current.delete(requestVersion);
     }
-  }, [attemptId, branchScope, branchScopeKey, branchName, repoId, narrative, isMountedRef, activeBranchScopeRef]);
+  }, [attemptId, branchScope, branchScopeKey, branchName, repoId, narrative, isMountedRef, activeBranchScopeRef, emitFirstWinCompleted]);
 
   const handleOpenAskWhyCitation = useCallback((citation: AskWhyCitation) => {
     if (activeBranchScopeRef.current !== branchScopeKey) return;

@@ -164,7 +164,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
   useEffect(() => {
     const consentGranted = ingestConfig?.consent.codexTelemetryGranted;
     setNarrativeTelemetryRuntimeConfig({
-      consentGranted: consentGranted === undefined ? true : consentGranted,
+      consentGranted: consentGranted === true,
     });
   }, [ingestConfig?.consent.codexTelemetryGranted]);
 
@@ -370,6 +370,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     headerDerivationDurationMs: headerDerivationDurationMsRef.current,
     repoId,
     selectedNodeId,
+    selectedNodeExists: selectedNodeId ? model.timeline.some((node) => node.id === selectedNodeId) : false,
     selectedFile,
     effectiveDetailLevel,
     narrative,
@@ -450,6 +451,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     source?: 'recall_lane';
     recallLaneItemId?: string;
     recallLaneConfidenceBand?: NarrativeConfidenceTier;
+    fallbackItemId?: string;
   }) => {
     if (activeBranchScopeRef.current !== branchScopeKey) {
       return;
@@ -470,12 +472,15 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
       recallLaneItemId: laneContext?.recallLaneItemId,
       recallLaneConfidenceBand: laneContext?.recallLaneConfidenceBand,
       viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
-      itemId: laneContext?.recallLaneItemId ?? selectedNodeId ?? undefined,
+      itemId: laneContext?.fallbackItemId ?? laneContext?.recallLaneItemId ?? selectedNodeId ?? undefined,
       funnelStep: 'evidence_ready',
       eventOutcome: 'fallback',
       funnelSessionId: `${telemetryBranchScope}:${selectedNodeId ?? 'none'}:${selectedFile ?? 'no-file'}`,
     });
-    emitFirstWinCompleted('fallback', laneContext?.recallLaneItemId ?? selectedNodeId ?? undefined);
+    emitFirstWinCompleted(
+      'fallback',
+      laneContext?.fallbackItemId ?? laneContext?.recallLaneItemId ?? selectedNodeId ?? undefined
+    );
   }, [
     bumpObservability,
     emitFirstWinCompleted,
@@ -511,7 +516,10 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
       }
       const routedToRawDiff = shouldRouteEvidenceToRawDiff(link);
       if (routedToRawDiff) {
-        handleOpenRawDiff(laneContext);
+        handleOpenRawDiff({
+          ...laneContext,
+          fallbackItemId: link.commitSha ?? link.id,
+        });
       }
       if (link.filePath) {
         selectFile(link.filePath);
@@ -580,6 +588,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     isMountedRef,
     activeBranchScopeRef,
     handleOpenEvidence,
+    emitFirstWinCompleted,
   });
 
   const { importJUnitForCommit } = useTestImport({

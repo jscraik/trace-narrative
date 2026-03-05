@@ -235,6 +235,12 @@ function buildTelemetrySignature(
 }
 
 function shouldDropDuplicateTerminalEvent(signature: string, nowMs: number): boolean {
+  for (const [cachedSignature, cachedAtMs] of recentTelemetrySignatures.entries()) {
+    if (nowMs - cachedAtMs > TELEMETRY_DEDUPE_WINDOW_MS) {
+      recentTelemetrySignatures.delete(cachedSignature);
+    }
+  }
+
   const previousAt = recentTelemetrySignatures.get(signature);
   recentTelemetrySignatures.set(signature, nowMs);
   if (previousAt === undefined) return false;

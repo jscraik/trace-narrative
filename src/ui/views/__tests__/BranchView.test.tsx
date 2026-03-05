@@ -613,7 +613,7 @@ describe("BranchView transition and integration coverage", () => {
       staleOpenCitation?.({ id: "commit:abc", type: "commit", label: "Commit" });
       await Promise.resolve();
     });
-    expect(mockTrackAskWhySubmitted).toHaveBeenCalledTimes(beforeStaleCalls);
+    expect(mockTrackAskWhySubmitted).toHaveBeenCalledTimes(beforeStaleCalls + 1);
 
     const preCurrentCalls = mockTrackAskWhySubmitted.mock.calls.length;
     await act(async () => {

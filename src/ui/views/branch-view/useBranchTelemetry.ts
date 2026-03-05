@@ -28,6 +28,7 @@ export type UseBranchTelemetryInput = {
   headerDerivationDurationMs: number;
   repoId: number | null;
   selectedNodeId: string | null;
+  selectedNodeExists: boolean;
   selectedFile: string | null;
   effectiveDetailLevel: NarrativeDetailLevel;
   narrative: BranchNarrative;
@@ -64,6 +65,7 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
     headerDerivationDurationMs,
     repoId,
     selectedNodeId,
+    selectedNodeExists,
     selectedFile,
     effectiveDetailLevel,
     narrative,
@@ -137,6 +139,7 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
   useEffect(() => {
     if (!repoId) return;
     if (!selectedNodeId) return;
+    if (!selectedNodeExists) return;
     const key = `${repoId}:${branchName ?? 'unknown'}:${selectedNodeId}`;
     if (whatReadyKeyRef.current === key) return;
     whatReadyKeyRef.current = key;
@@ -163,6 +166,7 @@ export function useBranchTelemetry(input: UseBranchTelemetryInput): void {
     repoId,
     selectedFile,
     selectedNodeId,
+    selectedNodeExists,
   ]);
 
   // Rollout scored telemetry
