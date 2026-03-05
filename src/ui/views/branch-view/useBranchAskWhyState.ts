@@ -146,6 +146,7 @@ export function useBranchAskWhyState(
         });
       }
     } catch (error) {
+      console.error('[narrative] ask-why composition failed', error);
       if (!isMountedRef.current) {
         trackAskWhyError({ queryId, attemptId, errorType: 'stale_ignored', branchScope, eventOutcome: 'stale_ignored' });
         return;
@@ -159,7 +160,6 @@ export function useBranchAskWhyState(
         return;
       }
 
-      console.error('[narrative] ask-why composition failed', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       setAskWhyState({
         kind: 'error',
