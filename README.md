@@ -152,7 +152,7 @@ Then open a git repository and see your commit history come to life with narrati
 - [Testing Guide](docs/agents/testing.md) — Running tests and type checks.
 - [Repository Structure](docs/agents/repo-structure.md) — Codebase layout overview.
 - [Frontend Website Rules](docs/agents/frontend-website-rules.md) — Standalone landing-page workflow, screenshot conventions, and visual review.
-- [Landing Page Separation](docs/agents/landing-page-separation.md) — Scope split between standalone landing work and in-app Tauri UI changes.
+- [Landing Page Separation](docs/agents/landing-page-separation.md) — Scope split between standalone landing work and in-app tauri UI changes.
 
 ---
 

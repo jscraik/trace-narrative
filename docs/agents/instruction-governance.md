@@ -13,9 +13,9 @@ schema_version: 1
 
 ## Contradictions (resolved)
 
-- [RESOLVED] Frontend website rules are scoped to standalone landing-page work only, not default in-app Tauri UI edits.
+- [RESOLVED] Frontend website rules are scoped to standalone landing-page work only, not default in-app tauri UI edits.
 - [RESOLVED] This repository is repo-specific; repo-local instructions override config-repo essentials from `/Users/jamiecraik/.codex/AGENTS.md` when they differ (for example package manager and command set).
-- [RESOLVED] Frontend rules are scoped for landing-page/web-only work only, especially for the planned separation of the landing page from the Tauri app.
+- [RESOLVED] Frontend rules are scoped for landing-page/web-only work only, especially for the planned separation of the landing page from the tauri app.
 
 ## Flag for deletion candidates
 

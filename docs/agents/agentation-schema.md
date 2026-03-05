@@ -119,9 +119,9 @@ Configure the MCP server in `~/.claude/settings.json` for Claude Code integratio
 
 ---
 
-## Troubleshooting: Webhook/Websocket panel empty on startup
+## Troubleshooting: Webhook/websocket panel empty on startup
 
-If the Agentation panel shows no webhook URL or a blank websocket field:
+If the agentation panel shows no webhook URL or a blank websocket field:
 
 1. Verify the dev env var is loaded:
 
@@ -149,7 +149,7 @@ Expected:
 - Webhook URL is present and points to `http://localhost:8787`.
 - Submitting an annotation triggers a local POST to `http://localhost:8787`.
 
-Note: if `VITE_AGENTATION_ENDPOINT` is unset, the Agentation panel stays disabled to keep local baseline runs free of expected connection-refused noise.
+Note: if `VITE_AGENTATION_ENDPOINT` is unset, the agentation panel stays disabled to keep local baseline runs free of expected connection-refused noise.
 
 In this repo the app also falls back to `http://localhost:8787` if the env var is unset, but setting it explicitly keeps automation reliable across shells.
 

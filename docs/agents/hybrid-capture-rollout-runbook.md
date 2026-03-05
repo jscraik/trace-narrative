@@ -98,7 +98,7 @@ Use these gates before widening release:
   1. Add new signer ID to trusted set.
   2. Generate new manifest signature with new signer ID.
   3. Update CI gate to require signature/checksum pass.
-  4. Promote rollout only after canary pass.
+  4. Promote Rollout only after canary pass.
 - Emergency revocation workflow:
   1. Add compromised signer to revoked set.
   2. Re-sign manifest with healthy signer.
@@ -109,7 +109,7 @@ Use these gates before widening release:
 - Promotion path is fixed and automated:
   1. **5% cohort for 24h**
   2. **25% cohort for 24h**
-  3. **100% rollout**
+  3. **100% Rollout**
 - Promotion preconditions:
   - all CP0.5 trust checks are green;
   - canary artifacts pass `pnpm tauri:verify-rollout-artifacts`;
@@ -130,7 +130,7 @@ Auto-halt and rollback are mandatory when any threshold is breached in the 24h c
 | `auth_failure_rate` | `> 0.01` | Halt promotion + rollback |
 | `crash_loop_count` | `> 0` | Immediate rollback and disable stream enrichment |
 
-Owner/on-call and rollback authority: **Jamie Craik**.
+Owner/on-call and rollback authority: **Jamie craik**.
 
 ## Canary Artifact Contract
 
@@ -195,7 +195,7 @@ Hard gate checks:
   - immediate action: halt promotion, enable kill-switch fallback, roll back cohort
 - **Validation window & owner**
   - window: minimum 24h per canary stage, 168h soak for 100%
-  - owner: Jamie Craik
+  - owner: Jamie craik
 
 ## Emergency OTEL-Only Fallback
 

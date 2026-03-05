@@ -20,14 +20,14 @@ schema_version: 1
 
 ## Scope and when to apply
 
-- Use these rules when the task is a **standalone frontend webpage**, such as a marketing or landing page, or when the user explicitly requests a web-page build/delta that is not embedded directly in the Tauri app UI.
-- These rules are especially for the planned landing-page separation from the Tauri app.
-- For in-app Tauri UI work, follow `docs/agents/tauri.md` and the app-level implementation docs unless the task explicitly asks for landing-page matching workflows.
+- Use these rules when the task is a **standalone frontend webpage**, such as a marketing or landing page, or when the user explicitly requests a web-page build/delta that is not embedded directly in the tauri app UI.
+- These rules are especially for the planned landing-page separation from the tauri app.
+- For in-app tauri UI work, follow `docs/agents/tauri.md` and the app-level implementation docs unless the task explicitly asks for landing-page matching workflows.
 
 ## Mandatory Workflow Snippet
 
 - Explore project first, then invoke skill.
-- IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any React, Tauri, Apps-SDK-ui, Tailwind, Vite, Storybook + Chat Widget tasks.
+- IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any React, tauri, Apps-SDK-ui, Tailwind, Vite, Storybook + Chat Widget tasks.
 - Add a Table of Contents for docs.
 
 ## Always Do First
@@ -99,6 +99,6 @@ schema_version: 1
 
 - **Resolved items:**
   - `serve.mjs` and `screenshot.mjs` are now present in repository root and satisfy the screenshot workflow command requirements.
-  - Frontend workflow applies to the separated landing page build context and is not the default mode for in-app Tauri UI edits unless explicitly requested.
+  - Frontend workflow applies to the separated landing page build context and is not the default mode for in-app tauri UI edits unless explicitly requested.
 - **Flag-for-deletion candidates (redundant/unclear):**
   - Reconcile wording for `design-system` references to one canonical path/source.

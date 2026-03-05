@@ -14,13 +14,13 @@ schema_version: 1
 
 ## Scope
 
-This document governs **landing-page work after the UI split** from the Tauri app shell.
+This document governs **landing-page work after the UI split** from the tauri app shell.
 
 - In-scope:
   - Marketing pages, public product landing pages, and standalone marketing web entry points.
   - Visual matching tasks that target screenshot parity for the new web page.
 - Out-of-scope:
-  - In-app Tauri UI views, dialogs, and shell workflows.
+  - In-app tauri UI views, dialogs, and shell workflows.
 
 ## Hard Boundary
 
