@@ -3,6 +3,9 @@
   "riskTierRules": {
     "src/auth/**": "high",
     "src/api/**": "high",
+    "src/core/security/**": "high",
+    "src/core/repo/traceIngest.ts": "high",
+    "src/core/repo/agentTrace.ts": "high",
     "src/lib/**": "medium",
     "**/*.test.ts": "low"
   },
