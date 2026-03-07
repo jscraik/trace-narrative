@@ -33,6 +33,36 @@ import { useBranchFeedbackHandler } from './useBranchFeedbackHandler';
 import { useBranchNarrativeState } from './useBranchNarrativeState';
 import { useBranchTelemetry } from './useBranchTelemetry';
 import { useBranchSelectionData } from './useBranchSelectionData';
+import type { CaptureReliabilityStatus } from '../../../core/tauri/ingestConfig';
+import type { TrustState } from '../../components/TrustStateIndicator';
+
+/**
+ * Derive the trust state from capture reliability status for the TrustStateIndicator.
+ * Maps the internal app server state to the UI-facing trust state.
+ */
+function deriveTrustStateFromCaptureStatus(status: CaptureReliabilityStatus | null | undefined): TrustState {
+  if (!status) return 'none';
+
+  // Map FAILURE mode to trust_paused
+  if (status.mode === 'FAILURE') return 'trust_paused';
+
+  // Map degraded streaming or unhealthy stream to trust_paused
+  if (status.mode === 'DEGRADED_STREAMING' || (status.streamExpected && !status.streamHealthy)) {
+    return 'trust_paused';
+  }
+
+  // Map hybrid active with healthy stream to live_trusted
+  if (status.mode === 'HYBRID_ACTIVE' && status.streamHealthy) {
+    return 'live_trusted';
+  }
+
+  // Default to hydrating for otel-only mode or when stream is expected but not yet confirmed
+  if (status.streamExpected) {
+    return 'hydrating';
+  }
+
+  return 'none';
+}
 
 export function useBranchViewController(props: BranchViewProps): ComponentProps<typeof BranchViewLayout> {
   const {
@@ -719,6 +749,17 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
       onOpenRawDiff: handleOpenRawDiff,
       onSubmitAskWhy: handleSubmitAskWhy,
       onOpenAskWhyCitation: handleOpenAskWhyCitation,
+      // Phase 4: Trust-state props for recovery UI
+      trustState: captureReliabilityStatus?.appServer
+        ? deriveTrustStateFromCaptureStatus(captureReliabilityStatus)
+        : 'none',
+      activeThreadId: captureReliabilityStatus?.appServer?.lastTransitionAtIso
+        ? `checkpoint:${captureReliabilityStatus.appServer.lastTransitionAtIso}`
+        : null,
+      captureReliabilityStatus,
+      codexAppServerStatus: captureReliabilityStatus?.appServer ?? null,
+      onRetryHydrate: onRefreshCaptureReliability,
+      onClearStaleState: onRefreshCaptureReliability,
     },
     governanceProps: { report: rolloutReport, observability },
     archaeologyProps: { entries: archaeologyEntries, onOpenEvidence: handleOpenEvidence },

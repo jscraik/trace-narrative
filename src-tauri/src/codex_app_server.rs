@@ -1499,6 +1499,27 @@ fn cancel_pending_rpcs(runtime: &mut CodexAppServerRuntime, reason: &str) -> usi
     cancelled
 }
 
+/// Cancel a single pending RPC by request ID.
+/// Returns true if the RPC was found and cancelled, false otherwise.
+fn cancel_pending_rpc_by_id(
+    runtime: &mut CodexAppServerRuntime,
+    request_id: i64,
+    reason: &str,
+) -> bool {
+    let id = request_id.to_string();
+    if let Some(request) = runtime.pending_rpcs.remove(&id) {
+        if matches!(request.kind, PendingRpcKind::ThreadRead) {
+            runtime
+                .thread_read_errors
+                .insert(id, "thread/read request cancelled".to_string());
+        }
+        increment_labeled_counter(&mut runtime.parse_error_total, reason);
+        true
+    } else {
+        false
+    }
+}
+
 fn remember_approval_decision(
     runtime: &mut CodexAppServerRuntime,
     payload: &LiveSessionEventPayload,
@@ -3977,14 +3998,22 @@ pub fn codex_app_server_request_thread_snapshot(
     };
 
     // Only prepare checkpoint after access is validated
-    prepare_thread_snapshot_checkpoint_blocking(&app_handle, &request_thread_id)
-        .map_err(|err| format!("failed to prepare trust recovery checkpoint: {err}"))?;
-    persist_inflight_thread_snapshot_checkpoint_blocking(
+    if let Err(err) = prepare_thread_snapshot_checkpoint_blocking(&app_handle, &request_thread_id) {
+        // Cancel the queued RPC to prevent orphaned pending requests on DB write failure
+        let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+        cancel_pending_rpc_by_id(&mut runtime, request_id, "checkpoint_prepare_failed");
+        return Err(format!("failed to prepare trust recovery checkpoint: {err}"));
+    }
+    if let Err(err) = persist_inflight_thread_snapshot_checkpoint_blocking(
         &app_handle,
         &request_thread_id,
         request_id,
-    )
-    .map_err(|err| format!("failed to persist inflight trust recovery checkpoint: {err}"))?;
+    ) {
+        // Cancel the queued RPC to prevent orphaned pending requests on DB write failure
+        let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
+        cancel_pending_rpc_by_id(&mut runtime, request_id, "checkpoint_persist_failed");
+        return Err(format!("failed to persist inflight trust recovery checkpoint: {err}"));
+    }
 
     let response = wait_for_thread_read_response(
         &state.inner,
