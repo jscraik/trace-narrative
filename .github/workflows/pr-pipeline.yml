@@ -103,6 +103,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Run fast preflight policy gate
@@ -195,6 +199,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Prepare baseline seed fallback
@@ -265,6 +273,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Detect baseline seed
@@ -329,6 +341,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Run lint
@@ -345,6 +361,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Run typecheck
@@ -361,6 +381,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Run tests
@@ -377,6 +401,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Run audit
@@ -393,6 +421,10 @@ jobs:
           node-version: "24"
       - name: Enable corepack
         run: corepack enable
+      - name: Configure npm auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NPM_TOKEN" ] && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc || true'
       - name: Install dependencies
         run: pnpm install
       - name: Run full check
