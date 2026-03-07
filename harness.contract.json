@@ -238,7 +238,9 @@
       "contents:read",
       "issues:write"
     ],
-    "repoAllowlist": [],
+    "repoAllowlist": [
+      "jscraik/trace-narrative"
+    ],
     "branchAllowlist": [],
     "protectedBranchDenylist": [
       "main",
