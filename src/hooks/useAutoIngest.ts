@@ -10,6 +10,7 @@ import {
   configureCodexOtel,
   codexAppServerInitialize,
   codexAppServerInitialized,
+  codexAppServerLoadThreadRecoveryCheckpoint,
   codexAppServerLoginStart,
   codexAppServerLogout,
   discoverCaptureSources,
@@ -120,6 +121,13 @@ export function useAutoIngest(params: {
   const reliabilityRefreshInFlightRef = useRef(false);
   const isMountedRef = useRef(true);
 
+  // --- PHASE 2: Thread tracking for recovery checkpoint integration ---
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const lastActiveThreadIdRef = useRef<string | null>(null);
+  const [trustState, setTrustState] = useState<
+    'none' | 'hydrating' | 'replaying' | 'live_trusted' | 'trust_paused'
+  >('none');
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -147,6 +155,44 @@ export function useAutoIngest(params: {
     }
   }, [repoId]);
 
+  // --- PHASE 2: Define recordIssue before use in loadRecoveryCheckpoint ---
+  const recordIssue = useCallback((title: string, message: string, action?: IngestIssue['action']) => {
+    if (!isMountedRef.current) return;
+    idCounter.current += 1;
+    const id = `${Date.now()}-${idCounter.current}`;
+    setIssues((prev) => {
+      if (prev.some((issue) => issue.title === title && issue.message === message)) {
+        return prev;
+      }
+      setStatus((prevStatus) => ({ ...prevStatus, errorCount: prevStatus.errorCount + 1 }));
+      return [{ id, title, message, action }, ...prev];
+    });
+  }, []);
+
+  // --- PHASE 2: Load recovery checkpoint when active thread changes ---
+  const loadRecoveryCheckpoint = useCallback(async (threadId: string) => {
+    if (!isMountedRef.current) return;
+    try {
+      const checkpointStatus = await codexAppServerLoadThreadRecoveryCheckpoint(threadId);
+      if (!isMountedRef.current) return;
+      setTrustState(checkpointStatus.trustStateRecommendation);
+      // If checkpoint requires fresh retry, we could trigger additional UI feedback here
+      if (checkpointStatus.requiresFreshRetry && checkpointStatus.freshRetryReason) {
+        recordIssue('Thread recovery requires fresh retry', checkpointStatus.freshRetryReason);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      recordIssue('Failed to load thread recovery checkpoint', message);
+    }
+  }, [recordIssue]);
+
+  // --- PHASE 2: Load recovery checkpoint when active thread changes ---
+  useEffect(() => {
+    if (!activeThreadId || activeThreadId === lastActiveThreadIdRef.current) return;
+    lastActiveThreadIdRef.current = activeThreadId;
+    void loadRecoveryCheckpoint(activeThreadId);
+  }, [activeThreadId, loadRecoveryCheckpoint]);
+
   const watchPaths = useMemo(() => {
     if (!config) return [];
     const base = [...config.watchPaths.claude, ...config.watchPaths.cursor];
@@ -161,18 +207,6 @@ export function useAutoIngest(params: {
     await refreshSessionBadges(repoRoot, repoId, model.timeline, setRepoState, { limit: 10 });
   }, [repoRoot, repoId, model.timeline, setRepoState]);
 
-  const recordIssue = useCallback((title: string, message: string, action?: IngestIssue['action']) => {
-    if (!isMountedRef.current) return;
-    idCounter.current += 1;
-    const id = `${Date.now()}-${idCounter.current}`;
-    setIssues((prev) => {
-      if (prev.some((issue) => issue.title === title && issue.message === message)) {
-        return prev;
-      }
-      setStatus((prevStatus) => ({ ...prevStatus, errorCount: prevStatus.errorCount + 1 }));
-      return [{ id, title, message, action }, ...prev];
-    });
-  }, []);
 
   const refreshReliability = useCallback(async () => {
     if (reliabilityRefreshInFlightRef.current) return;
@@ -316,6 +350,13 @@ export function useAutoIngest(params: {
           if (cancelled) return;
           if (event.payload.type === 'ParserValidationError') {
             recordIssue('Codex App Server parser validation error', event.payload.reason);
+          }
+          // --- PHASE 2: Track threadId from live events for recovery checkpoint loading ---
+          if (
+            (event.payload.type === 'SessionDelta' || event.payload.type === 'ApprovalRequest') &&
+            event.payload.threadId
+          ) {
+            setActiveThreadId(event.payload.threadId);
           }
           void refreshReliability();
         });
@@ -665,6 +706,9 @@ export function useAutoIngest(params: {
     migrateCollector,
     rollbackCollector,
     refreshCaptureReliability: refreshReliability,
-    dismissIssue
+    dismissIssue,
+    // --- PHASE 2: Recovery checkpoint state ---
+    activeThreadId,
+    trustState
   };
 }

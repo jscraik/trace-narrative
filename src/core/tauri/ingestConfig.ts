@@ -87,6 +87,28 @@ export type CodexAccountStatus = {
   supportedModes: string[];
 };
 
+/// Recovery checkpoint persisted to SQLite for trust-first replay recovery.
+/// Used at startup/restart to determine if prior session state can be resumed.
+export type RecoveryCheckpoint = {
+  threadId: string | null;
+  lastAppliedEventSeq: number | null;
+  replayCursor: string | null;
+  inflightEffectIds: string[];
+  checkpointWrittenAtIso: string;
+  schemaVersion: number;
+};
+
+/// Status response when loading a thread's recovery checkpoint at startup.
+/// Call this after handshake completes to determine trust state before hydrate.
+export type CodexThreadRecoveryCheckpointStatus = {
+  threadId: string;
+  checkpointExists: boolean;
+  requiresFreshRetry: boolean;
+  trustStateRecommendation: 'none' | 'hydrating' | 'replaying' | 'live_trusted' | 'trust_paused';
+  checkpoint: RecoveryCheckpoint | null;
+  freshRetryReason: string | null;
+};
+
 export type CaptureReliabilityStatus = {
   mode: 'OTEL_ONLY' | 'HYBRID_ACTIVE' | 'DEGRADED_STREAMING' | 'FAILURE';
   otelBaselineHealthy: boolean;
@@ -281,6 +303,29 @@ export async function codexAppServerSubmitApproval(
     approved,
     reason,
   });
+}
+
+/// Request a thread snapshot from the Codex app server.
+/// This hydrates thread history from the sidecar for trust-first replay.
+/// Checkpoints are automatically persisted before/after the request.
+export async function codexAppServerRequestThreadSnapshot(
+  threadId: string,
+): Promise<Record<string, unknown>> {
+  return await invoke<Record<string, unknown>>('codex_app_server_request_thread_snapshot', {
+    threadId,
+  });
+}
+
+/// Load the recovery checkpoint for a thread at startup/restart.
+/// Call this after handshake completes to determine trust state before hydrate.
+/// Returns checkpoint status with trust state recommendation for the frontend.
+export async function codexAppServerLoadThreadRecoveryCheckpoint(
+  threadId: string,
+): Promise<CodexThreadRecoveryCheckpointStatus> {
+  return await invoke<CodexThreadRecoveryCheckpointStatus>(
+    'codex_app_server_load_thread_recovery_checkpoint',
+    { threadId },
+  );
 }
 
 export async function getCaptureReliabilityStatus(): Promise<CaptureReliabilityStatus> {
