@@ -14,6 +14,7 @@ mod linking;
 mod models;
 mod otlp_receiver;
 mod recovery_checkpoint;
+pub mod approval_ledger;
 mod rules;
 mod secret_store;
 mod session_hash;
@@ -216,6 +217,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             version: 16,
             description: "add_trust_recovery_checkpoints",
             sql: include_str!("../migrations/016_trust_recovery_checkpoints.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 17,
+            description: "add_approval_ledger",
+            sql: include_str!("../migrations/017_approval_ledger.sql"),
             kind: MigrationKind::Up,
         },
     ];
