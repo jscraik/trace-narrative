@@ -15,6 +15,7 @@ pub const TRUST_PAUSE_REASON_RUNTIME_PROTOCOL_ERROR: &str = "runtime_protocol_er
 pub const TRUST_PAUSE_REASON_HYDRATE_FAILED: &str = "hydrate_failed";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RecoveryCheckpoint {
     pub thread_id: Option<String>,
     pub last_applied_event_seq: Option<u64>,
