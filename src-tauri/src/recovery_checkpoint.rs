@@ -394,7 +394,7 @@ fn checkpoint_from_row(row: sqlx::sqlite::SqliteRow) -> Result<RecoveryCheckpoin
     })
 }
 
-fn extract_optional_string(value: &Value, fields: &[&str]) -> Option<String> {
+pub(crate) fn extract_optional_string(value: &Value, fields: &[&str]) -> Option<String> {
     fields.iter().find_map(|field| {
         value
             .get(field)

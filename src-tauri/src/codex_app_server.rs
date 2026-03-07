@@ -1,8 +1,8 @@
 use crate::recovery_checkpoint::{
-    begin_fresh_retry, checkpoint_from_thread_snapshot_result, load_recovery_checkpoint,
-    new_recovery_checkpoint, requires_fresh_retry, upsert_recovery_checkpoint, RecoveryCheckpoint,
-    TRUST_PAUSE_REASON_HYDRATE_FAILED, TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT,
-    TRUST_PAUSE_REASON_THREAD_MISMATCH,
+    begin_fresh_retry, checkpoint_from_thread_snapshot_result, extract_optional_string,
+    load_recovery_checkpoint, new_recovery_checkpoint, requires_fresh_retry,
+    upsert_recovery_checkpoint, RecoveryCheckpoint, TRUST_PAUSE_REASON_HYDRATE_FAILED,
+    TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT, TRUST_PAUSE_REASON_THREAD_MISMATCH,
 };
 use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
@@ -2838,11 +2838,22 @@ fn persist_inflight_thread_snapshot_checkpoint_blocking(
 
 fn persist_thread_snapshot_success_checkpoint_blocking(
     app_handle: &AppHandle,
-    thread_id: &str,
+    requested_thread_id: &str,
     result: &serde_json::Value,
 ) -> Result<RecoveryCheckpoint, String> {
+    // SECURITY: Validate response thread_id matches requested thread_id
+    // to prevent stale responses from overwriting the wrong checkpoint
+    let response_thread_id = extract_optional_string(result, &["threadId", "thread_id"]);
+    if let Some(ref response_tid) = response_thread_id {
+        if response_tid != requested_thread_id {
+            return Err(format!(
+                "stale thread snapshot response: expected thread_id={requested_thread_id}, got thread_id={response_tid}"
+            ));
+        }
+    }
+
     let checkpoint =
-        checkpoint_from_thread_snapshot_result(thread_id, result, &now_iso(), Vec::new());
+        checkpoint_from_thread_snapshot_result(requested_thread_id, result, &now_iso(), Vec::new());
     upsert_recovery_checkpoint_blocking(app_handle, &checkpoint)?;
     Ok(checkpoint)
 }
