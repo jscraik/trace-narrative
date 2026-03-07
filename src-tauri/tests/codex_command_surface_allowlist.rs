@@ -39,6 +39,7 @@ fn codex_app_server_command_surface_is_allowlisted() {
         "codex_app_server_account_read".to_string(),
         "codex_app_server_initialize".to_string(),
         "codex_app_server_initialized".to_string(),
+        "codex_app_server_load_thread_recovery_checkpoint".to_string(),
         "codex_app_server_request_thread_snapshot".to_string(),
         "codex_app_server_set_stream_kill_switch".to_string(),
         "codex_app_server_submit_approval".to_string(),
