@@ -2803,18 +2803,20 @@ fn prepare_thread_snapshot_checkpoint_blocking(
     app_handle: &AppHandle,
     thread_id: &str,
 ) -> Result<RecoveryCheckpoint, String> {
-    let existing = load_recovery_checkpoint_blocking(app_handle, thread_id)?;
-    let checkpoint_written_at_iso = now_iso();
-    let checkpoint = match existing {
-        Some(existing) if crate::recovery_checkpoint::requires_fresh_retry(&existing, None) => {
-            begin_fresh_retry(&existing, &checkpoint_written_at_iso)
-        }
-        Some(existing) => existing,
-        None => new_recovery_checkpoint(thread_id, &checkpoint_written_at_iso),
+    let Some(pool) = with_db_pool(app_handle) else {
+        // Fallback to non-persistent checkpoint if DB unavailable
+        let checkpoint_written_at_iso = now_iso();
+        return Ok(new_recovery_checkpoint(thread_id, &checkpoint_written_at_iso));
     };
 
-    upsert_recovery_checkpoint_blocking(app_handle, &checkpoint)?;
-    Ok(checkpoint)
+    let checkpoint_written_at_iso = now_iso();
+    tauri::async_runtime::block_on(
+        crate::recovery_checkpoint::prepare_recovery_checkpoint_atomic(
+            &pool,
+            thread_id,
+            &checkpoint_written_at_iso,
+        ),
+    )
 }
 
 fn persist_inflight_thread_snapshot_checkpoint_blocking(

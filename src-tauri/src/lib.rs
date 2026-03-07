@@ -358,9 +358,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             let pool = tauri::async_runtime::block_on(async {
                 // Create database if it doesn't exist, then connect
                 // WAL mode enables better concurrency for reads/writes
+                use std::time::Duration;
+
                 let options = SqliteConnectOptions::new()
                     .filename(&path)
                     .journal_mode(SqliteJournalMode::Wal)
+                    .synchronous(sqlx::sqlite::SqliteSynchronous::Full)
+                    .busy_timeout(Duration::from_secs(5))
                     .create_if_missing(true);
 
                 let pool = SqlitePool::connect_with(options)
@@ -369,6 +373,11 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                         eprintln!("Narrative: Database connection failed: {}", e);
                         format!("Failed to connect to database: {}. Please check file permissions and disk space.", e)
                     })?;
+
+                // Enable foreign key constraints for this connection
+                if let Err(e) = sqlx::query("PRAGMA foreign_keys = ON").execute(&pool).await {
+                    eprintln!("Narrative: Failed to enable foreign keys: {}", e);
+                }
 
                 if let Err(e) = ensure_session_links_schema(&pool).await {
                     eprintln!("Narrative: Failed to ensure session_links schema: {}", e);

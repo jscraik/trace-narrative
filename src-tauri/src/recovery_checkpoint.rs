@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -137,6 +135,11 @@ pub async fn upsert_recovery_checkpoint(
     let inflight_effect_ids = serde_json::to_string(&checkpoint.inflight_effect_ids)
         .map_err(|e| format!("failed to serialize checkpoint inflight effects: {e}"))?;
 
+    let mut tx = pool
+        .begin()
+        .await
+        .map_err(|e| format!("failed to begin transaction: {e}"))?;
+
     sqlx::query(
         r#"
         INSERT INTO trust_recovery_checkpoints (
@@ -161,11 +164,108 @@ pub async fn upsert_recovery_checkpoint(
     .bind(inflight_effect_ids)
     .bind(&checkpoint.checkpoint_written_at_iso)
     .bind(checkpoint.schema_version as i64)
-    .execute(pool)
+    .execute(&mut *tx)
     .await
     .map_err(|e| format!("failed to upsert trust recovery checkpoint: {e}"))?;
 
+    tx.commit()
+        .await
+        .map_err(|e| format!("failed to commit checkpoint transaction: {e}"))?;
+
     Ok(())
+}
+
+/// Atomically prepare a recovery checkpoint for a thread snapshot.
+///
+/// This function performs a read-modify-write operation within a transaction,
+/// eliminating the race condition between loading and updating the checkpoint.
+///
+/// # Arguments
+/// * `pool` - The SQLite connection pool
+/// * `thread_id` - The thread ID to prepare the checkpoint for
+/// * `checkpoint_written_at_iso` - The ISO timestamp for the checkpoint
+///
+/// # Returns
+/// The prepared checkpoint (either fresh or existing)
+pub async fn prepare_recovery_checkpoint_atomic(
+    pool: &SqlitePool,
+    thread_id: &str,
+    checkpoint_written_at_iso: &str,
+) -> Result<RecoveryCheckpoint, String> {
+    let normalized_thread_id = normalize_thread_id(thread_id)?;
+
+    let mut tx = pool
+        .begin()
+        .await
+        .map_err(|e| format!("failed to begin transaction: {e}"))?;
+
+    // Load existing checkpoint within the transaction (acquires lock)
+    let existing: Option<RecoveryCheckpoint> = sqlx::query(
+        r#"
+        SELECT
+          thread_id,
+          last_applied_event_seq,
+          replay_cursor,
+          inflight_effect_ids,
+          checkpoint_written_at_iso,
+          schema_version
+        FROM trust_recovery_checkpoints
+        WHERE thread_id = ?
+        "#,
+    )
+    .bind(&normalized_thread_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| format!("failed to load checkpoint in transaction: {e}"))?
+    .map(checkpoint_from_row)
+    .transpose()?;
+
+    // Determine the checkpoint to use
+    let checkpoint = match existing {
+        Some(ref existing) if requires_fresh_retry(existing, None) => {
+            begin_fresh_retry(existing, checkpoint_written_at_iso)
+        }
+        Some(existing) => existing,
+        None => new_recovery_checkpoint(thread_id, checkpoint_written_at_iso),
+    };
+
+    // Serialize and persist within the same transaction
+    let inflight_effect_ids = serde_json::to_string(&checkpoint.inflight_effect_ids)
+        .map_err(|e| format!("failed to serialize checkpoint inflight effects: {e}"))?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO trust_recovery_checkpoints (
+          thread_id,
+          last_applied_event_seq,
+          replay_cursor,
+          inflight_effect_ids,
+          checkpoint_written_at_iso,
+          schema_version
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(thread_id) DO UPDATE SET
+          last_applied_event_seq = excluded.last_applied_event_seq,
+          replay_cursor = excluded.replay_cursor,
+          inflight_effect_ids = excluded.inflight_effect_ids,
+          checkpoint_written_at_iso = excluded.checkpoint_written_at_iso,
+          schema_version = excluded.schema_version
+        "#,
+    )
+    .bind(&normalized_thread_id)
+    .bind(checkpoint.last_applied_event_seq.map(|value| value as i64))
+    .bind(checkpoint.replay_cursor.as_deref())
+    .bind(inflight_effect_ids)
+    .bind(&checkpoint.checkpoint_written_at_iso)
+    .bind(checkpoint.schema_version as i64)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| format!("failed to upsert checkpoint in transaction: {e}"))?;
+
+    tx.commit()
+        .await
+        .map_err(|e| format!("failed to commit prepare transaction: {e}"))?;
+
+    Ok(checkpoint)
 }
 
 pub async fn load_recovery_checkpoint(
@@ -199,11 +299,21 @@ pub async fn delete_recovery_checkpoint(
     thread_id: &str,
 ) -> Result<bool, String> {
     let thread_id = normalize_thread_id(thread_id)?;
+
+    let mut tx = pool
+        .begin()
+        .await
+        .map_err(|e| format!("failed to begin transaction: {e}"))?;
+
     let result = sqlx::query("DELETE FROM trust_recovery_checkpoints WHERE thread_id = ?")
         .bind(thread_id)
-        .execute(pool)
+        .execute(&mut *tx)
         .await
         .map_err(|e| format!("failed to delete trust recovery checkpoint: {e}"))?;
+
+    tx.commit()
+        .await
+        .map_err(|e| format!("failed to commit delete transaction: {e}"))?;
 
     Ok(result.rows_affected() > 0)
 }
