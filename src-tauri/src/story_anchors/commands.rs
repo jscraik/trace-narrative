@@ -37,10 +37,7 @@ fn find_packaged_narrative_cli(app: &tauri::AppHandle) -> Option<PathBuf> {
 
     // Bundled CLI binaries can land in either `resources/bin` (when explicitly
     // configured) or directly under `resources` on some bundle layouts.
-    let bin_candidate_dirs = [
-        resource_dir.join("bin"),
-        resource_dir,
-    ];
+    let bin_candidate_dirs = [resource_dir.join("bin"), resource_dir];
     for dir in bin_candidate_dirs {
         push_narrative_cli_candidates(&dir, &mut candidates);
     }

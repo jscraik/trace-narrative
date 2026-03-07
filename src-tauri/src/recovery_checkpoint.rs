@@ -22,6 +22,9 @@ pub struct RecoveryCheckpoint {
     pub inflight_effect_ids: Vec<String>,
     pub checkpoint_written_at_iso: String,
     pub schema_version: u32,
+    /// Trust pause reason carried forward to prevent misclassification on restart
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trust_pause_reason: Option<String>,
 }
 
 pub fn new_recovery_checkpoint(
@@ -35,6 +38,7 @@ pub fn new_recovery_checkpoint(
         inflight_effect_ids: Vec::new(),
         checkpoint_written_at_iso: checkpoint_written_at_iso.to_string(),
         schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+        trust_pause_reason: None,
     }
 }
 
@@ -60,6 +64,11 @@ pub fn requires_fresh_retry(
         return true;
     }
 
+    // Unresolved inflight effects require fresh retry (partial state after crash)
+    if !checkpoint.inflight_effect_ids.is_empty() {
+        return true;
+    }
+
     matches!(
         trust_pause_reason,
         Some(
@@ -78,6 +87,7 @@ pub fn requires_fresh_retry(
 pub fn begin_fresh_retry(
     checkpoint: &RecoveryCheckpoint,
     checkpoint_written_at_iso: &str,
+    trust_pause_reason: Option<&str>,
 ) -> RecoveryCheckpoint {
     RecoveryCheckpoint {
         thread_id: checkpoint.thread_id.clone(),
@@ -86,6 +96,7 @@ pub fn begin_fresh_retry(
         inflight_effect_ids: Vec::new(),
         checkpoint_written_at_iso: checkpoint_written_at_iso.to_string(),
         schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+        trust_pause_reason: trust_pause_reason.map(|s| s.to_string()),
     }
 }
 
@@ -95,8 +106,9 @@ pub fn checkpoint_from_thread_snapshot_result(
     checkpoint_written_at_iso: &str,
     inflight_effect_ids: Vec<String>,
 ) -> RecoveryCheckpoint {
-    let thread_id = extract_optional_string(result, &["threadId", "thread_id"])
-        .unwrap_or_else(|| requested_thread_id.to_string());
+    // SECURITY: Always use requested_thread_id as storage key to prevent
+    // overwriting another thread's recovery state on threadId mismatch
+    let _thread_id_from_response = extract_optional_string(result, &["threadId", "thread_id"]);
     let last_applied_event_seq = extract_optional_u64(
         result,
         &[
@@ -111,12 +123,13 @@ pub fn checkpoint_from_thread_snapshot_result(
         extract_optional_string(result, &["replayCursor", "replay_cursor", "cursor"]);
 
     RecoveryCheckpoint {
-        thread_id: Some(thread_id),
+        thread_id: Some(requested_thread_id.to_string()),
         last_applied_event_seq,
         replay_cursor,
         inflight_effect_ids,
         checkpoint_written_at_iso: checkpoint_written_at_iso.to_string(),
         schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+        trust_pause_reason: None,
     }
 }
 
@@ -148,14 +161,16 @@ pub async fn upsert_recovery_checkpoint(
           replay_cursor,
           inflight_effect_ids,
           checkpoint_written_at_iso,
-          schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?)
+          schema_version,
+          trust_pause_reason
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(thread_id) DO UPDATE SET
           last_applied_event_seq = excluded.last_applied_event_seq,
           replay_cursor = excluded.replay_cursor,
           inflight_effect_ids = excluded.inflight_effect_ids,
           checkpoint_written_at_iso = excluded.checkpoint_written_at_iso,
-          schema_version = excluded.schema_version
+          schema_version = excluded.schema_version,
+          trust_pause_reason = excluded.trust_pause_reason
         "#,
     )
     .bind(thread_id)
@@ -164,6 +179,7 @@ pub async fn upsert_recovery_checkpoint(
     .bind(inflight_effect_ids)
     .bind(&checkpoint.checkpoint_written_at_iso)
     .bind(checkpoint.schema_version as i64)
+    .bind(checkpoint.trust_pause_reason.as_deref())
     .execute(&mut *tx)
     .await
     .map_err(|e| format!("failed to upsert trust recovery checkpoint: {e}"))?;
@@ -208,7 +224,8 @@ pub async fn prepare_recovery_checkpoint_atomic(
           replay_cursor,
           inflight_effect_ids,
           checkpoint_written_at_iso,
-          schema_version
+          schema_version,
+          trust_pause_reason
         FROM trust_recovery_checkpoints
         WHERE thread_id = ?
         "#,
@@ -222,8 +239,8 @@ pub async fn prepare_recovery_checkpoint_atomic(
 
     // Determine the checkpoint to use
     let checkpoint = match existing {
-        Some(ref existing) if requires_fresh_retry(existing, None) => {
-            begin_fresh_retry(existing, checkpoint_written_at_iso)
+        Some(ref existing) if requires_fresh_retry(existing, existing.trust_pause_reason.as_deref()) => {
+            begin_fresh_retry(existing, checkpoint_written_at_iso, existing.trust_pause_reason.as_deref())
         }
         Some(existing) => existing,
         None => new_recovery_checkpoint(thread_id, checkpoint_written_at_iso),
@@ -241,14 +258,16 @@ pub async fn prepare_recovery_checkpoint_atomic(
           replay_cursor,
           inflight_effect_ids,
           checkpoint_written_at_iso,
-          schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?)
+          schema_version,
+          trust_pause_reason
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(thread_id) DO UPDATE SET
           last_applied_event_seq = excluded.last_applied_event_seq,
           replay_cursor = excluded.replay_cursor,
           inflight_effect_ids = excluded.inflight_effect_ids,
           checkpoint_written_at_iso = excluded.checkpoint_written_at_iso,
-          schema_version = excluded.schema_version
+          schema_version = excluded.schema_version,
+          trust_pause_reason = excluded.trust_pause_reason
         "#,
     )
     .bind(&normalized_thread_id)
@@ -257,6 +276,7 @@ pub async fn prepare_recovery_checkpoint_atomic(
     .bind(inflight_effect_ids)
     .bind(&checkpoint.checkpoint_written_at_iso)
     .bind(checkpoint.schema_version as i64)
+    .bind(checkpoint.trust_pause_reason.as_deref())
     .execute(&mut *tx)
     .await
     .map_err(|e| format!("failed to upsert checkpoint in transaction: {e}"))?;
@@ -281,7 +301,8 @@ pub async fn load_recovery_checkpoint(
           replay_cursor,
           inflight_effect_ids,
           checkpoint_written_at_iso,
-          schema_version
+          schema_version,
+          trust_pause_reason
         FROM trust_recovery_checkpoints
         WHERE thread_id = ?
         "#,
@@ -367,6 +388,9 @@ fn checkpoint_from_row(row: sqlx::sqlite::SqliteRow) -> Result<RecoveryCheckpoin
             .try_get::<i64, _>("schema_version")
             .map_err(|e| format!("failed to read checkpoint schema_version: {e}"))?
             as u32,
+        trust_pause_reason: row
+            .try_get::<Option<String>, _>("trust_pause_reason")
+            .map_err(|e| format!("failed to read checkpoint trust_pause_reason: {e}"))?,
     })
 }
 
@@ -449,6 +473,12 @@ mod tests {
         .execute(&pool)
         .await
         .expect("checkpoint migration applies");
+        sqlx::query(include_str!(
+            "../migrations/017_trust_recovery_pause_reason.sql"
+        ))
+        .execute(&pool)
+        .await
+        .expect("checkpoint migration applies");
         pool
     }
 
@@ -461,6 +491,7 @@ mod tests {
             inflight_effect_ids: vec!["approval:req_1".to_string(), "rpc:thread-read".to_string()],
             checkpoint_written_at_iso: "2026-03-07T02:10:00.000Z".to_string(),
             schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+            trust_pause_reason: Some(TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT.to_string()),
         };
 
         let encoded = serde_json::to_string(&checkpoint).expect("checkpoint should serialize");
@@ -479,6 +510,7 @@ mod tests {
             inflight_effect_ids: vec!["approval:req_timeout".to_string()],
             checkpoint_written_at_iso: "2026-03-07T02:11:00.000Z".to_string(),
             schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+            trust_pause_reason: Some(TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT.to_string()),
         };
 
         assert!(requires_fresh_retry(
@@ -486,7 +518,7 @@ mod tests {
             Some(TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT)
         ));
 
-        let retry_checkpoint = begin_fresh_retry(&persisted, "2026-03-07T02:12:00.000Z");
+        let retry_checkpoint = begin_fresh_retry(&persisted, "2026-03-07T02:12:00.000Z", Some(TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT));
         assert_eq!(retry_checkpoint.thread_id.as_deref(), Some("thread_456"));
         assert_eq!(retry_checkpoint.last_applied_event_seq, None);
         assert_eq!(retry_checkpoint.replay_cursor, None);
@@ -498,6 +530,10 @@ mod tests {
         assert_eq!(
             retry_checkpoint.schema_version,
             RECOVERY_CHECKPOINT_SCHEMA_VERSION
+        );
+        assert_eq!(
+            retry_checkpoint.trust_pause_reason.as_deref(),
+            Some(TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT)
         );
 
         let encoded = serde_json::to_string(&retry_checkpoint)
@@ -516,8 +552,25 @@ mod tests {
             inflight_effect_ids: vec![],
             checkpoint_written_at_iso: "2026-03-07T02:13:00.000Z".to_string(),
             schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION + 1,
+            trust_pause_reason: None,
         };
 
+        assert!(requires_fresh_retry(&checkpoint, None));
+    }
+
+    #[test]
+    fn inflight_effects_require_fresh_retry() {
+        let checkpoint = RecoveryCheckpoint {
+            thread_id: Some("thread_inflight".to_string()),
+            last_applied_event_seq: Some(50),
+            replay_cursor: Some("cursor:50".to_string()),
+            inflight_effect_ids: vec!["rpc:thread-read:123".to_string()],
+            checkpoint_written_at_iso: "2026-03-07T02:14:00.000Z".to_string(),
+            schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+            trust_pause_reason: None,
+        };
+
+        // Should require fresh retry due to inflight effects
         assert!(requires_fresh_retry(&checkpoint, None));
     }
 
@@ -526,7 +579,7 @@ mod tests {
         let checkpoint = checkpoint_from_thread_snapshot_result(
             "thread_requested",
             &json!({
-                "threadId": "thread_runtime",
+                "threadId": "thread_runtime_mismatch",
                 "lastAppliedEventSeq": 41,
                 "replayCursor": "cursor:41",
                 "items": [{ "sequenceId": 41 }]
@@ -535,7 +588,8 @@ mod tests {
             vec![],
         );
 
-        assert_eq!(checkpoint.thread_id.as_deref(), Some("thread_runtime"));
+        // SECURITY: Should use requested thread ID, not response threadId (prevents cross-thread overwrite)
+        assert_eq!(checkpoint.thread_id.as_deref(), Some("thread_requested"));
         assert_eq!(checkpoint.last_applied_event_seq, Some(41));
         assert_eq!(checkpoint.replay_cursor.as_deref(), Some("cursor:41"));
         assert!(checkpoint.inflight_effect_ids.is_empty());
@@ -552,6 +606,7 @@ mod tests {
                 inflight_effect_ids: vec!["rpc:thread-read:7".to_string()],
                 checkpoint_written_at_iso: "2026-03-07T03:10:00.000Z".to_string(),
                 schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+                trust_pause_reason: Some(TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT.to_string()),
             };
 
             upsert_recovery_checkpoint(&pool, &checkpoint)
@@ -597,7 +652,7 @@ mod tests {
                 .await
                 .expect("runtime checkpoint loads")
                 .expect("runtime checkpoint row present");
-            let fresh_retry = begin_fresh_retry(&persisted, "2026-03-07T03:16:00.000Z");
+            let fresh_retry = begin_fresh_retry(&persisted, "2026-03-07T03:16:00.000Z", Some(TRUST_PAUSE_REASON_SNAPSHOT_TIMEOUT));
             upsert_recovery_checkpoint(&pool, &fresh_retry)
                 .await
                 .expect("fresh retry checkpoint persists");

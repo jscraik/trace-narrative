@@ -2854,9 +2854,9 @@ fn persist_thread_snapshot_failure_checkpoint_blocking(
 ) -> Result<RecoveryCheckpoint, String> {
     let existing = load_recovery_checkpoint_blocking(app_handle, thread_id)?
         .unwrap_or_else(|| new_recovery_checkpoint(thread_id, &now_iso()));
-    let checkpoint = begin_fresh_retry(&existing, &now_iso());
-
     let reason = checkpoint_retry_reason_for_thread_read_error(error);
+    let checkpoint = begin_fresh_retry(&existing, &now_iso(), Some(reason));
+
     if !crate::recovery_checkpoint::requires_fresh_retry(&existing, Some(reason)) {
         return Ok(existing);
     }
@@ -3930,9 +3930,7 @@ pub fn codex_app_server_request_thread_snapshot(
         return Err("threadId is required".to_string());
     }
 
-    prepare_thread_snapshot_checkpoint_blocking(&app_handle, &request_thread_id)
-        .map_err(|err| format!("failed to prepare trust recovery checkpoint: {err}"))?;
-
+    // Validate access BEFORE preparing checkpoint to avoid writing state for denied requests
     let request_id = {
         let mut runtime = state.inner.lock().map_err(|e| e.to_string())?;
         assert_thread_snapshot_access(&runtime)?;
@@ -3943,6 +3941,10 @@ pub fn codex_app_server_request_thread_snapshot(
             PendingRpcKind::ThreadRead,
         )?
     };
+
+    // Only prepare checkpoint after access is validated
+    prepare_thread_snapshot_checkpoint_blocking(&app_handle, &request_thread_id)
+        .map_err(|err| format!("failed to prepare trust recovery checkpoint: {err}"))?;
     persist_inflight_thread_snapshot_checkpoint_blocking(
         &app_handle,
         &request_thread_id,
@@ -5742,6 +5744,7 @@ mod tests {
             inflight_effect_ids: vec![],
             checkpoint_written_at_iso: "2026-03-07T04:00:00.000Z".to_string(),
             schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION + 99,
+            trust_pause_reason: None,
         };
         let reason = determine_fresh_retry_reason(&bad_schema);
         assert!(reason.contains("schema version"));
@@ -5755,6 +5758,7 @@ mod tests {
             inflight_effect_ids: vec![],
             checkpoint_written_at_iso: "2026-03-07T04:00:00.000Z".to_string(),
             schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+            trust_pause_reason: None,
         };
         let reason = determine_fresh_retry_reason(&no_thread);
         assert!(reason.contains("missing or empty thread_id"));
@@ -5767,6 +5771,7 @@ mod tests {
             inflight_effect_ids: vec![],
             checkpoint_written_at_iso: "2026-03-07T04:00:00.000Z".to_string(),
             schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+            trust_pause_reason: None,
         };
         let reason = determine_fresh_retry_reason(&no_cursor);
         assert!(reason.contains("no replay cursor"));
@@ -5801,6 +5806,7 @@ mod tests {
             inflight_effect_ids: vec![],
             checkpoint_written_at_iso: "2026-03-07T04:00:00.000Z".to_string(),
             schema_version: RECOVERY_CHECKPOINT_SCHEMA_VERSION,
+            trust_pause_reason: None,
         };
         let needs_retry = CodexThreadRecoveryCheckpointStatus {
             thread_id: "thread_corrupted".to_string(),

@@ -107,7 +107,8 @@ fn codex_app_server_schema_contract_matches_runtime_and_bridge_surfaces() {
         "runtime missing method-not-found response path for unknown sidecar requests"
     );
     assert!(
-        runtime_source.contains("approval request must include requestId/request_id or envelope id"),
+        runtime_source
+            .contains("approval request must include requestId/request_id or envelope id"),
         "runtime missing approval request id fallback validation message"
     );
     assert!(
