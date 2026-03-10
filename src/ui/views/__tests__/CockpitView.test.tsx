@@ -167,7 +167,7 @@ describe('CockpitView', () => {
     expect(captureModeCard).toHaveAttribute('data-authority-tier', 'derived_summary');
     expect(captureModeCard).toHaveAttribute('data-authority-label', 'Derived from baseline OTEL-only telemetry');
 
-    const derivedLabelElements = screen.getAllByLabelText(/Data authority: Derived/i);
+    const derivedLabelElements = captureModeCard.querySelectorAll('[data-authority-short-label="Derived"]');
     expect(derivedLabelElements.length).toBeGreaterThan(0);
   });
 
@@ -186,10 +186,17 @@ describe('CockpitView', () => {
     const cueElements = document.querySelectorAll('[data-authority-tier][data-authority-label]');
     expect(cueElements.length).toBeGreaterThan(0);
 
-    const cueBadges = screen.getAllByLabelText(/Data authority:/i);
+    const cueBadges = document.querySelectorAll('[data-authority-short-label]');
     expect(cueBadges.length).toBe(cueElements.length);
 
     const allowed = new Set(['live_repo', 'live_capture', 'derived_summary', 'static_scaffold']);
+    const shortLabelByTier: Record<string, string> = {
+      live_repo: 'Repo',
+      live_capture: 'Live',
+      derived_summary: 'Derived',
+      static_scaffold: 'Preview',
+    };
+
     cueElements.forEach((el) => {
       const tier = el.getAttribute('data-authority-tier');
       const label = el.getAttribute('data-authority-label');
@@ -200,7 +207,17 @@ describe('CockpitView', () => {
       if (label === null) {
         throw new Error('Expected data-authority-label attribute to be present');
       }
-      expect(el).toHaveTextContent(label);
+      const expectedShortLabel = shortLabelByTier[tier as keyof typeof shortLabelByTier];
+      if (expectedShortLabel === undefined) {
+        throw new Error(`Unknown authority tier: ${tier}`);
+      }
+      const cue = el.querySelector('[data-authority-short-label]');
+      expect(cue).toBeTruthy();
+      if (label && label.length > 0) {
+        expect(cue).toHaveTextContent(label);
+      } else {
+        expect(cue).toHaveTextContent(expectedShortLabel);
+      }
     });
   });
 });
