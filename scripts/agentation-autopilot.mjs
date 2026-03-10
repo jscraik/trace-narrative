@@ -304,6 +304,16 @@ async function processJob(body) {
 }
 
 const server = http.createServer(async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ ok: true, service: 'agentation-autopilot', method: req.method }));
@@ -318,7 +328,7 @@ const server = http.createServer(async (req, res) => {
   req.on('end', async () => {
     const parsed = safeJsonParse(raw || '{}');
     if (!parsed.ok) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
       res.end(JSON.stringify({ ok: false, error: 'invalid_json' }));
       return;
     }
@@ -327,7 +337,7 @@ const server = http.createServer(async (req, res) => {
     const event = eventName(payload);
 
     if (!TRIGGER_EVENTS.has(event)) {
-      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.writeHead(202, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
       res.end(JSON.stringify({ ok: true, ignored: true, event, trigger_events: [...TRIGGER_EVENTS] }));
       return;
     }
@@ -340,7 +350,7 @@ const server = http.createServer(async (req, res) => {
       });
     });
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({ ok: true, accepted: true, event, mode: MODE }));
   });
 });

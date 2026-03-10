@@ -14,7 +14,7 @@ import type {
   NarrativeConfidenceTier,
   TestRun,
 } from '../../../core/types';
-import { useFirefly } from '../../../hooks/useFirefly';
+import { useTraceSignal } from '../../../hooks/useTraceSignal';
 import { useTestImport } from '../../../hooks/useTestImport';
 import {
   createBranchHeaderRequestIdentityKey,
@@ -22,7 +22,7 @@ import {
   deriveLegacyBranchHeaderViewModel,
 } from '../../components/branchHeaderMapper';
 import type { RightPanelTabs } from '../../components/RightPanelTabs';
-import type { FireflyTrackingSettlePayload, Timeline } from '../../components/Timeline';
+import type { TraceSignalTrackingSettlePayload, Timeline } from '../../components/Timeline';
 import type { BranchViewLayout } from '../BranchViewLayout';
 import { TIMING } from '../branchView.constants';
 import { shouldRouteEvidenceToRawDiff } from '../branchViewEvidence';
@@ -310,11 +310,11 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     setActionError,
   });
 
-  const reportFireflyError = useCallback((message: string) => {
+  const reportTraceSignalError = useCallback((message: string) => {
     setActionError(message);
   }, [setActionError]);
 
-  const firefly = useFirefly({
+  const traceSignal = useTraceSignal({
     selectedNodeId,
     selectedCommitSha,
     hasSelectedFile: Boolean(selectedFile),
@@ -324,7 +324,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     loadingTrace,
     traceRequestedForSelection,
     traceSummary: selectedCommitSha ? model.traceSummaries?.byCommit[selectedCommitSha] : undefined,
-    onPersistenceError: reportFireflyError,
+    onPersistenceError: reportTraceSignalError,
   });
 
   const demoTestRun = useMemo((): TestRun | undefined => {
@@ -601,7 +601,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     onRunOtlpSmokeTest(selectedNodeId, files);
   }, [files, onRunOtlpSmokeTest, selectedNodeId]);
 
-  const handleFireflyTrackingSettled = useCallback((payload: FireflyTrackingSettlePayload) => {
+  const handleTraceSignalTrackingSettled = useCallback((payload: TraceSignalTrackingSettlePayload) => {
     if (!selectedNodeId) return;
     if (payload.selectedNodeId !== selectedNodeId) return;
     setTrackingSettledNodeId(payload.selectedNodeId);
@@ -634,8 +634,8 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     if (!selectedCommitSha) return;
     await importJUnitForCommit(selectedCommitSha);
     await refreshRepoTestRun();
-    firefly.triggerBurst('success');
-  }, [firefly, importJUnitForCommit, model.source, refreshRepoTestRun, repoId, selectedCommitSha]);
+    traceSignal.triggerBurst('success');
+  }, [traceSignal, importJUnitForCommit, model.source, refreshRepoTestRun, repoId, selectedCommitSha]);
 
   const captureActivityProps = ingestStatus ? {
     enabled: ingestStatus.enabled,
@@ -709,8 +709,8 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     diffText,
     loadingDiff: loadingDiff || loadingTrace,
     traceRanges,
-    fireflyEnabled: firefly.enabled,
-    onToggleFirefly: firefly.toggle,
+    fireflyEnabled: traceSignal.enabled,
+    onToggleFirefly: traceSignal.toggle,
   };
 
   const timelineProps: ComponentProps<typeof Timeline> = {
@@ -718,10 +718,10 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     selectedId: selectedNodeId,
     onSelect: handleSelectNode,
     pulseCommitId,
-    fireflyEvent: firefly.event,
-    fireflyDisabled: !firefly.enabled,
-    fireflyBurstType: firefly.burstType,
-    onFireflyTrackingSettled: handleFireflyTrackingSettled,
+    traceSignalEvent: traceSignal.event,
+    traceSignalDisabled: !traceSignal.enabled,
+    traceSignalBurstType: traceSignal.burstType,
+    onTraceSignalTrackingSettled: handleTraceSignalTrackingSettled,
   };
 
   return {

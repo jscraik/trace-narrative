@@ -52,17 +52,42 @@ export type AskWhyTelemetryPayload = {
   flowLatencyMs?: number;
 };
 
+export type DashboardTelemetryEventName =
+  | 'dashboard_retry_budget_exhausted'
+  | 'dashboard_state_transition'
+  | 'dashboard_action'
+  | 'dashboard_source_authority'
+  | 'dashboard_command_authority_denied'
+  | 'open_repo'
+  | 'import_session'
+  | 'permission_denied'
+  | 'apply_filter'
+  | 'clear_filter'
+  | 'view_activity';
+
 // Combined telemetry event names for dispatch
 export type NarrativeTelemetryEventNameAll =
   | NarrativeTelemetryEventName
-  | AskWhyTelemetryEventName;
+  | AskWhyTelemetryEventName
+  | DashboardTelemetryEventName;
+
+type DashboardTelemetryPayload = Record<string, unknown>;
+
+// Canonical envelope fields shared across all telemetry
+export interface CanonicalTelemetryEnvelope {
+  session_id?: string;
+  request_key_hash?: string;
+  attempt?: number;
+  mode?: string;
+  window_id?: string;
+  ts_iso8601: string;
+}
 
 // Telemetry event structure
-type NarrativeTelemetryEventDetail = {
+export type NarrativeTelemetryEventDetail = CanonicalTelemetryEnvelope & {
   schemaVersion: NarrativeTelemetrySchemaVersion;
   event: NarrativeTelemetryEventNameAll;
-  payload: NarrativeTelemetryPayload | AskWhyTelemetryPayload;
-  atISO: string;
+  payload: NarrativeTelemetryPayload | AskWhyTelemetryPayload | DashboardTelemetryPayload;
 };
 
 declare global {
@@ -272,19 +297,44 @@ function validatePayload(
   return true;
 }
 
-function dispatchNarrativeTelemetry(
+let currentSessionId: string | undefined;
+let activeWindowId: string | undefined;
+let appMode: string | undefined;
+
+export function setTelemetryContext(context: { sessionId?: string; windowId?: string; mode?: string }) {
+  if (context.sessionId) currentSessionId = context.sessionId;
+  if (context.windowId) activeWindowId = context.windowId;
+  if (context.mode) appMode = context.mode;
+}
+
+export function dispatchNarrativeTelemetry(
   event: NarrativeTelemetryEventNameAll,
-  payload: NarrativeTelemetryPayload | AskWhyTelemetryPayload
+  payload: NarrativeTelemetryPayload | AskWhyTelemetryPayload | DashboardTelemetryPayload,
+  envelopeOverrides?: Partial<CanonicalTelemetryEnvelope>
 ) {
   if (typeof window === 'undefined') return;
   if (!runtimeConfig.consentGranted) return;
 
-  const sanitizedPayload = sanitizePayloadValue(payload) as NarrativeTelemetryPayload | AskWhyTelemetryPayload;
-  if (!validatePayload(event, sanitizedPayload)) return;
+  const sanitizedPayload = sanitizePayloadValue(payload);
+  const normalizedPayload = toRecordPayload(sanitizedPayload);
+  const validatablePayload = isValidatable(normalizedPayload);
 
-  const signature = buildTelemetrySignature(event, sanitizedPayload);
+  // NOTE: For now, payload validation works for known types. Dashboard events skip validation or are validated elsewhere.
+  if (validatablePayload && !validatePayload(event, validatablePayload)) return;
+
+  const signature = validatablePayload ? buildTelemetrySignature(event, validatablePayload) : null;
   if (signature && shouldDropDuplicateTerminalEvent(signature, Date.now())) {
     return;
+  }
+
+  // Canonical envelope required by Phase 4 spec
+  const ts_iso8601 = new Date().toISOString();
+
+  // Ensure request_key is hashed if present in payload overrides
+  let request_key_hash = envelopeOverrides?.request_key_hash;
+  const requestKey = normalizedPayload.request_key;
+  if (!request_key_hash && typeof requestKey === 'string') {
+    request_key_hash = hashString(requestKey);
   }
 
   window.dispatchEvent(
@@ -292,12 +342,37 @@ function dispatchNarrativeTelemetry(
       detail: {
         schemaVersion: 'v1' as NarrativeTelemetrySchemaVersion,
         event,
-        payload: sanitizedPayload,
-        atISO: new Date().toISOString(),
-      },
+        payload: normalizedPayload,
+        session_id: envelopeOverrides?.session_id || currentSessionId,
+        request_key_hash,
+        attempt:
+          envelopeOverrides?.attempt ||
+          (typeof normalizedPayload.attemptId === 'string' ? 1 : undefined),
+        mode: envelopeOverrides?.mode || appMode || 'default',
+        window_id: envelopeOverrides?.window_id || activeWindowId || crypto.randomUUID(),
+        ts_iso8601,
+      } as NarrativeTelemetryEventDetail,
     })
   );
 }
+
+function isValidatable(payload: Record<string, unknown>): payload is NarrativeTelemetryPayload | AskWhyTelemetryPayload {
+  return (
+    typeof payload === 'object' &&
+    payload !== null &&
+    ('eventOutcome' in payload || 'funnelStep' in payload || 'branchScope' in payload || 'attemptId' in payload)
+  );
+}
+
+function toRecordPayload(
+  payload: unknown
+): NarrativeTelemetryPayload | AskWhyTelemetryPayload | DashboardTelemetryPayload {
+  if (typeof payload === 'object' && payload !== null && !Array.isArray(payload)) {
+    return payload as NarrativeTelemetryPayload | AskWhyTelemetryPayload | DashboardTelemetryPayload;
+  }
+  return {};
+}
+
 
 function hashString(value: string): string {
   let hash = 2166136261;
@@ -470,4 +545,29 @@ export function trackAskWhyError(input: TrackAskWhyErrorInput) {
     funnelStep: 'why_ready',
     eventOutcome: input.eventOutcome ?? 'failed',
   });
+}
+
+// ============================================================================
+// Dashboard Telemetry Tracking Functions
+// ============================================================================
+
+export type TrackDashboardEventInput = {
+  event: DashboardTelemetryEventName;
+  payload?: Record<string, unknown>;
+  envelopeOverrides?: Partial<CanonicalTelemetryEnvelope>;
+};
+
+export function trackDashboardEvent(input: TrackDashboardEventInput) {
+  // If we have a repo_id, we hash it if it's not a known numeric ID format, but here the spec says:
+  // "Enforce hashing/enum requirements for repo_id, request_key, scope, capability, and window."
+  const finalPayload = { ...input.payload };
+  if (finalPayload.repo_id !== undefined) {
+    if (typeof finalPayload.repo_id === 'number') {
+      finalPayload.repo_id = `r${finalPayload.repo_id}`;
+    } else {
+      finalPayload.repo_id = hashString(String(finalPayload.repo_id));
+    }
+  }
+
+  dispatchNarrativeTelemetry(input.event, finalPayload, input.envelopeOverrides);
 }

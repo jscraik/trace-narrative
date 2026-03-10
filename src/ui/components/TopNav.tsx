@@ -1,9 +1,10 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import clsx from 'clsx';
-import { BarChart3, BookOpen, FileText, FolderOpen, GitBranch, LayoutGrid } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { BarChart3, BookOpen, FileText, FolderOpen, GitBranch } from 'lucide-react';
+import type { KeyboardEvent, ReactNode } from 'react';
 
-export type Mode = 'demo' | 'repo' | 'docs' | 'dashboard';
+import type { Mode } from '../../core/types';
+
 
 export function TopNav(props: {
   mode: Mode;
@@ -47,10 +48,10 @@ export function TopNav(props: {
     </button>
   );
 
-  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
-    const order: Mode[] = ['demo', 'repo', 'dashboard', 'docs'];
+    const order: Mode[] = ['repo', 'dashboard', 'docs'];
     const currentIndex = order.indexOf(mode);
     if (currentIndex === -1) return;
     if (event.key === 'Home') {
@@ -72,7 +73,7 @@ export function TopNav(props: {
         <div className="flex items-center gap-2">
           {/* Using a span for the text logo */}
           <span className="text-xl font-semibold tracking-tight text-text-primary flex items-baseline gap-1.5">
-            <span className="brand-firefly text-2xl">Trace</span> Narrative
+            <span className="brand-trace text-2xl">Trace</span> Narrative
           </span>
         </div>
       </div>
@@ -85,9 +86,9 @@ export function TopNav(props: {
           onKeyDown={handleTabKeyDown}
         >
 
-          <Tab id="demo" label="Demo" icon={<LayoutGrid className="h-4 w-4" />} />
+
           <Tab id="repo" label="Repo" icon={<GitBranch className="h-4 w-4" />} />
-          <Tab id="dashboard" label="Dashboard" icon={<BarChart3 className="h-4 w-4" />} />
+          <Tab id="dashboard" label="Cockpit" icon={<BarChart3 className="h-4 w-4" />} />
           <Tab id="docs" label="Docs" icon={<BookOpen className="h-4 w-4" />} />
         </div>
       </nav>
@@ -99,7 +100,7 @@ export function TopNav(props: {
           </div>
         ) : null}
 
-        {mode !== 'demo' && (
+        {(
           <ImportMenu
             onImportSession={onImportSession}
             onImportKimiSession={onImportKimiSession}

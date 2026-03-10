@@ -3,10 +3,96 @@ import type {
   CommandAuthorityOutcome,
   DashboardRuntimeEnvironment,
   DashboardState,
+  CockpitTrustState,
   DashboardTrustState,
   RetryBudgetProfile,
   RetryFailureClass,
 } from '../../core/types';
+
+export const COCKPIT_TRUST_LABELS = {
+  healthy: {
+    default: 'Capture healthy',
+    liveCapture: 'Capture healthy',
+    otelOnly: 'Capture baseline healthy',
+  },
+  degraded: {
+    default: 'Capture degraded',
+    hybrid: 'Capture degraded',
+    otelOnly: 'Capture baseline healthy, stream unavailable',
+  },
+} as const;
+
+function toCockpitTrustLabel(
+  mode: string,
+  trustState: CockpitTrustState,
+): string {
+  if (mode === 'OTEL_ONLY') {
+    return trustState === 'healthy'
+      ? COCKPIT_TRUST_LABELS.healthy.otelOnly
+      : COCKPIT_TRUST_LABELS.degraded.otelOnly;
+  }
+
+  if (mode === 'HYBRID_ACTIVE') {
+    return trustState === 'healthy'
+      ? COCKPIT_TRUST_LABELS.healthy.default
+      : COCKPIT_TRUST_LABELS.degraded.default;
+  }
+
+  if (mode === 'DEGRADED_STREAMING') {
+    return 'Capture degraded streaming';
+  }
+
+  if (mode === 'FAILURE') {
+    return 'Capture failure';
+  }
+
+  return trustState === 'healthy' ? COCKPIT_TRUST_LABELS.healthy.default : COCKPIT_TRUST_LABELS.degraded.default;
+}
+
+export function deriveCockpitTrustState(
+  captureReliabilityStatus?: CaptureReliabilityStatus | null,
+): CockpitTrustState {
+  if (!captureReliabilityStatus) return 'healthy';
+
+  if (
+    captureReliabilityStatus.mode === 'HYBRID_ACTIVE' &&
+    captureReliabilityStatus.streamExpected &&
+    captureReliabilityStatus.streamHealthy
+  ) {
+    return 'healthy';
+  }
+
+  if (captureReliabilityStatus.mode === 'OTEL_ONLY') {
+    return captureReliabilityStatus.otelBaselineHealthy ? 'healthy' : 'degraded';
+  }
+
+  if (
+    captureReliabilityStatus.mode === 'DEGRADED_STREAMING' ||
+    captureReliabilityStatus.mode === 'FAILURE' ||
+    (captureReliabilityStatus.streamExpected && !captureReliabilityStatus.streamHealthy) ||
+    !captureReliabilityStatus.appServer.streamHealthy
+  ) {
+    return 'degraded';
+  }
+
+  return 'degraded';
+}
+
+export function describeCockpitTrust(
+  captureReliabilityStatus?: CaptureReliabilityStatus | null,
+): { trustState: CockpitTrustState; trustLabel: string; reliabilityMode: string } {
+  const reliabilityMode = captureReliabilityStatus?.mode ?? 'HYBRID_ACTIVE';
+  const trustState = deriveCockpitTrustState(captureReliabilityStatus);
+
+  return {
+    trustState,
+    trustLabel: toCockpitTrustLabel(
+      reliabilityMode,
+      trustState,
+    ),
+    reliabilityMode,
+  };
+}
 
 export const DASHBOARD_CHORD_TIMEOUT_MS = 750;
 export const DASHBOARD_FOCUS_RESTORE_MS = 180;
@@ -120,17 +206,7 @@ export const DASHBOARD_RETRY_PROFILES: Record<
 export function deriveDashboardTrustState(
   captureReliabilityStatus?: CaptureReliabilityStatus | null,
 ): DashboardTrustState {
-  if (!captureReliabilityStatus) return 'healthy';
-
-  if (
-    captureReliabilityStatus.mode === 'DEGRADED_STREAMING' ||
-    captureReliabilityStatus.mode === 'FAILURE' ||
-    (captureReliabilityStatus.streamExpected && !captureReliabilityStatus.streamHealthy)
-  ) {
-    return 'degraded';
-  }
-
-  return 'healthy';
+  return deriveCockpitTrustState(captureReliabilityStatus);
 }
 
 export function classifyDashboardFailure(

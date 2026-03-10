@@ -5,7 +5,7 @@
 
 use rand::RngCore;
 
-const SERVICE: &str = "com.jamie.firefly-narrative";
+const SERVICE: &str = "com.jamie.trace-narrative";
 const LEGACY_SERVICE: &str = "com.jamie.narrative-mvp";
 const OTLP_KEY_USER: &str = "otlp_api_key";
 

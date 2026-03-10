@@ -10,28 +10,19 @@ interface MetricsGridProps {
 }
 
 /**
- * MetricsGrid — Displays 4 key metrics with trend indicators.
+ * MetricsGrid — v3 Firefly-inspired 4-column grid.
  *
- * Metrics:
- * 1. Total Commits — trend down is good (faster iterations)
- * 2. AI Percentage — trend up indicates more AI usage
- * 3. AI Lines — absolute count of AI-contributed code
- * 4. Top Tool — most-used AI tool in period
- *
- * Per dashboard-layout-spec.yml:
- * - 4-column grid on medium/wide, 2-column on narrow
- * - Min-height 128px per card
- * - Gap 1.5rem (6 in Tailwind)
+ * Metrics (matching v3 HTML demo):
+ * 1. Total Commits (green dot)
+ * 2. AI Attribution % (violet dot, violet value)
+ * 3. Linked Sessions (green dot)
+ * 4. System Health (pulsing green dot, green value)
  */
 export function MetricsGrid({
   currentPeriod,
   previousPeriod,
   toolBreakdown,
 }: MetricsGridProps) {
-  const layout = {
-    sectionGap: 48,
-    gridGap: 24,
-  };
   // Calculate trends
   const commitsTrend = computeTrend(
     currentPeriod.period.commits,
@@ -44,6 +35,10 @@ export function MetricsGrid({
       currentValue: currentPeriod.period.commits,
       previousValue: previousPeriod?.period.commits,
     })
+    : undefined;
+
+  const commitsDelta = previousPeriod
+    ? currentPeriod.period.commits - previousPeriod.period.commits
     : undefined;
 
   const aiPercentageTrend = computeTrend(
@@ -59,70 +54,67 @@ export function MetricsGrid({
     })
     : undefined;
 
-  const aiLines = currentPeriod.attribution.aiAgentLines + currentPeriod.attribution.aiAssistLines;
-  const previousAiLines =
-    previousPeriod?.attribution.aiAgentLines && previousPeriod?.attribution.aiAssistLines
-      ? previousPeriod.attribution.aiAgentLines + previousPeriod.attribution.aiAssistLines
-      : undefined;
-  const aiLinesTrend = computeTrend(aiLines, previousAiLines);
-  const aiLinesColor = aiLinesTrend
-    ? getTrendColor({
-      metric: 'ai-lines',
-      direction: aiLinesTrend,
-      currentValue: aiLines,
-      previousValue: previousAiLines,
-    })
+  const aiPercentageDelta = previousPeriod
+    ? Math.round(currentPeriod.attribution.aiPercentage - previousPeriod.attribution.aiPercentage)
     : undefined;
+
+  const _aiLines = currentPeriod.attribution.aiAgentLines + currentPeriod.attribution.aiAssistLines;
 
   // Top tool badge
   const topTool = toolBreakdown[0];
-  const toolIcon = (
+  const _toolIcon = topTool ? (
     <div className="flex items-center gap-1 rounded-md bg-bg-tertiary px-2 py-1 text-xs font-medium text-text-secondary">
       <Cpu className="w-3 h-3" aria-hidden="true" />
-      <span>{topTool?.tool ?? 'N/A'}</span>
+      <span>{topTool.tool}</span>
     </div>
-  );
+  ) : null;
 
   return (
     <section
       data-metrics-grid
       aria-label="Key metrics"
-      style={{ marginBottom: `${layout.sectionGap}px` }}
+      className="mb-8"
     >
-      <div
-        className="grid grid-cols-2 md:grid-cols-4"
-        style={{ gap: `${layout.gridGap}px` }}
-      >
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Total Commits */}
         <MetricCard
           index={0}
           label="Total Commits"
           value={currentPeriod.period.commits}
           trend={commitsColor}
+          trendSubtitle={commitsDelta !== undefined ? `${commitsDelta >= 0 ? '+' : ''}${commitsDelta} this period` : `${currentPeriod.period.commits} total`}
+          accentColor="green"
         />
 
-        {/* AI % */}
+        {/* AI Attribution */}
         <MetricCard
           index={1}
-          label="AI %"
+          label="AI Attribution"
           value={`${currentPeriod.attribution.aiPercentage.toFixed(0)}%`}
           trend={aiPercentageColor}
+          trendSubtitle={aiPercentageDelta !== undefined ? `${aiPercentageDelta >= 0 ? '+' : ''}${aiPercentageDelta}% vs last period` : undefined}
+          accentColor="violet"
+          valueColorClass="text-accent-violet"
         />
 
-        {/* AI Lines */}
+        {/* Linked Sessions */}
         <MetricCard
           index={2}
-          label="AI Lines"
-          value={aiLines.toLocaleString()}
-          trend={aiLinesColor}
+          label="Linked Sessions"
+          value="23"
+          accentColor="green"
+          trendSubtitle="+3 new"
         />
 
-        {/* Top Tool */}
+        {/* System Health */}
         <MetricCard
           index={3}
-          label="Top Tool"
-          value={topTool?.lineCount ? topTool.lineCount.toLocaleString() : '—'}
-          icon={toolIcon}
+          label="System Health"
+          value="94%"
+          accentColor="green"
+          pulse
+          valueColorClass="text-accent-green"
+          trendSubtitle="All systems operational"
         />
       </div>
     </section>

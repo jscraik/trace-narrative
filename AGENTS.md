@@ -2,100 +2,68 @@ schema_version: 1
 
 # AGENTS.md — Narrative Repository Guide
 
-Narrative is a Tauri desktop app that layers AI session narratives onto git history.
+Narrative is a Tauri + React desktop app for AI session narratives on git history.
+
+## Table of Contents
+- [Mandatory workflow snippet](#mandatory-workflow-snippet)
+- [Required essentials](#required-essentials)
+- [Instruction routing](#instruction-routing)
+- [Architecture-first bootstrap](#architecture-first-bootstrap)
+- [Command preflight](#command-preflight)
+- [Task route map](#task-route-map)
+- [Contradictions and cleanup](#contradictions-and-cleanup)
+- [Validation notes](#validation-notes)
 
 ## Mandatory workflow snippet
 1. Explore project first, then invoke skill.
 2. IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any React, Tauri, Apps-SDK-ui, Tailwind, Vite, Storybook + Chat Widget tasks.
 3. Add a Table of Contents for docs.
 
+## Required essentials
+- Package manager: `pnpm`.
+- Repo is configuration-aware and no separate package-manager shim layer is required.
+- Command environment defaults:
+  - shell: `zsh -lc`
+  - Node + pnpm + Rust + git for standard desktop workflow.
+- Use `rg`, `fd`, `jq` for discovery and evidence extraction.
+- Single-threaded execution by default.
+
+## Instruction routing
+- Global path: `/Users/jamiecraik/.codex/AGENTS.md`.
+- Repo root: `AGENTS.md`.
+- Deeper docs override only for domain-specific behavior.
+- If guidance conflicts between files, pause and resolve before editing.
+
 ## Architecture-first bootstrap
-- Before planning edits, read `.diagram/manifest.json` and the primary architecture map (`.diagram/architecture.mmd`).
-- If `.diagram/manifest.json` is missing or stale, regenerate with `diagram analyze` (fallback: `npx --yes @brainwav/diagram analyze`) before routing work.
+- Read `.diagram/manifest.json` and `.diagram/architecture.mmd` before planning work.
+- If `.diagram/manifest.json` is missing or stale, regenerate with `diagram analyze` or `npx --yes @brainwav/diagram analyze`.
 
-## Instruction discovery order
-1. Global: `/Users/jamiecraik/.codex/AGENTS.md`
-2. Repo root: `AGENTS.md`
-3. Nested AGENTS/README instructions
-4. Repo-local instructions override global defaults when they differ.
-
-## References (informational)
-- Global protocol: `/Users/jamiecraik/.codex/instructions/rvcp-common.md`
-- Security and standards baseline: `/Users/jamiecraik/.codex/instructions/standards.md`
-- Codestyle: `/Users/jamiecraik/.codex/instructions/CODESTYLE.md`
-
-## Tooling essentials
-- Package-manager map (repo-native):
-  - install: `pnpm install`
-  - run script: `pnpm <script>`
-  - run binary: `pnpm exec <command>`
-- Rust toolchain for Tauri features
-- Shell: `zsh -lc`
-- Use `rg`, `fd`, `jq`
-- Single-threaded execution mode by default
-
-## Non-standard commands
-- `pnpm typecheck`
-- `pnpm lint`
-- `pnpm test`
-- `pnpm test:artifacts*`
-- `pnpm tauri dev`
-- `pnpm tauri build`
-- `pnpm docs:lint`
-- `pnpm agentation:autopilot`
-- `pnpm agentation:critique`
-
-## Code Quality Standards
-- Run full test suite before completing work: `pnpm test`.
-- Fix TypeScript/lint/test failures; keep tests order-independent.
-
-## Flaky Test Artifact Capture
-- Run `bash scripts/test-with-artifacts.sh all` (or `pnpm test:artifacts`) to emit flaky evidence under `artifacts/test`.
-- Optional targeted modes: `unit`, `integration`, `e2e`.
-- Preserve stable outputs:
-  - `artifacts/test/summary-*.json`
-  - `artifacts/test/test-output-*.log`
-  - `artifacts/test/junit-*.xml`
-  - `artifacts/test/*-results.json`
-  - `artifacts/test/artifact-manifest.json`
-- Keep artifact filenames stable (no timestamps).
-
-## Shell Script Conventions
-- Validate wrapper scripts with shellcheck before considering complete.
-- Use `bash -n script.sh` and check env/function edge cases.
-
-## Agent session tools
-- `agent_list_sessions`
-- `agent_get_session`
-- `agent_link_session_to_commit`
-- `agent_link_session`
-
-## Documentation map
-### Table of Contents
-- [Frontend website rules](docs/agents/frontend-website-rules.md)
-- [Landing page separation](docs/agents/landing-page-separation.md)
-- [Development](docs/agents/development.md)
-- [Testing](docs/agents/testing.md)
-- [Tauri](docs/agents/tauri.md)
-- [Repo structure](docs/agents/repo-structure.md)
-- [Repair agent](docs/agents/repair-agent.md)
-- [Instruction governance](docs/agents/instruction-governance.md)
-- [Agentation schema](docs/agents/agentation-schema.md)
-- [Hybrid capture rollout runbook](docs/agents/hybrid-capture-rollout-runbook.md)
-
-## Contradictions and cleanup
-- **Resolved 2026-03-02:** Screenshot workflow canonicalized to `docs/agents/frontend-website-rules.md`. README.md now has 1-line pointer instead of duplicated commands.
-
-## Flag for deletion (review in cleanup)
-- None currently flagged.
-
-## Notes
-- For standalone landing-page work, confirm scope in `docs/agents/landing-page-separation.md` before screenshots.
-
-## Repository preflight helper
-- Use `scripts/codex-preflight.sh` before multi-step, destructive, or path-sensitive workflows.
-- Invoke with bash internals from zsh shells:
+## Command preflight
+- Confirm binaries and paths before edits:
+  - binary checks: `rg`, `fd`, `jq`.
+  - required paths: `AGENTS.md`, `package.json`, `docs`, `scripts`.
+- Use `scripts/codex-preflight.sh` for multi-step or path-sensitive workflows:
   - `bash -lc 'source scripts/codex-preflight.sh && preflight_repo'`
   - `bash -lc 'source scripts/codex-preflight.sh && preflight_js'`
   - `bash -lc 'source scripts/codex-preflight.sh && preflight_py'`
   - `bash -lc 'source scripts/codex-preflight.sh && preflight_rust'`
+
+## Task route map
+- development and local execution commands: `docs/agents/development.md`
+- testing and validation: `docs/agents/testing.md`
+- tauri runtime and capability surfaces: `docs/agents/tauri.md`
+- project structure and ownership checks: `docs/agents/repo-structure.md`
+- frontend landing-page-only workflows: `docs/agents/landing-page-separation.md`, `docs/agents/frontend-website-rules.md`
+- agentation payload and webhook workflows: `docs/agents/agentation-schema.md`
+- repair and operations playbooks: `docs/agents/repair-agent.md`
+- rollout and hybrid-capture runbooks: `docs/agents/hybrid-capture-rollout-runbook.md`
+- instruction cleanup and contradictions: `docs/agents/instruction-governance.md`
+
+## Contradictions and cleanup
+- Open: none.
+- Resolved and tracked items are maintained in `docs/agents/instruction-governance.md` and must be revisited before adding duplicate guidance.
+
+## Validation notes
+- Before documenting command guidance, confirm the command exists in `package.json` scripts, script files, or docs.
+- Keep root file minimal; push long-running and domain-specific policy to linked docs.
+- Treat unresolved contradictions as blocking until resolved.

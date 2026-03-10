@@ -67,6 +67,22 @@ vi.mock('../../components/dashboard/TopFilesTable', () => ({
   ),
 }));
 
+vi.mock('../../components/dashboard/TrendChart', () => ({
+  TrendChart: () => <div data-testid="trend-chart">trend chart</div>,
+}));
+
+vi.mock('../../components/dashboard/QuickActions', () => ({
+  QuickActions: () => <div data-testid="quick-actions">quick actions</div>,
+}));
+
+vi.mock('../../components/dashboard/RecentActivity', () => ({
+  RecentActivity: () => <div data-testid="recent-activity">recent activity</div>,
+}));
+
+vi.mock('../../components/dashboard/BottomStats', () => ({
+  BottomStats: () => <div data-testid="bottom-stats">bottom stats</div>,
+}));
+
 import { DashboardView } from '../DashboardView';
 
 type Deferred<T> = {

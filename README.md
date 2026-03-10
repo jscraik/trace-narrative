@@ -1,12 +1,12 @@
-# Narrative
+# Trace Narrative
 
 <div align="center">
-  <img src="docs/assets/screenshots/landing.png" width="700" alt="Narrative Landing Page - Firefly">
+  <img src="docs/assets/screenshots/landing.png" width="700" alt="Trace Narrative Landing Page - Firefly">
 </div>
 
 <div align="center">
 
-[![CI](https://github.com/jscraik/firefly-narrative/actions/workflows/ci.yml/badge.svg)](https://github.com/jscraik/firefly-narrative/actions)
+[![CI](https://github.com/jscraik/trace-narrative/actions/workflows/ci.yml/badge.svg)](https://github.com/jscraik/trace-narrative/actions)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![tauri v2](https://img.shields.io/badge/tauri-v2-orange.svg)](https://tauri.app)
 
@@ -22,7 +22,7 @@
 
 ```bash
 # macOS (Apple Silicon) - Recommended
-open https://github.com/jscraik/firefly-narrative/releases/latest
+open https://github.com/jscraik/trace-narrative/releases/latest
 ```
 
 If the DMG download/install fails on macOS, use this fallback:
@@ -33,7 +33,7 @@ If the DMG download/install fails on macOS, use this fallback:
    - If macOS still blocks it, run:
 
      ```bash
-     xattr -dr com.apple.quarantine '/Applications/Firefly Narrative.app'
+     xattr -dr com.apple.quarantine '/Applications/Trace Narrative.app'
      ```
 
    - If that still fails, install via local build:
@@ -47,17 +47,17 @@ If the DMG download/install fails on macOS, use this fallback:
 
 ## Supported download paths
 
-- **GitHub Releases (recommended):** `https://github.com/jscraik/firefly-narrative/releases/latest`
+- **GitHub Releases (recommended):** `https://github.com/jscraik/trace-narrative/releases/latest`
 - **Local build fallback:** `pnpm tauri:build:full` (works on supported OS with Node + Rust toolchain)
 
 ## OS fallback notes
 
 | OS | What to download | Fallback notes |
 | --- | --- | --- |
-| macOS (Apple Silicon) | `firefly-narrative_*_aarch64-apple-darwin.dmg` | Use **right-click + Open** if Gatekeeper blocks it. If still blocked, remove quarantine: `xattr -dr com.apple.quarantine '/Applications/Firefly Narrative.app'`. |
-| macOS (Intel) | `firefly-narrative_*_x86_64-apple-darwin.dmg` | Same fallback commands as above if install is blocked. |
-| Windows | `firefly-narrative_*_x64.msi` (or `.exe` if no MSI is present) | If installer is blocked, run PowerShell once with admin: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`. |
-| Linux | `firefly-narrative_*_amd64.AppImage`, `.deb`, or `.rpm` | If AppImage won’t run: `chmod +x ./firefly-narrative.AppImage`. |
+| macOS (Apple Silicon) | `trace-narrative_*_aarch64-apple-darwin.dmg` | Use **right-click + Open** if Gatekeeper blocks it. If still blocked, remove quarantine: `xattr -dr com.apple.quarantine '/Applications/Trace Narrative.app'`. |
+| macOS (Intel) | `trace-narrative_*_x86_64-apple-darwin.dmg` | Same fallback commands as above if install is blocked. |
+| Windows | `trace-narrative_*_x64.msi` (or `.exe` if no MSI is present) | If installer is blocked, run PowerShell once with admin: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`. |
+| Linux | `trace-narrative_*_amd64.AppImage`, `.deb`, or `.rpm` | If AppImage won’t run: `chmod +x ./trace-narrative.AppImage`. |
 
 If your OS/arch package is unavailable or blocked, use a local build fallback:
 
@@ -91,7 +91,7 @@ pnpm tauri:build:full
 
 Get high-level insights into your AI-assisted workflow, tracking session impact and productivity.
 <p align="center">
-  <img src="docs/assets/screenshots/dashboard.png" width="800" alt="Narrative Dashboard">
+  <img src="docs/assets/screenshots/dashboard.png" width="800" alt="Trace Narrative Dashboard">
 </p>
 
 ### Repository View
@@ -118,8 +118,8 @@ Access project documentation and knowledge items directly within the narrative i
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/jscraik/firefly-narrative.git
-cd firefly-narrative
+git clone https://github.com/jscraik/trace-narrative.git
+cd trace-narrative
 
 # 2. Install dependencies
 pnpm install
@@ -191,9 +191,9 @@ We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md).
 
 ### Ways to Contribute
 
-- **Bug reports** - [Open an issue](https://github.com/jscraik/firefly-narrative/issues/new?template=bug_report.yml)
-- **Feature requests** - [Request a feature](https://github.com/jscraik/firefly-narrative/issues/new?template=feature_request.yml)
-- **Code** - Look for [good first issues](https://github.com/jscraik/firefly-narrative/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- **Bug reports** - [Open an issue](https://github.com/jscraik/trace-narrative/issues/new?template=bug_report.yml)
+- **Feature requests** - [Request a feature](https://github.com/jscraik/trace-narrative/issues/new?template=feature_request.yml)
+- **Code** - Look for [good first issues](https://github.com/jscraik/trace-narrative/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 

@@ -1,0 +1,15 @@
+{
+  "default": null,
+  "permission": [
+    {
+      "identifier": "dashboard",
+      "description": "Permissions for dashboard view",
+      "commands": {
+        "allow": [
+          "get_dashboard_stats"
+        ],
+        "deny": []
+      }
+    }
+  ]
+}

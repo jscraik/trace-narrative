@@ -1,7 +1,7 @@
 # Release Notes
 
-**Repository:** `/Users/jamiecraik/dev/firefly-narrative`
-**Since tag:** `firefly-narrative-v0.12.1`
+**Repository:** `/Users/jamiecraik/dev/trace-narrative`
+**Since tag:** `trace-narrative-v0.12.1`
 **Generated:** 2026-02-24 18:13 UTC
 
 ## Table of Contents

@@ -2,21 +2,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { TraceCommitSummary } from '../../core/types';
 import {
-  FIREFLY_ANALYZING_DWELL_MS,
-  FIREFLY_INSIGHT_DWELL_MS,
-  useFirefly,
-  type UseFireflyOptions,
-} from '../useFirefly';
+  TRACE_ANALYZING_DWELL_MS,
+  TRACE_INSIGHT_DWELL_MS,
+  useTraceSignal,
+  type UseTraceSignalOptions,
+} from '../useTraceSignal';
 
 vi.mock('../../core/tauri/settings', () => ({
-  getFireflySettings: vi.fn(),
-  setFireflyEnabled: vi.fn(),
+  getTraceSettings: vi.fn(),
+  setTraceEnabled: vi.fn(),
 }));
 
-import { getFireflySettings, setFireflyEnabled } from '../../core/tauri/settings';
+import { getTraceSettings, setTraceEnabled } from '../../core/tauri/settings';
 
-const mockGetFireflySettings = vi.mocked(getFireflySettings);
-const mockSetFireflyEnabled = vi.mocked(setFireflyEnabled);
+const mockGetTraceSettings = vi.mocked(getTraceSettings);
+const mockSetTraceEnabled = vi.mocked(setTraceEnabled);
 
 function makeSummary(overrides: Partial<TraceCommitSummary> = {}): TraceCommitSummary {
   return {
@@ -32,7 +32,7 @@ function makeSummary(overrides: Partial<TraceCommitSummary> = {}): TraceCommitSu
   };
 }
 
-function makeOptions(overrides: Partial<UseFireflyOptions> = {}): UseFireflyOptions {
+function makeOptions(overrides: Partial<UseTraceSignalOptions> = {}): UseTraceSignalOptions {
   return {
     selectedNodeId: null,
     selectedCommitSha: null,
@@ -54,11 +54,11 @@ async function flushAsyncEffects() {
   });
 }
 
-describe('useFirefly', () => {
+describe('useTraceSignal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetFireflySettings.mockResolvedValue({ enabled: true });
-    mockSetFireflyEnabled.mockResolvedValue(undefined);
+    mockGetTraceSettings.mockResolvedValue({ enabled: true });
+    mockSetTraceEnabled.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -66,7 +66,7 @@ describe('useFirefly', () => {
   });
 
   it('enforces matrix + precedence (Idle cannot jump directly to Insight)', async () => {
-    const { result, rerender } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result, rerender } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({
         selectedNodeId: 'c1',
         selectedCommitSha: 'c1',
@@ -96,7 +96,7 @@ describe('useFirefly', () => {
   it('applies dwell windows before dropping from Insight/Analyzing', async () => {
     vi.useFakeTimers();
 
-    const { result, rerender } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result, rerender } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({
         selectedNodeId: 'c1',
         selectedCommitSha: 'c1',
@@ -128,7 +128,7 @@ describe('useFirefly', () => {
     expect(result.current.event.type).toBe('insight');
 
     act(() => {
-      vi.advanceTimersByTime(FIREFLY_INSIGHT_DWELL_MS - 1);
+      vi.advanceTimersByTime(TRACE_INSIGHT_DWELL_MS - 1);
     });
     expect(result.current.event.type).toBe('insight');
 
@@ -154,13 +154,13 @@ describe('useFirefly', () => {
     expect(result.current.event.type).toBe('analyzing');
 
     act(() => {
-      vi.advanceTimersByTime(FIREFLY_ANALYZING_DWELL_MS);
+      vi.advanceTimersByTime(TRACE_ANALYZING_DWELL_MS);
     });
     expect(result.current.event.type).toBe('idle');
   });
 
   it('uses loader applicability truth table for Analyzing', async () => {
-    const { result, rerender } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result, rerender } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({
         selectedNodeId: 'c1',
         selectedCommitSha: 'c1',
@@ -196,7 +196,7 @@ describe('useFirefly', () => {
   });
 
   it('requires traceRequestedForSelection before trace enters pending set', async () => {
-    const { result, rerender } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result, rerender } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({
         selectedNodeId: 'c1',
         selectedCommitSha: 'c1',
@@ -228,7 +228,7 @@ describe('useFirefly', () => {
   it('ignores stale dwell timer completions after selection changes', async () => {
     vi.useFakeTimers();
 
-    const { result, rerender } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result, rerender } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({
         selectedNodeId: 'c1',
         selectedCommitSha: 'c1',
@@ -259,7 +259,7 @@ describe('useFirefly', () => {
     expect(result.current.event.type).toBe('analyzing');
 
     act(() => {
-      vi.advanceTimersByTime(FIREFLY_ANALYZING_DWELL_MS * 2);
+      vi.advanceTimersByTime(TRACE_ANALYZING_DWELL_MS * 2);
     });
 
     expect(result.current.event.type).toBe('analyzing');
@@ -269,7 +269,7 @@ describe('useFirefly', () => {
   });
 
   it('dedupes Insight by key and supports Insight→Insight only when key changes', async () => {
-    const { result, rerender } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result, rerender } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({
         selectedNodeId: 'c1',
         selectedCommitSha: 'c1',
@@ -336,9 +336,9 @@ describe('useFirefly', () => {
     const onPersistenceError = vi.fn();
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    mockSetFireflyEnabled.mockRejectedValueOnce(new Error('write failed'));
+    mockSetTraceEnabled.mockRejectedValueOnce(new Error('write failed'));
 
-    const { result } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({ onPersistenceError }),
     });
 
@@ -351,12 +351,12 @@ describe('useFirefly', () => {
 
     expect(result.current.enabled).toBe(true);
     expect(onPersistenceError).toHaveBeenCalledWith(expect.stringContaining('write failed'));
-    expect(consoleSpy).toHaveBeenCalledWith('[firefly.toggle.persist_failed]', expect.any(Error));
+    expect(consoleSpy).toHaveBeenCalledWith('[trace.toggle.persist_failed]', expect.any(Error));
     consoleSpy.mockRestore();
   });
 
   it('suppresses state emissions while disabled', async () => {
-    const { result, rerender } = renderHook((options: UseFireflyOptions) => useFirefly(options), {
+    const { result, rerender } = renderHook((options: UseTraceSignalOptions) => useTraceSignal(options), {
       initialProps: makeOptions({
         selectedNodeId: 'c1',
         selectedCommitSha: 'c1',

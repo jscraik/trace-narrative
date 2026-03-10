@@ -5,7 +5,7 @@ import { ThemeProvider } from '@design-studio/tokens';
 import '@design-studio/tokens/tokens.css';
 import '@design-studio/ui/styles.css';
 import './styles.css';
-import './styles/firefly.css';
+import './styles/trace-signal.css';
 
 const root = document.getElementById('root');
 
@@ -15,7 +15,7 @@ if (!root) {
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="system">
+    <ThemeProvider defaultTheme="dark">
       <App />
     </ThemeProvider>
   </React.StrictMode>

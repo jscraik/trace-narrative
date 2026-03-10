@@ -1,0 +1,18 @@
+{
+    "default": null,
+    "permission": [
+        {
+            "identifier": "rules",
+            "description": "Permissions for repository rule review",
+            "commands": {
+                "allow": [
+                    "review_repo",
+                    "get_rules",
+                    "validate_rules",
+                    "create_default_rules"
+                ],
+                "deny": []
+            }
+        }
+    ]
+}

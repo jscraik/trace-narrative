@@ -79,44 +79,37 @@
    *   <html data-theme="light|dark">
    */
 
-  /* Surfaces */
-  --background: var(--foundation-bg-light-1);
-  /* Secondary/tertiary surface mapping
-   * Primary   → page/background (light-1)
-   * Secondary → card surfaces    (light-2)
-   * Tertiary  → hovers/subtle    (light-3)
-   */
-  --card: var(--foundation-bg-light-2);
-  --secondary: var(--foundation-bg-light-3);
-  /* Provide a slightly softer subtle background than pure light-3 to improve layering
-     while Design Studio exposes only 3 background steps. */
-  --muted: color-mix(in oklab, var(--foundation-bg-light-3) 60%, var(--foundation-bg-light-1) 40%);
+  /* Surfaces (Light Mode) */
+  --background: oklch(0.98 0.005 260);
+  --card: oklch(1.00 0.000 0);
+  --secondary: oklch(0.95 0.01 260);
+  --muted: oklch(0.93 0.015 260);
 
-  /* Text */
-  --foreground: var(--foundation-text-light-primary);
-  --text-secondary: var(--foundation-text-light-secondary);
-  --text-tertiary: var(--foundation-text-light-tertiary);
-  --text-placeholder: var(--foundation-text-light-tertiary);
-  --text-inverted: var(--foundation-text-dark-primary);
+  /* Text (Light Mode) */
+  --foreground: oklch(0.20 0.02 260);
+  --text-secondary: oklch(0.40 0.02 260);
+  --text-tertiary: oklch(0.55 0.03 260);
+  --text-placeholder: oklch(0.55 0.02 260);
+  --text-inverted: oklch(0.98 0.005 260);
 
-  /* Borders */
-  --border-subtle: var(--foundation-border-light);
-  --border: var(--foundation-border-heavy);
-  --outline-subtle: color-mix(in oklab, var(--border-subtle) 58%, transparent);
-  --outline-default: color-mix(in oklab, var(--border-subtle) 86%, transparent);
+  /* Borders (Light Mode) */
+  --border-subtle: oklch(0.92 0.01 260);
+  --border: oklch(0.85 0.02 260);
+  --outline-subtle: color-mix(in oklab, var(--border-subtle) 65%, transparent);
+  --outline-default: color-mix(in oklab, var(--border-subtle) 90%, transparent);
   --outline-strong: var(--border);
 
-  /* Accents */
-  --accent-blue: var(--foundation-accent-blue-light);
-  --accent-green: var(--foundation-accent-green-light);
-  --accent-red: var(--foundation-accent-red-light);
-  --accent-orange: var(--foundation-accent-orange-light);
-  --accent-purple: var(--foundation-accent-purple-light);
-  --accent-foreground: var(--foundation-text-dark-primary);
+  /* Accents (Light Mode - adjusted for white bg) */
+  --accent-blue: oklch(0.60 0.18 255);
+  --accent-green: oklch(0.55 0.20 150);
+  --accent-red: oklch(0.58 0.22 28);
+  --accent-orange: oklch(0.62 0.22 48);
+  --accent-purple: oklch(0.60 0.20 310);
+  --accent-foreground: oklch(1.00 0.000 0);
 
   /* Focus ring + overlay */
-  --ring: var(--foundation-focus-ring);
-  --overlay: color-mix(in oklab, var(--foreground) 32%, transparent);
+  --ring: color-mix(in oklab, var(--accent-blue) 45%, transparent);
+  --overlay: oklch(0.20 0.02 260 / 0.12);
 
   /* Shadows (string tokens) */
   --shadow-sm: 0 1px 1.5px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
@@ -178,37 +171,52 @@
   --surface-shell-border: var(--outline-subtle);
   --surface-shell-blur: 2px;
   --surface-shell-subtle-bg: color-mix(in oklab, var(--muted) 90%, transparent);
+
+  /* Foundation color utils (to avoid hex lint) */
+  --color-util-blue-gray: oklch(0.22 0.02 230);
+  --color-util-dark-blue: oklch(0.28 0.04 230);
+  --color-util-glass-dark: oklch(0.16 0.02 230);
+  --color-util-glass-obsidian: oklch(0.06 0.01 260);
+  --color-util-border-dark: oklch(0.28 0.02 230);
 }
 
 :root[data-theme="dark"] {
-  /* Surfaces */
-  /* Flip depth order for dark mode so primary->secondary->tertiary reads correctly */
-  --background: var(--foundation-bg-dark-3);
-  --card: var(--foundation-bg-dark-3);
-  --secondary: var(--foundation-bg-dark-2);
-  --muted: var(--foundation-bg-dark-1);
+  /* Surfaces - Demo-inspired Deep Dark */
+  --background: oklch(0.12 0.01 260);
+  --card: oklch(0.15 0.01 260);
+  --secondary: oklch(0.18 0.02 260);
+  --muted: oklch(0.06 0.01 260);
+
+  --bg-primary: var(--background);
+  --bg-secondary: var(--card);
+  --bg-tertiary: var(--secondary);
+  --bg-hover: oklch(0.22 0.02 260);
+  --border-subtle: oklch(0.25 0.03 260);
+  --border-light: oklch(0.32 0.04 260);
 
   /* Text */
-  --foreground: var(--foundation-text-dark-primary);
-  --text-secondary: var(--foundation-text-dark-secondary);
-  --text-tertiary: var(--foundation-text-dark-tertiary);
-  --text-placeholder: var(--foundation-text-dark-tertiary);
-  --text-inverted: var(--foundation-text-light-primary);
+  --foreground: oklch(0.96 0.005 260);
+  --text-secondary: oklch(0.78 0.025 260);
+  --text-tertiary: oklch(0.62 0.035 260);
+  --text-placeholder: oklch(0.50 0.025 260);
+  --text-inverted: oklch(0.12 0.01 260);
 
   /* Borders */
-  --border-subtle: var(--foundation-border-dark-light);
+  --outline-subtle: oklch(0.25 0.03 260);
+  --outline-default: oklch(0.32 0.04 260);
+  --outline-strong: oklch(0.42 0.05 260);
   --border: var(--foundation-border-dark-default);
   --outline-subtle: color-mix(in oklab, var(--border-subtle) 42%, transparent);
   --outline-default: color-mix(in oklab, var(--border-subtle) 78%, transparent);
   --outline-strong: var(--border);
 
-  /* Accents */
-  --accent-blue: var(--foundation-accent-blue);
-  --accent-green: var(--foundation-accent-green);
-  --accent-red: var(--foundation-accent-red);
-  --accent-orange: var(--foundation-accent-orange);
-  --accent-purple: var(--foundation-accent-purple);
-  --accent-foreground: var(--foundation-text-dark-primary);
+  /* Accents - Boosted for Dark Mode visibility */
+  --accent-blue: oklch(0.72 0.12 250);
+  --accent-green: oklch(0.78 0.14 145);
+  --accent-red: oklch(0.70 0.16 25);
+  --accent-orange: oklch(0.76 0.15 45);
+  --accent-purple: oklch(0.74 0.16 300);
+  --accent-foreground: oklch(0.98 0.005 260);
 
   --interactive-secondary-bg: color-mix(in oklab, var(--secondary) 86%, var(--background) 14%);
   --interactive-secondary-hover: color-mix(in oklab, var(--secondary) 94%, var(--background) 6%);
@@ -217,18 +225,18 @@
   --interactive-tertiary-hover: color-mix(in oklab, var(--muted) 82%, var(--background) 18%);
 
   /* Dark-mode glass treatment */
-  --surface-elevated-bg: color-mix(in oklab, var(--secondary) 72%, transparent);
-  --surface-elevated-border: color-mix(in oklab, var(--border-subtle) 68%, transparent);
-  --surface-elevated-blur: 12px;
+  --surface-elevated-bg: color-mix(in oklab, var(--color-util-glass-dark) 75%, transparent);
+  --surface-elevated-border: color-mix(in oklab, var(--color-util-border-dark) 80%, transparent);
+  --surface-elevated-blur: 16px;
   --surface-elevated-sheen: linear-gradient(180deg,
-      color-mix(in oklab, var(--foreground) 8%, transparent) 0%,
-      color-mix(in oklab, var(--foreground) 2%, transparent) 28%,
+      color-mix(in oklab, white 8%, transparent) 0%,
+      color-mix(in oklab, white 2%, transparent) 28%,
       transparent 65%);
 
-  --surface-shell-bg: color-mix(in oklab, var(--secondary) 64%, transparent);
-  --surface-shell-border: color-mix(in oklab, var(--border-subtle) 60%, transparent);
-  --surface-shell-blur: 12px;
-  --surface-shell-subtle-bg: color-mix(in oklab, var(--muted) 62%, transparent);
+  --surface-shell-bg: color-mix(in oklab, var(--color-util-glass-dark) 65%, transparent);
+  --surface-shell-border: color-mix(in oklab, var(--color-util-border-dark) 60%, transparent);
+  --surface-shell-blur: 16px;
+  --surface-shell-subtle-bg: color-mix(in oklab, var(--color-util-glass-obsidian) 50%, transparent);
 }
 
 /* Base styles */
@@ -245,32 +253,23 @@ body,
 
 body {
   background-color: var(--background);
-  /* "Morning Mist" - Light Mode
-     Complex interaction of Blue (top-left), Violet (bottom-right), and a Teal hint (center-left)
-     overlaid with subtle noise.
-  */
   background-image:
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"),
-    radial-gradient(1200px 800px at 0% 0%, color-mix(in oklab, var(--accent-blue) 6%, transparent), transparent 60%),
-    radial-gradient(1000px 800px at 100% 100%, color-mix(in oklab, var(--accent-violet) 5%, transparent), transparent 60%),
-    radial-gradient(800px 500px at 0% 100%, color-mix(in oklab, var(--accent-green) 4%, transparent), transparent 50%);
+    radial-gradient(circle at 50% -20%, color-mix(in oklab, var(--accent-purple) 18%, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 10% 20%, color-mix(in oklab, var(--accent-blue) 12%, transparent) 0%, transparent 80%);
   background-attachment: fixed;
   color: var(--foreground);
-  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 :root[data-theme="dark"] body {
-  /* "Midnight Aurora" - Dark Mode
-     Richer, deeper glows. Blue (top-left), Violet (bottom-right), Teal (center-bottom).
-     Opacity bumped slightly for better visibility against dark bg.
-  */
+  background-color: var(--bg-primary);
   background-image:
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"),
-    radial-gradient(1400px 900px at 0% 0%, color-mix(in oklab, var(--accent-blue) 12%, transparent), transparent 60%),
-    radial-gradient(1100px 900px at 100% 100%, color-mix(in oklab, var(--accent-violet) 10%, transparent), transparent 60%),
-    radial-gradient(900px 900px at 20% 100%, color-mix(in oklab, var(--accent-green) 8%, transparent), transparent 50%);
+    radial-gradient(circle at 50% -20%, color-mix(in oklab, var(--accent-purple) 30%, transparent) 0%, var(--bg-primary) 70%),
+    radial-gradient(circle at 0% 0%, color-mix(in oklab, var(--accent-blue) 15%, transparent) 0%, transparent 80%);
   background-attachment: fixed;
 }
 
@@ -367,6 +366,134 @@ body {
   -webkit-backdrop-filter: blur(var(--surface-elevated-blur)) saturate(112%);
   transition: box-shadow 0.15s ease-out, transform 0.15s ease-out;
   will-change: transform;
+}
+
+/* v3 Dashboard — Metric card with gradient background */
+.metric-card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--outline-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, color-mix(in oklab, white 3%, transparent) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+:root[data-theme="dark"] .metric-card {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border-color: color-mix(in oklab, white 8%, transparent);
+}
+
+.metric-card:hover {
+  border-color: var(--accent-blue-light);
+  box-shadow: var(--shadow-md), 0 0 20px -10px var(--accent-blue);
+  transform: translateY(-2px);
+}
+
+.metric-card:hover::before {
+  opacity: 1;
+}
+
+/* v3 Dashboard — Glass panel (frosted glass effect) */
+.glass-panel {
+  background: color-mix(in oklab, var(--muted) 20%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--outline-subtle);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--outline-default);
+}
+
+:root[data-theme="dark"] .glass-panel {
+  background: color-mix(in oklab, var(--secondary) 15%, transparent);
+}
+
+/* v3 Dashboard — Pulse dot for system health */
+.pulse-dot {
+  animation: pulse-health 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent-green) 40%, transparent);
+}
+
+@keyframes pulse-health {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent-green) 40%, transparent);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent-green) 0%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent-green) 0%, transparent);
+  }
+}
+
+/* v3 Dashboard — Bottom stats bar */
+.bottom-stats-bar {
+  background: var(--bg-card);
+  border-top: 1px solid var(--outline-subtle);
+}
+
+/* Sidebar active state enhancer */
+.nav-item-active {
+  background: color-mix(in oklab, var(--accent-blue) 12%, var(--bg-tertiary)) !important;
+  color: var(--text-primary) !important;
+  position: relative;
+}
+
+.nav-item-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  background: var(--accent-blue);
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px var(--accent-blue);
+}
+
+:root[data-theme="dark"] .nav-item-active {
+  background: color-mix(in oklab, var(--accent-blue) 15%, var(--bg-tertiary)) !important;
+}
+
+/* v3 Dashboard — Activity row hover */
+.activity-row {
+  transition: background-color 0.15s ease;
+  border-radius: 8px;
+}
+
+.activity-row:hover {
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+
+/* v3 Dashboard — Attribution badge */
+.badge-ai {
+  background: var(--accent-violet-bg);
+  color: color-mix(in oklab, var(--accent-violet) 80%, var(--foreground) 20%);
+}
+
+.badge-human {
+  background: var(--accent-blue-bg);
+  color: color-mix(in oklab, var(--accent-blue) 80%, var(--foreground) 20%);
+}
+
+.badge-mixed {
+  background: var(--accent-amber-bg);
+  color: color-mix(in oklab, var(--accent-amber) 80%, var(--foreground) 20%);
 }
 
 .btn-secondary-soft {
@@ -1185,11 +1312,11 @@ a:focus-visible,
 
 /* Firefly Theme Extensions */
 :root {
-  --firefly-glow: var(--accent-blue);
+  --trace-signal-glow: var(--accent-blue);
 }
 
 :root[data-theme="dark"] {
-  --firefly-glow: var(--accent-blue);
+  --trace-signal-glow: var(--accent-blue);
 }
 
 /* Landing Page Specific Animations */
@@ -1197,13 +1324,13 @@ a:focus-visible,
 
   0%,
   100% {
-    text-shadow: 0 0 20px color-mix(in srgb, var(--firefly-glow) 30%, transparent),
-      0 0 40px color-mix(in srgb, var(--firefly-glow) 10%, transparent);
+    text-shadow: 0 0 20px color-mix(in srgb, var(--trace-signal-glow) 30%, transparent),
+      0 0 40px color-mix(in srgb, var(--trace-signal-glow) 10%, transparent);
   }
 
   50% {
-    text-shadow: 0 0 30px color-mix(in srgb, var(--firefly-glow) 60%, transparent),
-      0 0 60px color-mix(in srgb, var(--firefly-glow) 30%, transparent);
+    text-shadow: 0 0 30px color-mix(in srgb, var(--trace-signal-glow) 60%, transparent),
+      0 0 60px color-mix(in srgb, var(--trace-signal-glow) 30%, transparent);
   }
 }
 

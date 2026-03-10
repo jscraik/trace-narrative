@@ -32,7 +32,7 @@ schema_version: 1
 
 ## Always Do First
 
-- **Invoke the `$ui-ux-creative-coding` & `$interface-craft`** before writing any frontend code, every session, no exceptions.
+- **Invoke the `$ui-ux-creative-coding` profile** before writing any frontend code, every session, no exceptions.
 
 ## Reference Images
 
@@ -50,11 +50,13 @@ schema_version: 1
 ## Screenshot Workflow
 
 - Use `agent-browser` (via CLI/DevTools) for screenshot capture workflows.
-- **Always screenshot from localhost:** `node screenshot.mjs http://localhost:2000`
-- Screenshots are saved automatically to `./temporary screenshots/screenshot-N.png` (auto-incremented, never overwritten).
-- Optional label suffix: `node screenshot.mjs http://localhost:2000 label` → saves as `screenshot-N-label.png`
-- For component screenshots, use a descriptive component label (e.g. `card`, `button`, `input`, `modal`) as the screenshot label.
-  - Example: `node screenshot.mjs http://localhost:2000 card` → `screenshot-N-card.png`
+- **Always screenshot from localhost:** `node screenshot.mjs http://localhost:2000 [label]`
+- `screenshot.mjs` is canonical and emits files in `temporary screenshots/` as:
+  - `screenshot-<N>.png` (no label)
+  - `screenshot-<N>-<label>.png` (when label is provided)
+- The script retries `ERR_CONNECTION_REFUSED` while booting page services.
+- For component screenshots, use a descriptive component label (for example `card`, `button`, `input`, `modal`) as the screenshot label.
+  - Example: `node screenshot.mjs http://localhost:2000 card` → `screenshot-<N>-card.png`
 - `screenshot.mjs` lives in the project root. Use it as-is.
 - After screenshotting, read the PNG from `temporary screenshots/` with the Read tool — Claude can see and analyze the image directly.
 - Ensure screenshot file names match the exact saved output format above before comparison.
@@ -73,7 +75,7 @@ schema_version: 1
 - Always check the `brand/` folder before designing. It may contain logos, color guides, style guides, or images.
 - If assets exist there, use them. Do not use placeholders where real assets are available.
 - If a logo is present, use it. If a color palette is defined, use those exact values — do not invent brand colors.
-- Always use `$design-system` for brand guidelines.
+- Use `brand/README.md` as the canonical brand source for this repo.
 
 ## Anti-Generic Guardrails
 
@@ -101,4 +103,4 @@ schema_version: 1
   - `serve.mjs` and `screenshot.mjs` are now present in repository root and satisfy the screenshot workflow command requirements.
   - Frontend workflow applies to the separated landing page build context and is not the default mode for in-app tauri UI edits unless explicitly requested.
 - **Flag-for-deletion candidates (redundant/unclear):**
-  - Reconcile wording for `design-system` references to one canonical path/source.
+  - None currently.

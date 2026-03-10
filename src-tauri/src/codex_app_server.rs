@@ -3781,7 +3781,7 @@ pub fn codex_app_server_initialize(
     }
     let initialize_request = serde_json::json!({
         "clientInfo": {
-            "name": "firefly-narrative",
+            "name": "trace-narrative",
             "title": "Firefly Narrative",
             "version": env!("CARGO_PKG_VERSION")
         }

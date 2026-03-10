@@ -2,7 +2,7 @@ import { motion, useSpring, useTransform } from 'framer-motion';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDialKit } from 'dialkit';
-import './FireflyHero.css';
+import './TraceHero.css';
 
 /**
  * FireflyHero — visual-only brand centrepiece.
@@ -16,12 +16,12 @@ import './FireflyHero.css';
  *   isExiting      — set true from parent to trigger the thread-travel exit sequence.
  *   onExitComplete — called ~600ms after isExiting=true, after the firefly travels the trace.
  */
-interface FireflyHeroProps {
+interface TraceHeroProps {
   isExiting?: boolean;
   onExitComplete?: () => void;
 }
 
-export const FireflyHero: React.FC<FireflyHeroProps> = ({
+export const TraceHero: React.FC<TraceHeroProps> = ({
   isExiting = false,
   onExitComplete,
 }) => {
@@ -38,7 +38,7 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
       jitterIntensity: [1, 0, 5, 0.1],
       mousePower: [0.39, 0, 1, 0.01],
     },
-  });
+});
 
   const [latency, setLatency] = useState(0);
   const [status, setStatus] = useState('SCANNING...');
@@ -343,3 +343,5 @@ export const FireflyHero: React.FC<FireflyHeroProps> = ({
     </div>
   );
 };
+
+export { TraceHero as FireflyHero };

@@ -2,10 +2,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../src/styles.css';
 import '../src/styles/firefly.css';
-import { FireflyLanding } from './FireflyLanding';
+import { TraceLanding } from './TraceLanding';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <FireflyLanding />
+        <TraceLanding />
     </StrictMode>,
 );

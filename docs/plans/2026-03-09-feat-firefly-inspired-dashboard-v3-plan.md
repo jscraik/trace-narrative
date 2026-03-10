@@ -1,10 +1,10 @@
 ---
-title: "feat: Readout-Inspired Dashboard v3 Implementation Plan"
+title: "feat: firefly-inspired Dashboard v3 Implementation Plan"
 type: feat
 status: active
 date: 2026-03-09
-origin: /Users/jamiecraik/dev/trace-narrative/readout-inspired-v3.html
-spec: docs/specs/2026-03-09-feat-readout-inspired-dashboard-v3-spec.md
+origin: /Users/jamiecraik/dev/trace-narrative/firefly-inspired-v3.html
+spec: docs/specs/2026-03-09-feat-firefly-inspired-dashboard-v3-spec.md
 ---
 
 ## Table of Contents
@@ -64,8 +64,8 @@ The HTML demo establishes the desired direction for the new app layout, but ship
 
 ## Planning Inputs to Honor
 
-1. Authoritative source: [2026-03-09-feat-readout-inspired-dashboard-v3-spec.md](/Users/jamiecraik/dev/trace-narrative/docs/specs/2026-03-09-feat-readout-inspired-dashboard-v3-spec.md)
-2. Visual origin: [readout-inspired-v3.html](/Users/jamiecraik/dev/trace-narrative/readout-inspired-v3.html)
+1. Authoritative source: [2026-03-09-feat-firefly-inspired-dashboard-v3-spec.md](/Users/jamiecraik/dev/trace-narrative/docs/specs/2026-03-09-feat-firefly-inspired-dashboard-v3-spec.md)
+2. Visual origin: [firefly-inspired-v3.html](/Users/jamiecraik/dev/trace-narrative/firefly-inspired-v3.html)
 3. Architecture context:
    - [manifest.json](/Users/jamiecraik/dev/trace-narrative/.diagram/manifest.json)
    - [architecture.mmd](/Users/jamiecraik/dev/trace-narrative/.diagram/architecture.mmd)
@@ -590,8 +590,8 @@ Exit criteria:
 
 ## Sources & References
 
-1. [2026-03-09-feat-readout-inspired-dashboard-v3-spec.md](/Users/jamiecraik/dev/trace-narrative/docs/specs/2026-03-09-feat-readout-inspired-dashboard-v3-spec.md)
-2. [readout-inspired-v3.html](/Users/jamiecraik/dev/trace-narrative/readout-inspired-v3.html)
+1. [2026-03-09-feat-firefly-inspired-dashboard-v3-spec.md](/Users/jamiecraik/dev/trace-narrative/docs/specs/2026-03-09-feat-firefly-inspired-dashboard-v3-spec.md)
+2. [firefly-inspired-v3.html](/Users/jamiecraik/dev/trace-narrative/firefly-inspired-v3.html)
 3. [manifest.json](/Users/jamiecraik/dev/trace-narrative/.diagram/manifest.json)
 4. [architecture.mmd](/Users/jamiecraik/dev/trace-narrative/.diagram/architecture.mmd)
 5. [App.tsx](/Users/jamiecraik/dev/trace-narrative/src/App.tsx)

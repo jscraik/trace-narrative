@@ -1,16 +1,16 @@
 ---
-title: Readout-Inspired Dashboard v3 Contract
+title: firefly-inspired Dashboard v3 Contract
 type: feat
 status: draft
 date: 2026-03-09
-origin: /Users/jamiecraik/dev/trace-narrative/readout-inspired-v3.html
+origin: /Users/jamiecraik/dev/trace-narrative/firefly-inspired-v3.html
 risk: high
 spec_depth: full
 ---
 
 ## Problem Statement
 
-`readout-inspired-v3.html` is a strong visual demo, but it is not yet a behavioral contract for the live Narrative app. The current demo does not define ownership boundaries, source authority, failure transitions, recovery rules, or observability expectations. Without this contract, implementation work can diverge from existing app conventions in `App.tsx`, `TopNav.tsx`, and `DashboardView.tsx`, especially around drill-down behavior, degraded capture modes, and accessibility/reduced-motion parity.
+`firefly-inspired-v3.html` is a strong visual demo, but it is not yet a behavioral contract for the live Narrative app. The current demo does not define ownership boundaries, source authority, failure transitions, recovery rules, or observability expectations. Without this contract, implementation work can diverge from existing app conventions in `App.tsx`, `TopNav.tsx`, and `DashboardView.tsx`, especially around drill-down behavior, degraded capture modes, and accessibility/reduced-motion parity.
 
 ## Table of Contents
 
@@ -240,7 +240,7 @@ Any unmapped action/command pair is denied by default.
 3. Capability definitions in `src-tauri/capabilities/*` govern command boundary authorization.
 4. `echarts-canvas` is allowed as the canonical dense-chart dependency for this spec; no additional visualization dependency is in scope without architecture approval.
 5. No new remote services are introduced by this spec.
-6. Local plan dependency: `docs/plans/2026-03-09-feat-readout-inspired-dashboard-v3-plan.md` is the execution source downstream from this contract.
+6. Local plan dependency: `docs/plans/2026-03-09-feat-firefly-inspired-dashboard-v3-plan.md` is the execution source downstream from this contract.
 
 ## Trust Boundary and Data Handling
 

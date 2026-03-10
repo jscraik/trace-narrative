@@ -5,10 +5,10 @@ import geminiIcon from '../src/assets/icons/gemini-color.svg';
 import kimiIcon from '../src/assets/icons/kimi-color.svg';
 import ollamaIcon from '../src/assets/icons/ollama.svg';
 import openaiIcon from '../src/assets/icons/openai.svg';
-import './FireflyLanding.css';
-import { FireflyHero } from './FireflyHero';
+import './TraceLanding.css';
+import { TraceHero } from './TraceHero';
 
-export function FireflyLanding(props: { onGetStarted?: () => void }) {
+export function TraceLanding(props: { onGetStarted?: () => void }) {
     const { onGetStarted } = props;
     const [isExiting, setIsExiting] = useState(false);
     const partnerAgents: {
@@ -53,9 +53,9 @@ export function FireflyLanding(props: { onGetStarted?: () => void }) {
 
             {/* Main Content */}
             <main className="landing-main">
-                {/* FireflyHero — absolute layer, sits visually behind the h1 */}
+                {/* TraceHero — absolute layer, sits visually behind the h1 */}
                 <div className="landing-hero-orb-layer" aria-hidden="true">
-                    <FireflyHero isExiting={isExiting} onExitComplete={onGetStarted} />
+                    <TraceHero isExiting={isExiting} onExitComplete={onGetStarted} />
                 </div>
 
                 <section className="landing-hero-content animate-fade-in-up relative">
@@ -126,3 +126,5 @@ export function FireflyLanding(props: { onGetStarted?: () => void }) {
         </div>
     );
 }
+
+export { TraceLanding as FireflyLanding };

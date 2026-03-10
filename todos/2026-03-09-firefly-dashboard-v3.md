@@ -1,7 +1,7 @@
-# Readout-Inspired Dashboard v3 Implementation
+# firefly-inspired Dashboard v3 Implementation
 
-**Origin Plan:** `/Users/jamiecraik/dev/trace-narrative/docs/plans/2026-03-09-feat-readout-inspired-dashboard-v3-plan.md`
-**Origin Spec:** `/Users/jamiecraik/dev/trace-narrative/docs/specs/2026-03-09-feat-readout-inspired-dashboard-v3-spec.md`
+**Origin Plan:** `/Users/jamiecraik/dev/trace-narrative/docs/plans/2026-03-09-feat-firefly-inspired-dashboard-v3-plan.md`
+**Origin Spec:** `/Users/jamiecraik/dev/trace-narrative/docs/specs/2026-03-09-feat-firefly-inspired-dashboard-v3-spec.md`
 
 ## Phase 0: Preflight and Execution Contract
 
@@ -18,36 +18,36 @@
 
 ## Phase 2: Layout Migration and Resolved UX Defaults
 
-- [x] Port v3 visual structure (from `readout-inspired-v3.html`) without breaking `App.tsx` navigation
+- [x] Port v3 visual structure (from `firefly-inspired-v3.html`) without breaking `App.tsx` navigation
 - [x] Apply distinct styles for non-success states and trust indicators
 - [x] Enforce reduced-motion parity and APG-compliant TopNav
 
 ## Phase 3: Visualization Strategy and Performance Delivery
 
-- [ ] Add `echarts-canvas` (if absent) and switch based on density (SVG vs Canvas vs Table)
-- [ ] Add canonical performance fixtures
-- [ ] Measure/enforce spec budgets (TTI, interaction latency)
+- [x] Add `echarts-canvas` (if absent) and switch based on density (SVG vs Canvas vs Table)
+- [x] Add canonical performance fixtures
+- [x] Measure/enforce spec budgets (TTI, interaction latency)
 
 ## Phase 4: Telemetry, Audit, and Sanitization
 
-- [ ] Extend `narrativeTelemetry.ts` envelope
-- [ ] Promote release-blocking event coverage
-- [ ] Implement redaction/sanitization for `permission_denied`
+- [x] Extend `narrativeTelemetry.ts` envelope
+- [x] Promote release-blocking event coverage
+- [x] Implement redaction/sanitization for `permission_denied`
 
 ## Phase 5: Tauri Authority Boundary Hardening
 
-- [ ] Review `/src-tauri/capabilities/*` against spec auth matrix
-- [ ] Verify `authority_denied` is non-retryable and defaults to deny
+- [x] Review `/src-tauri/capabilities/*` against spec auth matrix
+- [x] Verify `authority_denied` is non-retryable and defaults to deny
 
 ## Phase 6: Test Matrix Completion
 
-- [ ] Expand view and component tests
-- [ ] Add negative tests for forbidden transitions
-- [ ] Add remediation/stale-drop taxonomy tests
-- [ ] Extend telemetry tests
+- [x] Expand view and component tests
+- [x] Add negative tests for forbidden transitions
+- [x] Add remediation/stale-drop taxonomy tests
+- [x] Extend telemetry tests
 
 ## Phase 7: Rollout, Evidence, and Monitoring
 
-- [ ] Produce canonical artifact pack
-- [ ] Setup schema validation
-- [ ] Map spec gate math into decision table
+- [x] Produce canonical artifact pack
+- [x] Setup schema validation
+- [x] Map spec gate math into decision table

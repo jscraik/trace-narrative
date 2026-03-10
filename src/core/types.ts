@@ -1,5 +1,36 @@
 export type BranchStatus = 'open' | 'merged';
 
+export type Mode =
+  | 'dashboard'
+  | 'repo'
+  | 'docs'
+  | 'live'
+  | 'sessions'
+  | 'transcripts'
+  | 'tools'
+  | 'costs'
+  | 'setup'
+  | 'ports'
+  | 'work-graph'
+  | 'repo-pulse'
+  | 'timeline'
+  | 'diffs'
+  | 'snapshots'
+  | 'skills'
+  | 'agents'
+  | 'memory'
+  | 'hooks'
+  | 'hygiene'
+  | 'deps'
+  | 'worktrees'
+  | 'env'
+  | 'settings'
+  | 'assistant'
+  | 'attribution'
+  | 'status';
+
+
+
 export type Stats = {
   added: number;
   removed: number;
@@ -513,6 +544,9 @@ export type DashboardState =
   | 'permission_denied';
 
 export type DashboardTrustState = 'healthy' | 'degraded';
+
+export type CockpitTrustState = DashboardTrustState;
+export type DataAuthorityTier = 'live_repo' | 'live_capture' | 'derived_summary' | 'static_scaffold';
 
 export type DashboardPanelStatus = 'ready' | 'loading' | 'empty' | 'error' | 'degraded';
 

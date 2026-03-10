@@ -1,0 +1,18 @@
+{
+    "default": null,
+    "permission": [
+        {
+            "identifier": "activity",
+            "description": "Permissions for viewing activity and contribution details",
+            "commands": {
+                "allow": [
+                    "get_commit_contribution_stats",
+                    "get_file_source_lens",
+                    "compute_stats_batch",
+                    "get_attribution_note_summary"
+                ],
+                "deny": []
+            }
+        }
+    ]
+}

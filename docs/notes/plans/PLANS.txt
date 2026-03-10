@@ -258,7 +258,7 @@ First, define a progress model and update the loading UI to display progress (ph
 
 1) Add a progress state in `src/App.tsx`:
    - Track `{ phase, current, total, percent, message }` while `repoState.status === 'loading'`.
-   - Replace the static “Indexing repo…” UI with a simple progress readout.
+   - Replace the static “Indexing repo…” UI with a simple progress indicator.
 
 2) Update `indexRepo` signature in `src/core/repo/indexer.ts`:
    - Add optional `onProgress?: (update) => void`.

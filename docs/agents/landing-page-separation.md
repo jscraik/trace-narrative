@@ -27,8 +27,6 @@ This document governs **landing-page work after the UI split** from the tauri ap
 - If the change is inside `src-tauri/`, `src/` app shell, or other in-app UI code, use the app docs (`docs/agents/tauri.md`, `docs/agents/development.md`) unless the task explicitly says "standalone page."
 - If the change is for a standalone page (outside app shell) or if the screenshot requirement is a page-level visual match, use:
   - `docs/agents/frontend-website-rules.md`
-  - `node serve.mjs`
-  - `node screenshot.mjs`
 
 ## When to apply Frontend Website Rules
 
@@ -49,10 +47,5 @@ This document governs **landing-page work after the UI split** from the tauri ap
 
 ## Screenshot expectations
 
-- For standalone page snapshots:
-  - `node screenshot.mjs http://localhost:2000`
-- For component checks:
-  - `node screenshot.mjs http://localhost:2000 card`
-  - expected file: `screenshot-N-card.png`
-  - examples: `node screenshot.mjs http://localhost:2000 button`, `node screenshot.mjs http://localhost:2000 card`
-- Keep screenshot names exact and stable for iterative comparison.
+- Canonical screenshot commands and output naming are documented in:
+  - `docs/agents/frontend-website-rules.md`

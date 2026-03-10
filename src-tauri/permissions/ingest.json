@@ -1,0 +1,20 @@
+{
+    "default": null,
+    "permission": [
+        {
+            "identifier": "ingest",
+            "description": "Permissions for importing session data",
+            "commands": {
+                "allow": [
+                    "import_session_file",
+                    "import_session_files",
+                    "scan_for_session_files",
+                    "import_attribution_note",
+                    "import_attribution_notes_batch",
+                    "export_attribution_note"
+                ],
+                "deny": []
+            }
+        }
+    ]
+}

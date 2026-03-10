@@ -11,7 +11,8 @@ use crate::secret_store;
 pub const CANONICAL_COLLECTOR_ROOT: &str = "~/.agents/otel-collector";
 pub const LEGACY_COLLECTOR_ROOT: &str = "~/.agents/otel/collector";
 pub const SECONDARY_LEGACY_COLLECTOR_ROOT: &str = "~/.codex/otel-collector";
-pub const APP_IDENTIFIER: &str = "com.jamie.firefly-narrative";
+pub const APP_IDENTIFIER: &str = "com.jamie.trace-narrative";
+pub const FIREFLY_LEGACY_APP_IDENTIFIER: &str = "com.jamie.firefly-narrative";
 pub const LEGACY_APP_IDENTIFIER: &str = "com.jamie.narrative-mvp";
 
 fn default_chatgpt_auth_mode() -> String {
@@ -372,6 +373,14 @@ fn config_path_for_read() -> Result<PathBuf, String> {
     }
 
     let base = dirs::data_dir().ok_or_else(|| "Could not determine data directory".to_string())?;
+    
+    // Check firefly-narrative (immediate predecessor)
+    let firefly_legacy = base.join(FIREFLY_LEGACY_APP_IDENTIFIER).join("ingest-config.json");
+    if firefly_legacy.exists() {
+        return Ok(firefly_legacy);
+    }
+
+    // Check narrative-mvp (legacy)
     let legacy = base.join(LEGACY_APP_IDENTIFIER).join("ingest-config.json");
     if legacy.exists() {
         return Ok(legacy);

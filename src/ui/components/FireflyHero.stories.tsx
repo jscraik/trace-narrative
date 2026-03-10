@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { FireflyHero } from './FireflyHero';
+import { TraceHero } from '../../../landing/TraceHero';
 
-const meta: Meta<typeof FireflyHero> = {
-  title: 'Narrative/Brand/FireflyHero',
-  component: FireflyHero,
+const meta: Meta<typeof TraceHero> = {
+  title: 'Narrative/Brand/TraceHero',
+  component: TraceHero,
   parameters: {
     layout: 'fullscreen',
     backgrounds: {
@@ -17,11 +17,11 @@ const meta: Meta<typeof FireflyHero> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof FireflyHero>;
+type Story = StoryObj<typeof TraceHero>;
 
 export const Default: Story = {
   args: {
-    onExitComplete: () => console.log('Firefly transition complete'),
+    onExitComplete: () => console.log('Trace transition complete'),
   },
 };
 

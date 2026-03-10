@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getTraceRangesForCommitFile } from '../core/repo/agentTrace';
 import { getCommitDiffForFile } from '../core/repo/git';
 import { getOrLoadCommitFiles } from '../core/repo/indexer';
-import type { BranchViewModel, FileChange, TraceRange } from '../core/types';
+import type { BranchViewModel, FileChange, Mode, TraceRange } from '../core/types';
 import type { RepoState } from './useRepoLoader';
 
 // Lazy-load demo model to avoid bundling issues
@@ -23,7 +23,7 @@ async function loadDemoModel(): Promise<BranchViewModel> {
 }
 
 export interface UseCommitDataProps {
-  mode: 'demo' | 'repo' | 'docs' | 'dashboard';
+  mode: Mode;
   repoState: RepoState;
   diffCache: React.MutableRefObject<{ get(key: string): string | undefined; set(key: string, value: string): void }>;
   model: BranchViewModel | null;
@@ -49,18 +49,25 @@ export function useCommitData({
 }: UseCommitDataProps): UseCommitDataReturn {
   const [demoModel, setDemoModel] = useState<BranchViewModel | null>(null);
 
-  // Load demo model asynchronously when entering demo mode
+  // Load demo model asynchronously as a fallback when no repo is loaded
   useEffect(() => {
-    if (mode === 'demo' && !demoModel) {
+    if (repoState.status !== 'ready' && !demoModel) {
       loadDemoModel().then(setDemoModel);
     }
-  }, [mode, demoModel]);
+  }, [repoState.status, demoModel]);
 
   const computedModel = useMemo(() => {
-    if (mode === 'demo') {
+    // If no repo is loaded and we are not explicitly in repo mode, 
+    // show the demo model as a fallback to populate the UI.
+    if (repoState.status !== 'ready' && mode !== 'repo') {
       return demoModel;
     }
-    if (mode === 'repo' && repoState.status === 'ready') return repoState.model;
+    // Specifically for 'repo' mode, we want to show the real model if ready,
+    // otherwise the demo model.
+    if (mode === 'repo') {
+      return repoState.status === 'ready' ? repoState.model : demoModel;
+    }
+
     return null;
   }, [mode, repoState, demoModel]);
 

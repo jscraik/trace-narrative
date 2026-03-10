@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Refresh diagram context for firefly-narrative
+# Refresh diagram context for trace-narrative
 # Usage: scripts/refresh-diagram-context.sh [--dry-run|--force]
 
 set -euo pipefail

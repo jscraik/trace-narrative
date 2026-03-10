@@ -1,10 +1,10 @@
-/* Firefly Signal System — CSS tokens and animations */
+/* Trace Signal System — CSS tokens and animations */
 
-@theme {
+:root {
   /* Colors */
-  --color-firefly-glow: oklch(0.85 0.15 85);
-  --color-firefly-dim: oklch(0.6 0.05 85);
-  --color-firefly-insight: oklch(0.88 0.2 92);
+  --color-trace-glow: oklch(0.85 0.15 85);
+  --color-trace-dim: oklch(0.6 0.05 85);
+  --color-trace-insight: oklch(0.88 0.2 92);
 
   /* Durations */
   --duration-slow: 8s;
@@ -19,7 +19,7 @@
 }
 
 /* Keyframe animations */
-@keyframes firefly-idle {
+@keyframes trace-idle {
 
   0%,
   100% {
@@ -33,7 +33,7 @@
   }
 }
 
-@keyframes firefly-tracking {
+@keyframes trace-tracking {
   0% {
     transform: scale(1) translateZ(0);
     opacity: 0.6;
@@ -45,7 +45,7 @@
   }
 }
 
-@keyframes firefly-analyzing {
+@keyframes trace-analyzing {
 
   0%,
   100% {
@@ -59,23 +59,23 @@
   }
 }
 
-@keyframes firefly-insight {
+@keyframes trace-insight {
 
   0%,
   100% {
     transform: scale(1) translateZ(0);
     opacity: 0.7;
     box-shadow:
-      0 0 10px 2px rgba(251, 191, 36, 0.35),
-      0 0 20px 5px rgba(251, 191, 36, 0.2);
+      0 0 10px 2px color-mix(in oklab, #fbbf24 35%, transparent),
+      0 0 20px 5px color-mix(in oklab, #fbbf24 20%, transparent);
   }
 
   45% {
     transform: scale(1.28) translateZ(0);
     opacity: 1;
     box-shadow:
-      0 0 14px 4px rgba(255, 235, 130, 0.75),
-      0 0 28px 8px rgba(255, 210, 90, 0.45);
+      0 0 14px 4px color-mix(in oklab, #ffeb82 75%, transparent),
+      0 0 28px 8px color-mix(in oklab, #ffd25a 45%, transparent);
   }
 }
 
@@ -186,23 +186,23 @@
 
 
 /* Utility classes */
-.animate-firefly-idle {
-  animation: firefly-idle var(--duration-slow) ease-in-out infinite;
+.animate-trace-idle {
+  animation: trace-idle var(--duration-slow) ease-in-out infinite;
 }
 
-.animate-firefly-tracking {
-  animation: firefly-tracking var(--duration-medium) var(--ease-smooth) infinite alternate;
+.animate-trace-tracking {
+  animation: trace-tracking var(--duration-medium) var(--ease-smooth) infinite alternate;
 }
 
-.animate-firefly-analyzing {
-  animation: firefly-analyzing var(--duration-analyze) var(--ease-bounce) infinite;
+.animate-trace-analyzing {
+  animation: trace-analyzing var(--duration-analyze) var(--ease-bounce) infinite;
 }
 
-.animate-firefly-insight {
-  animation: firefly-insight var(--duration-insight) var(--ease-bounce) infinite;
+.animate-trace-insight {
+  animation: trace-insight var(--duration-insight) var(--ease-bounce) infinite;
 }
 
-@keyframes firefly-burst-success {
+@keyframes trace-burst-success {
   0% {
     transform: scale(1.18) translateZ(0);
   }
@@ -210,8 +210,8 @@
   20% {
     transform: scale(1.6) translateZ(0);
     box-shadow:
-      0 0 16px 6px rgba(16, 185, 129, 0.6),
-      0 0 30px 10px rgba(16, 185, 129, 0.4);
+      0 0 16px 6px color-mix(in oklab, #10b981 60%, transparent),
+      0 0 30px 10px color-mix(in oklab, #10b981 40%, transparent);
     background-color: oklch(0.85 0.15 150);
   }
 
@@ -220,11 +220,11 @@
   }
 }
 
-.firefly-burst-success {
-  animation: firefly-burst-success 0.8s ease-out forwards;
+.trace-burst-success {
+  animation: trace-burst-success 0.8s ease-out forwards;
 }
 
-@keyframes firefly-burst-error {
+@keyframes trace-burst-error {
   0% {
     transform: scale(1.18) translateZ(0);
   }
@@ -232,8 +232,8 @@
   20% {
     transform: scale(1.6) translateZ(0);
     box-shadow:
-      0 0 16px 6px rgba(239, 68, 68, 0.6),
-      0 0 30px 10px rgba(239, 68, 68, 0.38);
+      0 0 16px 6px color-mix(in oklab, #ef4444 60%, transparent),
+      0 0 30px 10px color-mix(in oklab, #ef4444 38%, transparent);
     background-color: oklch(0.64 0.24 26);
   }
 
@@ -242,14 +242,14 @@
   }
 }
 
-.firefly-burst-error {
-  animation: firefly-burst-error 0.8s ease-out forwards;
+.trace-burst-error {
+  animation: trace-burst-error 0.8s ease-out forwards;
 }
 
 
 
-/* Firefly component styles */
-.firefly {
+/* Trace component styles */
+.trace {
   position: absolute;
   pointer-events: none;
   width: 10px;
@@ -262,22 +262,22 @@
   z-index: 20;
 }
 
-.firefly-orb {
+.trace-orb {
   position: relative;
   width: 100%;
   height: 100%;
   border-radius: 9999px;
   background-color: #fbbf24;
   box-shadow:
-    0 0 8px 2px rgba(251, 191, 36, 0.5),
-    0 0 16px 4px rgba(251, 191, 36, 0.3);
+    0 0 8px 2px color-mix(in oklab, #fbbf24 50%, transparent),
+    0 0 16px 4px color-mix(in oklab, #fbbf24 30%, transparent);
   transform-origin: center;
   will-change: transform, opacity;
   z-index: 2;
 }
 
 /* Wing Styles */
-.firefly-wings {
+.trace-wings {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -289,20 +289,20 @@
   /* Below orb */
 }
 
-.firefly-wing {
+.trace-wing {
   position: absolute;
   top: 40%;
   width: 13px;
   height: 8px;
-  border-top: 1px solid rgba(251, 191, 36, 0.7);
-  box-shadow: 0 -1px 4px rgba(251, 191, 36, 0.2);
+  border-top: 1px solid color-mix(in oklab, #fbbf24 70%, transparent);
+  box-shadow: 0 -1px 4px color-mix(in oklab, #fbbf24 20%, transparent);
   opacity: 0.6;
   will-change: transform;
   /* Make them look like thin threads */
   border-radius: 100% 0 0 0;
 }
 
-.firefly-wing.left {
+.trace-wing.left {
   right: 50%;
   transform-origin: 100% 60%;
   /* Pivot near center-right */
@@ -310,7 +310,7 @@
   transform: rotate(-20deg);
 }
 
-.firefly-wing.right {
+.trace-wing.right {
   left: 50%;
   transform-origin: 0% 60%;
   /* Pivot near center-left */
@@ -321,58 +321,58 @@
 
 
 /* Wing State Animations */
-[data-state='idle'] .firefly-wing.left {
+[data-state='idle'] .trace-wing.left {
   animation: wing-idle-left 5s ease-in-out infinite;
 }
 
-[data-state='idle'] .firefly-wing.right {
+[data-state='idle'] .trace-wing.right {
   animation: wing-idle-right 5s ease-in-out infinite;
 }
 
-[data-state='tracking'] .firefly-wing.left {
+[data-state='tracking'] .trace-wing.left {
   animation: wing-track-left 0.3s ease-out forwards;
 }
 
-[data-state='tracking'] .firefly-wing.right {
+[data-state='tracking'] .trace-wing.right {
   animation: wing-track-right 0.3s ease-out forwards;
 }
 
-[data-state='analyzing'] .firefly-wing.left {
+[data-state='analyzing'] .trace-wing.left {
   animation: wing-analyze-left 0.1s linear infinite;
 }
 
-[data-state='analyzing'] .firefly-wing.right {
+[data-state='analyzing'] .trace-wing.right {
   animation: wing-analyze-right 0.1s linear infinite;
 }
 
-[data-state='insight'] .firefly-wing.left {
+[data-state='insight'] .trace-wing.left {
   animation: wing-insight-left 0.6s ease-out infinite;
 }
 
-[data-state='insight'] .firefly-wing.right {
+[data-state='insight'] .trace-wing.right {
   animation: wing-insight-right 0.6s ease-out infinite;
 }
 
 
 /* Orb State Colors */
-.firefly-idle,
-.firefly-tracking {
-  background-color: var(--color-firefly-glow);
+.trace-idle,
+.trace-tracking {
+  background-color: var(--color-trace-glow);
 }
 
-.firefly-analyzing {
+.trace-analyzing {
   background-color: #fcd34d;
 }
 
-.firefly-insight {
-  background-color: var(--color-firefly-insight);
+.trace-insight {
+  background-color: var(--color-trace-insight);
 }
 
 /* Reduced Motion Static States */
-.firefly-idle-static,
-.firefly-tracking-static,
-.firefly-analyzing-static,
-.firefly-insight-static {
+.trace-idle-static,
+.trace-tracking-static,
+.trace-analyzing-static,
+.trace-insight-static {
   animation: none;
   opacity: 0.72;
   transform: scale(1) translateZ(0);
@@ -380,27 +380,27 @@
 
 @media (prefers-reduced-motion: reduce) {
 
-  .firefly-orb,
-  .firefly-wing {
+  .trace-orb,
+  .trace-wing {
     animation: none;
     transform: none;
     transition: none;
   }
 
-  [data-state='idle'] .firefly-wing.left,
-  [data-state='idle'] .firefly-wing.right,
-  [data-state='tracking'] .firefly-wing.left,
-  [data-state='tracking'] .firefly-wing.right,
-  [data-state='analyzing'] .firefly-wing.left,
-  [data-state='analyzing'] .firefly-wing.right,
-  [data-state='insight'] .firefly-wing.left,
-  [data-state='insight'] .firefly-wing.right {
+  [data-state='idle'] .trace-wing.left,
+  [data-state='idle'] .trace-wing.right,
+  [data-state='tracking'] .trace-wing.left,
+  [data-state='tracking'] .trace-wing.right,
+  [data-state='analyzing'] .trace-wing.left,
+  [data-state='analyzing'] .trace-wing.right,
+  [data-state='insight'] .trace-wing.left,
+  [data-state='insight'] .trace-wing.right {
     animation: none;
     transform: none;
     transition: none;
   }
 
-  .firefly-wing {
+  .trace-wing {
     display: none;
     /* Hide flashing wings in reduced motion */
   }
@@ -408,49 +408,46 @@
 
 
 :root {
-  --firefly-brand-text: #c05e0a;
+  --trace-brand-text: #c05e0a;
   /* amber-700 saturated */
-  --firefly-brand-shadow:
-    0 0 6px rgba(251, 191, 36, 0.5),
-    0 0 14px rgba(251, 191, 36, 0.2);
+  --trace-brand-shadow:
+    0 0 6px color-mix(in oklab, #fbbf24 50%, transparent),
+    0 0 14px color-mix(in oklab, #fbbf24 20%, transparent);
 }
 
 :root[data-theme="dark"] {
-  --firefly-brand-text: #fef3c7;
-  --firefly-brand-shadow:
-    0 0 6px rgba(251, 191, 36, 1),
-    /* tight inner glow */
-    0 0 16px rgba(251, 191, 36, 0.7),
-    /* mid amber halo */
-    0 0 36px rgba(251, 191, 36, 0.35),
-    /* outer warmth */
-    0 0 60px rgba(245, 158, 11, 0.15);
+  --trace-brand-text: #fef3c7;
+  --trace-brand-shadow:
+    0 0 6px color-mix(in oklab, #fbbf24 100%, transparent), /* tight inner glow */
+    0 0 16px color-mix(in oklab, #fbbf24 70%, transparent), /* mid amber halo */
+    0 0 36px color-mix(in oklab, #fbbf24 35%, transparent), /* outer warmth */
+    0 0 60px color-mix(in oklab, #f59e0b 15%, transparent); /* very wide ambient spill */
   /* very wide ambient spill */
 }
 
 /* Typography for Logo */
-.brand-firefly {
+.brand-trace {
   font-family: 'Caveat', cursive;
   font-weight: 700;
-  color: var(--firefly-brand-text);
+  color: var(--trace-brand-text);
   letter-spacing: 0.02em;
   /* Light-mode default: tighter, more saturated glow so it reads against pale backgrounds.
-     FireflyHero writes --firefly-breath (0–1) each rAF frame. */
+     TraceHero writes --trace-breath (0–1) each rAF frame. */
   text-shadow:
-    0 0 calc(2px + var(--firefly-breath, 0.5) * 8px) rgba(180, 80, 0, calc(0.7 + var(--firefly-breath, 0.5) * 0.3)),
-    0 0 calc(6px + var(--firefly-breath, 0.5) * 12px) rgba(245, 158, 11, calc(0.4 + var(--firefly-breath, 0.5) * 0.4));
+    0 0 calc(2px + var(--trace-breath, 0.5) * 8px) color-mix(in oklab, #b45000 calc(70% + var(--trace-breath, 0.5) * 30%), transparent),
+    0 0 calc(6px + var(--trace-breath, 0.5) * 12px) color-mix(in oklab, #f59e0b calc(40% + var(--trace-breath, 0.5) * 40%), transparent);
 }
 
 /* Dark-mode: wider, softer glow — luminous against the dark background */
-[data-theme="dark"] .brand-firefly {
+[data-theme="dark"] .brand-trace {
   text-shadow:
-    0 0 calc(4px + var(--firefly-breath, 0.5) * 14px) rgba(251, 191, 36, calc(0.55 + var(--firefly-breath, 0.5) * 0.45)),
-    0 0 calc(10px + var(--firefly-breath, 0.5) * 20px) rgba(245, 158, 11, calc(0.2 + var(--firefly-breath, 0.5) * 0.3));
+    0 0 calc(4px + var(--trace-breath, 0.5) * 14px) color-mix(in oklab, #fbbf24 calc(55% + var(--trace-breath, 0.5) * 45%), transparent),
+    0 0 calc(10px + var(--trace-breath, 0.5) * 20px) color-mix(in oklab, #f59e0b calc(20% + var(--trace-breath, 0.5) * 30%), transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brand-firefly {
+  .brand-trace {
     /* Static mid-glow when animation is off */
-    text-shadow: var(--firefly-brand-shadow);
+    text-shadow: var(--trace-brand-shadow);
   }
 }

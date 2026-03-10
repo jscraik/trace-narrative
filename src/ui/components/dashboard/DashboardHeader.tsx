@@ -10,6 +10,8 @@ interface DashboardHeaderProps {
   onTimeRangeChange: (timeRange: TimeRange) => void;
   lastUpdated?: Date;
   trustState?: DashboardTrustState;
+  onOpenRepo?: () => void;
+  onImportSession?: () => void;
 }
 
 export function DashboardHeader({
@@ -19,11 +21,13 @@ export function DashboardHeader({
   onTimeRangeChange,
   lastUpdated,
   trustState = 'healthy',
+  onOpenRepo: _onOpenRepo,
+  onImportSession: _onImportSession,
 }: DashboardHeaderProps) {
   return (
     <header
       data-dashboard-header
-      className="sticky top-0 z-10 h-16 bg-bg-secondary border-b border-border-light px-6"
+      className="sticky top-0 z-10 h-14 bg-bg-secondary/80 backdrop-blur-md border-b border-border-subtle px-6"
     >
       <div className="flex items-center justify-between h-full">
         {/* Left: Repo info */}
@@ -59,12 +63,17 @@ export function DashboardHeader({
             </div>
           </div>
 
-          {/* Last Updated */}
-          {lastUpdated && (
-            <span className="text-xs text-text-muted">
-              Updated {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
+          <div className="h-4 w-px bg-border-subtle" />
+
+          {/* Sync status / Last Updated */}
+          <div className="flex items-center gap-2">
+            {lastUpdated && (
+              <span className="text-[10px] uppercase tracking-wider font-bold text-text-muted opacity-80">
+                Synced {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            <div className="w-1.5 h-1.5 rounded-full bg-accent-green shadow-[0_0_8px_var(--accent-green)]" />
+          </div>
         </div>
       </div>
     </header>

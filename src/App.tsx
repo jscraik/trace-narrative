@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MutableRefObject } from 'react';
 import { EMPTY_BRANCH_MODEL } from './core/models/emptyBranchModel';
 import { setOtelReceiverEnabled } from './core/tauri/otelReceiver';
 import { normalizeHttpUrl } from './core/utils/url';
 import type {
   DashboardFilter,
+  Mode,
   TraceCollectorConfig
 } from './core/types';
 import { useAutoIngest } from './hooks/useAutoIngest';
@@ -13,21 +15,21 @@ import { useSessionImport } from './hooks/useSessionImport';
 import { useTraceCollector } from './hooks/useTraceCollector';
 import { useUpdater } from './hooks/useUpdater';
 import { RepoEmptyState } from './ui/components/RepoEmptyState';
-import { TopNav, type Mode } from './ui/components/TopNav';
-import { UpdateIndicator, UpdatePrompt } from './ui/components/UpdatePrompt';
+import { Sidebar } from './ui/components/Sidebar';
+import { UpdatePrompt } from './ui/components/UpdatePrompt';
 import { BranchView } from './ui/views/BranchView';
+import { CockpitView } from './ui/views/CockpitView';
 import { DashboardView } from './ui/views/DashboardView';
-import { DashboardTrustBadge } from './ui/components/dashboard/DashboardTrustBadge';
 import {
   DASHBOARD_FOCUS_RESTORE_MS,
-  deriveDashboardTrustState,
 } from './ui/views/dashboardState';
 import { DocsView } from './ui/views/DocsView';
+import { TopNav } from './ui/components/TopNav';
 
 type AgentationComponentType = (typeof import('agentation'))['Agentation'];
 
 export default function App() {
-  const [mode, setMode] = useState<Mode>('demo');
+  const [mode, setMode] = useState<Mode>('dashboard');
   const [dashboardFilter, setDashboardFilter] = useState<DashboardFilter | null>(null);
   const [isExitingFilteredView, setIsExitingFilteredView] = useState(false);
   const clearFilterTimerRef = useRef<number | null>(null);
@@ -35,7 +37,7 @@ export default function App() {
   const [AgentationComponent, setAgentationComponent] = useState<AgentationComponentType | null>(null);
   const rawAgentationEndpoint = import.meta.env.VITE_AGENTATION_ENDPOINT as string | undefined;
   const normalizedAgentationEndpoint = normalizeHttpUrl(rawAgentationEndpoint);
-  const isAgentationEnabled = import.meta.env.DEV && Boolean(normalizedAgentationEndpoint);
+  const isAgentationEnabled = Boolean(normalizedAgentationEndpoint);
 
   const rawAgentationWebhookUrl = import.meta.env.VITE_AGENTATION_WEBHOOK_URL as string | undefined;
   const normalizedAgentationWebhookUrl = normalizeHttpUrl(rawAgentationWebhookUrl);
@@ -163,7 +165,7 @@ export default function App() {
   const commitData = useCommitData({
     mode,
     repoState,
-    diffCache: diffCache as unknown as React.MutableRefObject<{ get(key: string): string | undefined; set(key: string, value: string): void }>,
+    diffCache: diffCache as unknown as MutableRefObject<{ get(key: string): string | undefined; set(key: string, value: string): void }>,
     model: null // Will be computed inside the hook
   });
 
@@ -196,9 +198,6 @@ export default function App() {
     },
     [setRepoState, setActionError]
   );
-
-  const importEnabled = mode === 'repo' && repoState.status === 'ready';
-  const dashboardTrustState = deriveDashboardTrustState(autoIngest.captureReliabilityStatus);
 
   // Focus management: save active element before drill-down, restore on back
   const lastFocusedElementRef = useRef<HTMLElement | null>(null);
@@ -242,53 +241,36 @@ export default function App() {
     };
   }, []);
 
-  return (
-    <div className="flex h-full flex-col bg-bg-primary text-text-primary">
-      {/* Update Notification */}
-      {updateStatus && (
-        <UpdatePrompt
-          status={updateStatus}
-          onUpdate={downloadAndInstall}
-          onClose={dismiss}
-          onCheckAgain={checkForUpdates}
+  const renderContent = () => {
+    // 1. Dashboard View
+    if (mode === 'dashboard') {
+      return (
+        <DashboardView
+          repoState={repoState}
+          setRepoState={setRepoState}
+          setActionError={setActionError}
+          onDrillDown={handleDrillDown}
+          onModeChange={setMode}
+          captureReliabilityStatus={autoIngest.captureReliabilityStatus}
         />
-      )}
+      );
+    }
 
-      <TopNav
-        mode={mode}
-        onModeChange={setMode}
-        repoPath={commitData.repoPath}
-        onOpenRepo={openRepo}
-        onImportSession={sessionImportHandlers.importSession}
-        onImportKimiSession={sessionImportHandlers.importKimiSession}
-        onImportAgentTrace={sessionImportHandlers.importAgentTrace}
-        importEnabled={importEnabled}
-      >
-        {repoState.status === 'ready' ? (
-          <DashboardTrustBadge trustState={dashboardTrustState} className="hidden sm:inline-flex" />
-        ) : null}
-        {/* Update indicator in nav */}
-        <UpdateIndicator status={updateStatus} onClick={checkForUpdates} />
-      </TopNav>
+    // 2. Documentation View
+    if (mode === 'docs') {
+      return (
+        <DocsView
+          repoState={repoState}
+          setRepoState={setRepoState}
+          onClose={() => setMode('repo')}
+        />
+      );
+    }
 
-      {/* `min-h-0` is critical so nested flex children can scroll instead of overflowing */}
-      <div className="flex-1 min-h-0 overflow-hidden bg-bg-tertiary">
-        {mode === 'dashboard' ? (
-          <DashboardView
-            repoState={repoState}
-            setRepoState={setRepoState}
-            setActionError={setActionError}
-            onDrillDown={handleDrillDown}
-            onModeChange={setMode}
-            captureReliabilityStatus={autoIngest.captureReliabilityStatus}
-          />
-        ) : mode === 'docs' ? (
-          <DocsView
-            repoState={repoState}
-            setRepoState={setRepoState}
-            onClose={() => setMode('repo')}
-          />
-        ) : mode === 'repo' && repoState.status === 'loading' ? (
+    // 3. Repository-specific logic
+    if (mode === 'repo') {
+      if (repoState.status === 'loading') {
+        return (
           <div className="p-8 text-sm text-text-tertiary">
             <div className="text-sm font-medium text-text-secondary">Indexing repo…</div>
             <div className="mt-2 text-xs text-text-tertiary">
@@ -306,7 +288,11 @@ export default function App() {
                 : indexingProgress?.phase ?? 'loading'}
             </div>
           </div>
-        ) : mode === 'repo' && repoState.status === 'error' ? (
+        );
+      }
+
+      if (repoState.status === 'error') {
+        return (
           <div className="p-8">
             <div className="rounded-xl border border-accent-red-light bg-accent-red-bg p-4 text-sm text-text-secondary">
               {repoState.message}
@@ -316,9 +302,13 @@ export default function App() {
               available on your PATH.
             </div>
           </div>
-        ) : commitData.model ? (
+        );
+      }
+
+      if (repoState.status === 'ready') {
+        return (
           <BranchView
-            model={commitData.model}
+            model={commitData.model ?? EMPTY_BRANCH_MODEL}
             updateModel={(updater) => {
               setRepoState((prev) => {
                 if (prev.status !== 'ready') return prev;
@@ -368,19 +358,78 @@ export default function App() {
             githubConnectorEnabled={githubConnectorEnabled}
             onToggleGitHubConnector={handleToggleGitHubConnector}
           />
-        ) : (
-          <RepoEmptyState setRepoState={setRepoState} />
+        );
+      }
+
+      return <RepoEmptyState setRepoState={setRepoState} />;
+    }
+
+    return (
+      <CockpitView
+        mode={mode}
+        repoState={repoState}
+        captureReliabilityStatus={autoIngest.captureReliabilityStatus}
+        onModeChange={setMode}
+        onOpenRepo={openRepo}
+        onImportSession={sessionImportHandlers.importSession}
+      />
+    );
+  };
+
+  const repoRoot = repoState.status === 'ready' ? repoState.path : '';
+
+  return (
+    <div className="flex h-screen bg-bg-primary text-text-primary overflow-hidden">
+      <Sidebar 
+        mode={mode} 
+        onModeChange={setMode} 
+        onOpenRepo={openRepo}
+        onImportSession={sessionImportHandlers.importSession}
+      />
+
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Update Notification */}
+        {updateStatus && (
+          <UpdatePrompt
+            status={updateStatus}
+            onUpdate={downloadAndInstall}
+            onClose={dismiss}
+            onCheckAgain={checkForUpdates}
+          />
+        )}
+
+        {/* Header navigation and actions */}
+        {(mode === 'repo' || mode === 'docs') && (
+          <TopNav
+            mode={mode}
+            onModeChange={setMode}
+            repoPath={repoRoot}
+            onOpenRepo={openRepo}
+            onImportSession={sessionImportHandlers.importSession}
+            onImportKimiSession={sessionImportHandlers.importKimiSession}
+            onImportAgentTrace={sessionImportHandlers.importAgentTrace}
+            importEnabled={repoState.status === 'ready'}
+          />
+        )}
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-hidden relative flex flex-col">
+          {/* `min-h-0` is critical so nested flex children can scroll instead of overflowing */}
+          <div className="flex-1 min-h-0 overflow-hidden bg-bg-tertiary">
+            {renderContent()}
+          </div>
+        </main>
+
+        {isAgentationEnabled && AgentationComponent && normalizedAgentationEndpoint && (
+          <AgentationComponent
+            endpoint={normalizedAgentationEndpoint}
+            webhookUrl={agentationWebhookUrl}
+            onSessionCreated={(sessionId) => {
+              console.log('Session started:', sessionId);
+            }}
+          />
         )}
       </div>
-      {isAgentationEnabled && AgentationComponent && normalizedAgentationEndpoint && (
-        <AgentationComponent
-          endpoint={normalizedAgentationEndpoint}
-          webhookUrl={agentationWebhookUrl}
-          onSessionCreated={(sessionId) => {
-            console.log('Session started:', sessionId);
-          }}
-        />
-      )}
     </div>
   );
 }

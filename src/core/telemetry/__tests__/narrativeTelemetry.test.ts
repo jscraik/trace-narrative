@@ -4,6 +4,7 @@ import {
   setNarrativeTelemetryRuntimeConfig,
   trackNarrativeEvent,
   trackQualityRenderDecision,
+  trackDashboardEvent,
 } from '../narrativeTelemetry';
 
 describe('narrativeTelemetry', () => {
@@ -196,5 +197,25 @@ describe('narrativeTelemetry', () => {
 
     expect(branchScope).toBe(repeatScope);
     expect(branchScope).toMatch(/^r42:b[a-z0-9]+$/);
+  });
+
+  it('dispatches dashboard telemetry with canonical envelope and hashed string repo_id', () => {
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
+    trackDashboardEvent({
+      event: 'permission_denied',
+      payload: { repo_id: '/absolute/path/to/repo' },
+      envelopeOverrides: { mode: 'dashboard' },
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledTimes(1);
+    const event = dispatchSpy.mock.calls[0]?.[0] as CustomEvent;
+
+    expect(event.detail.event).toBe('permission_denied');
+    expect(event.detail.mode).toBe('dashboard');
+    expect(event.detail.payload.repo_id).not.toBe('/absolute/path/to/repo');
+    expect(event.detail.ts_iso8601).toBeDefined();
+
+    dispatchSpy.mockRestore();
   });
 });

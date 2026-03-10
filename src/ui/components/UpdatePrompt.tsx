@@ -89,7 +89,7 @@ export function UpdatePrompt({ status, onUpdate, onClose, onDismiss, onCheckAgai
                 )}
                 {isWebMode && (
                   <a
-                    href="https://github.com/jscraik/firefly-narrative/releases"
+                    href="https://github.com/jscraik/trace-narrative/releases"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-medium text-accent-blue hover:text-accent-blue/80 flex items-center gap-1"
