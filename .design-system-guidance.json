@@ -37,7 +37,12 @@
     "src/ui/components/FireflyHero.stories.tsx",
     "src/ui/components/AskWhyAnswerCard.tsx",
     "src/ui/components/BadgePill.tsx",
-    "src/ui/components/TimelineNode.tsx"
+    "src/ui/components/TimelineNode.tsx",
+    "src/ui/components/FilesChanged.tsx",
+    "src/ui/components/RepositoryPlaceholderCard.tsx",
+    "src/ui/components/Sidebar.tsx",
+    "src/ui/components/SourceLensView.tsx",
+    "src/ui/components/StoryAnchorsPanel.tsx"
   ],
   "ignore": [
     "node_modules",

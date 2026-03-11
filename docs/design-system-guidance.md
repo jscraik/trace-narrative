@@ -79,8 +79,13 @@ Phase 1 is intentionally narrow so the package is useful immediately instead of 
     - `src/ui/components/AskWhyAnswerCard.tsx`
     - `src/ui/components/BadgePill.tsx`
     - `src/ui/components/TimelineNode.tsx`
+    - `src/ui/components/FilesChanged.tsx`
+    - `src/ui/components/RepositoryPlaceholderCard.tsx`
+    - `src/ui/components/Sidebar.tsx`
+    - `src/ui/components/SourceLensView.tsx`
+    - `src/ui/components/StoryAnchorsPanel.tsx`
 
-This scope protects the narrative-facing shell copy, screen composition work, the dashboard-specific evidence widgets, the story anchor surface that explains how traces connect into a readable narrative, the right-panel control surface that holds session, attribution, atlas, tests, and settings workflows, the session excerpt support components that make commit-to-session links legible, the auto-ingest setup surface that configures Codex-first capture reliability, and a growing root-level shell support batch around navigation, governance, attention states, GitHub context, AI trace summary, source-lens stats, capture activity, session evidence, telemetry settings, selector affordances, empty states, step summaries, timeline scaffolding, attribution controls, repo evidence headers, breadcrumbs, diff reading, ingestion status, source-lens line evidence, branch summaries, decision archaeology, dialog primitives, storybook-facing brand surfaces, ask-why analysis, timeline badges, and timeline nodes. We can expand it further once the rest of the component surface is cleaned up enough to keep the CI signal meaningful.
+This scope protects the narrative-facing shell copy, screen composition work, the dashboard-specific evidence widgets, the story anchor surface that explains how traces connect into a readable narrative, the right-panel control surface that holds session, attribution, atlas, tests, and settings workflows, the session excerpt support components that make commit-to-session links legible, the auto-ingest setup surface that configures Codex-first capture reliability, and a growing root-level shell support batch around navigation, governance, attention states, GitHub context, AI trace summary, source-lens stats, capture activity, session evidence, telemetry settings, selector affordances, empty states, step summaries, timeline scaffolding, attribution controls, repo evidence headers, breadcrumbs, diff reading, ingestion status, source-lens line evidence, branch summaries, decision archaeology, dialog primitives, storybook-facing brand surfaces, ask-why analysis, timeline badges, timeline nodes, file-evidence lists, repo placeholder states, sidebar navigation, source-lens framing, and the story-anchors panel wrapper. We can expand it further once the rest of the component surface is cleaned up enough to keep the CI signal meaningful.
 
 ## Expansion Rules
 
