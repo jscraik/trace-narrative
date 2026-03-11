@@ -1,9 +1,24 @@
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
-import type { DataAuthorityTier, Mode } from '../../core/types';
+import type { CockpitMode, DataAuthorityTier, SessionExcerpt, BranchNarrative, Snapshot } from '../../core/types';
+import { evaluateDriftDelta, type DriftReport } from '../../core/narrative/automation';
 import type { RepoState } from '../../hooks/useRepoLoader';
 import { describeCockpitTrust, deriveCockpitTrustState } from './dashboardState';
 
-export type CockpitMode = Exclude<Mode, 'dashboard' | 'repo' | 'docs'>;
+function formatConfidence(confidence?: number): string {
+  if (confidence === undefined) return 'unknown';
+  return `${Math.round(confidence * 100)}%`;
+}
+
+function calculateDeterministicCost(session: SessionExcerpt): string {
+  // Heuristic: $0.10 base + $0.05 per 5 messages + $0.02 per message length / 1000
+  const messageCount = session.messages.length;
+  const totalLength = session.messages.reduce((acc, m) => acc + (m.text?.length || 0), 0);
+  const cost = 0.10 + (messageCount * 0.05) + (totalLength / 10000);
+  return cost.toFixed(2);
+}
+
+// Re-export so existing consumers (tests, views) can still import from this module
+export type { CockpitMode } from '../../core/types';
 
 export type CockpitTone = 'blue' | 'violet' | 'green' | 'amber' | 'red' | 'slate';
 
@@ -28,7 +43,19 @@ export interface CockpitHighlight {
   tone: CockpitTone;
   authorityTier?: DataAuthorityTier;
   authorityLabel?: string;
+  action?: CockpitAction;
 }
+
+export type CockpitAction = {
+  type: 'open_evidence';
+  evidenceId: string;
+} | {
+  type: 'open_raw_diff';
+  commitSha: string;
+} | {
+  type: 'navigate';
+  mode: CockpitMode;
+};
 
 export interface CockpitActivityItem {
   title: string;
@@ -37,6 +64,7 @@ export interface CockpitActivityItem {
   status: 'ok' | 'warn' | 'critical' | 'info';
   authorityTier?: DataAuthorityTier;
   authorityLabel?: string;
+  action?: CockpitAction;
 }
 
 export interface CockpitTableRow {
@@ -45,6 +73,7 @@ export interface CockpitTableRow {
   tertiary: string;
   authorityTier?: DataAuthorityTier;
   authorityLabel?: string;
+  action?: CockpitAction;
 }
 
 export interface CockpitViewModel {
@@ -66,6 +95,7 @@ export interface CockpitViewModel {
   tableColumns: [string, string, string];
   tableRows: Array<CockpitTableRow & CockpitAuthorityCue>;
   footerNote: string;
+  driftReport?: import('../../core/narrative/automation').DriftReport;
 }
 
 interface CockpitContext {
@@ -73,11 +103,19 @@ interface CockpitContext {
   repoPath: string;
   commitCount: number;
   sessionCount: number;
+  sessionExcerpts: SessionExcerpt[];
+  changedFiles: string[];
+  unlinkedSessionCount: number;
+  narrative?: BranchNarrative;
+  snapshots: Snapshot[];
   hasLiveRepoData: boolean;
+  autoIngestEnabled: boolean;
   captureReliabilityMode: string;
+  captureReliabilityStatus: CaptureReliabilityStatus | null | undefined;
   trustState: 'healthy' | 'degraded';
   trustLabel: string;
   trustAuthority: CockpitAuthorityCue;
+  driftReport?: DriftReport;
 }
 
 const FALLBACK_AUTHORITY: CockpitAuthorityCue = {
@@ -99,6 +137,7 @@ const OTEL_ONLY_AUTHORITY: CockpitAuthorityCue = {
   authorityTier: 'derived_summary',
   authorityLabel: 'Derived from baseline OTEL-only telemetry',
 };
+
 
 function inferCaptureAuthority(
   captureReliabilityStatus?: CaptureReliabilityStatus | null,
@@ -190,6 +229,41 @@ function normalizeHighlight(
   );
 }
 
+type ActivitySeed = {
+  type: string;
+  label: string;
+  value: string;
+  time: string;
+  description: string;
+  authority: CockpitAuthorityCue;
+  action?: CockpitAction;
+};
+
+function normalizeActivity(
+  activity: ActivitySeed,
+): CockpitActivityItem & CockpitAuthorityCue {
+  let status: CockpitActivityItem['status'] = 'info';
+  const text = `${activity.label} ${activity.value} ${activity.description}`.toLowerCase();
+  
+  if (text.includes('fail') || text.includes('critical') || text.includes('error') || text.includes('drift')) {
+    status = 'critical';
+  } else if (text.includes('degraded') || text.includes('warn') || text.includes('spike')) {
+    status = 'warn';
+  } else if (text.includes('pass') || text.includes('ok') || text.includes('active') || text.includes('healthy') || text.includes('imported')) {
+    status = 'ok';
+  }
+
+  return {
+    title: `${activity.type}: ${activity.label}`,
+    meta: activity.time,
+    detail: `${activity.value} - ${activity.description}`,
+    status: status,
+    authorityTier: activity.authority.authorityTier,
+    authorityLabel: activity.authority.authorityLabel,
+    action: activity.action,
+  };
+}
+
 function normalizeActivityItem(
   activity: CockpitActivityItem,
   context: CockpitContext,
@@ -198,6 +272,17 @@ function normalizeActivityItem(
     activity,
     inferAuthorityFromText(`${activity.title} ${activity.meta} ${activity.detail}`, context),
   );
+}
+
+function mapDriftStatusToActivityStatus(status: DriftReport['status']): CockpitActivityItem['status'] {
+  switch (status) {
+    case 'critical':
+      return 'critical';
+    case 'watch':
+      return 'warn';
+    default:
+      return 'ok';
+  }
 }
 
 function normalizeTableRow(
@@ -213,7 +298,7 @@ function normalizeTableRow(
 type CockpitDefinition = {
   section: string;
   title: string;
-  subtitle: string;
+  subtitle: (context: CockpitContext) => string;
   heroTitle: (context: CockpitContext) => string;
   heroBody: (context: CockpitContext) => string;
   metrics: (context: CockpitContext) => CockpitMetric[];
@@ -244,35 +329,51 @@ function getRepoPath(repoState: RepoState): string {
 function buildContext(
   repoState: RepoState,
   captureReliabilityStatus?: CaptureReliabilityStatus | null,
+  autoIngestEnabled?: boolean,
 ): CockpitContext {
   const commitCount = repoState.status === 'ready' ? Math.max(repoState.model.timeline.length, 1) : 47;
-  const sessionCount =
-    repoState.status === 'ready'
-      ? Math.max(repoState.model.sessionExcerpts?.length ?? 0, 3)
-      : 12;
+  const sessionExcerpts = repoState.status === 'ready' ? (repoState.model.sessionExcerpts ?? []) : [];
+  const sessionCount = repoState.status === 'ready'
+    ? Math.max(sessionExcerpts.length, 3)
+    : 12;
   const trust = describeCockpitTrust(captureReliabilityStatus);
   const hasLiveRepoData = repoState.status === 'ready';
+
+  const changedFiles = repoState.status === 'ready'
+    ? (repoState.model.dirtyFiles ?? repoState.model.filesChanged?.map((f) => f.path) ?? [])
+    : [];
+  const unlinkedSessionCount = sessionExcerpts.filter(s => !s.linkedCommitSha).length;
+  const narrative = repoState.status === 'ready' ? repoState.model.narrative : undefined;
+  const snapshots = repoState.status === 'ready' ? (repoState.model.snapshots ?? []) : [];
 
   return {
     repoName: getRepoName(repoState),
     repoPath: getRepoPath(repoState),
     commitCount,
     sessionCount,
+    sessionExcerpts,
+    changedFiles,
+    unlinkedSessionCount,
+    narrative,
+    snapshots,
     hasLiveRepoData,
+    autoIngestEnabled: autoIngestEnabled ?? false,
     captureReliabilityMode: captureReliabilityStatus?.mode ?? trust.reliabilityMode,
+    captureReliabilityStatus,
     trustState: trust.trustState,
     trustLabel: trust.trustLabel,
     trustAuthority: captureReliabilityStatus
       ? inferCaptureAuthority(captureReliabilityStatus)
       : LOCAL_REPO_AUTHORITY,
+    driftReport: repoState.status === 'ready' ? evaluateDriftDelta(repoState.model) : undefined,
   };
 }
 
 const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
   'work-graph': {
-    section: 'Overview',
+    section: 'Narrative',
     title: 'Work Graph',
-    subtitle: 'Cross-repo activity patterns, dormant branches, and operational hotspots.',
+    subtitle: () => 'Cross-repo activity patterns, dormant branches, and operational hotspots.',
     heroTitle: (context) => `See where ${context.repoName} fits inside the wider workspace graph.`,
     heroBody: (_context) =>
       'This view maps active repos, sleeping branches, and attention clusters so the workspace feels readable at a glance instead of buried in lists.',
@@ -280,6 +381,20 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { label: 'Active repos', value: '8', detail: '4 pushed in the last 24h', tone: 'blue' },
       { label: 'Dormant lanes', value: '3', detail: 'Need explicit follow-up', tone: 'amber' },
       { label: 'Linked stories', value: `${context.commitCount}`, detail: 'Commits represented in graph', tone: 'violet' },
+      {
+        label: 'Drift status',
+        value: 'CRITICAL',
+        description: 'Mocked critical drift alert.',
+        status: 'critical',
+        detail: context.driftReport ? context.driftReport.metrics[0].rationale : 'Gathering workspace signals...',
+        tone: !context.driftReport
+          ? 'slate'
+          : context.driftReport.status === 'healthy'
+            ? 'green'
+            : context.driftReport.status === 'watch'
+              ? 'amber'
+              : 'red',
+      },
       { label: 'Trust posture', value: context.trustState === 'healthy' ? 'Stable' : 'Review', detail: context.trustLabel, tone: context.trustState === 'healthy' ? 'green' : 'amber' },
     ],
     highlightsTitle: 'Graph lenses',
@@ -297,39 +412,74 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     ],
     tableTitle: 'Repos needing attention',
     tableColumns: ['Repository', 'Pressure', 'Next move'],
-    tableRows: () => [
-      { primary: 'trace-narrative', secondary: 'UI scope expanded', tertiary: 'Promote cockpit routing and validate nav clarity' },
-      { primary: 'coding-harness', secondary: 'Rollout gates hot', tertiary: 'Keep artifact generation deterministic' },
-      { primary: 'config/codex', secondary: 'Automation overlap', tertiary: 'Watch for guardrail drift and duplicate jobs' },
-      { primary: 'otel-collector', secondary: 'Reliability dependency', tertiary: 'Protect stats-first diagnostics and cap-aware summaries' },
+    tableRows: (context) => [
+      { primary: context.repoName, secondary: context.hasLiveRepoData ? 'Active story' : 'Preview', tertiary: `Tracking ${context.commitCount} commits and ${context.sessionCount} sessions.` },
+      { primary: 'coding-harness', secondary: 'Stable baseline', tertiary: 'High-confidence automated benchmarks' },
+      { primary: 'config/codex', secondary: 'Rule lane', tertiary: 'Guardrails aligned with recent rollout' },
+      { primary: 'otel-collector', secondary: 'System bus', tertiary: 'Telemetry source for all views' },
     ],
     footerNote: () => 'Recommended next step: use this page as the workspace triage entry point, then drop into repo mode for deep narrative evidence.',
   },
   assistant: {
-    section: 'Overview',
-    title: 'Assistant',
-    subtitle: 'A guided operator copilot for repos, sessions, costs, and hygiene.',
-    heroTitle: (context) => `Turn ${context.repoName} into a promptable control surface.`,
+    section: 'Narrative',
+    title: 'Codex Copilot',
+    subtitle: () => 'A Codex-first copilot for repos, sessions, costs, and hygiene.',
+    heroTitle: (context) => `Turn ${context.repoName} into a Codex-grounded control surface.`,
     heroBody: () =>
-      'This assistant works as an orchestration layer, not a toy chat box. It emphasizes suggested asks, context packs, and safe action framing.',
+      'This assistant works as an orchestration layer, not a toy chat box. It starts from Codex evidence and keeps provider expansion as an explicit later step.',
     metrics: (context) => [
       { label: 'Context packs', value: '6', detail: 'Repo, session, cost, hooks, hygiene, docs', tone: 'blue' },
-      { label: 'Live providers', value: '3', detail: 'Codex, Claude, Kimi ready for routing', tone: 'violet' },
+      { label: 'Provider phase', value: 'Codex-first', detail: 'Additional providers come after the core shell feels trustworthy', tone: 'violet' },
       { label: 'Action guards', value: 'Fail-closed', detail: 'Recommend before acting', tone: 'green' },
+      { 
+        label: 'Drift alert', 
+        value: context.driftReport ? (context.driftReport.status === 'healthy' ? 'Healthy' : 'Drifting') : 'Calculating', 
+        detail: context.driftReport?.metrics[1].rationale || 'Analyzing workspace churn...', 
+        tone: !context.driftReport ? 'slate' : (context.driftReport.status === 'healthy' ? 'green' : 'amber') 
+      },
       { label: 'Repo scope', value: context.repoName, detail: 'Primary active workspace', tone: 'slate' },
     ],
     highlightsTitle: 'Suggested asks',
     highlights: (context) => [
-      { eyebrow: 'Explain', title: 'Why did this branch change?', body: `Bridge from cockpit context into ${context.repoName}'s narrative evidence and linked sessions.`, tone: 'violet' },
+      { 
+        eyebrow: 'Explain', 
+        title: 'Why did this branch change?', 
+        body: `Bridge from cockpit context into ${context.repoName}'s narrative evidence and linked sessions.`, 
+        tone: 'violet',
+        action: context.narrative?.evidenceLinks[0] ? { type: 'open_evidence' as const, evidenceId: context.narrative.evidenceLinks[0].id } : undefined
+      },
       { eyebrow: 'Triage', title: 'What needs attention today?', body: 'Use workspace health, cost drift, and recent activity to recommend the next operator move.', tone: 'blue' },
       { eyebrow: 'Protect', title: 'What is risky to clean up?', body: 'Make cleanup suggestions explicit about blast radius, rollback posture, and hidden dependencies.', tone: 'amber' },
     ],
     activityTitle: 'Conversation starters',
-    activity: () => [
-      { title: 'Ask about repo drift', meta: 'Prompt', detail: 'Summarize the biggest deltas between the current app shell and the intended cockpit flow.', status: 'info' },
-      { title: 'Review telemetry health', meta: 'Prompt', detail: 'Explain why capture is degraded and which views are affected.', status: 'warn' },
-      { title: 'Plan the next polish pass', meta: 'Prompt', detail: 'Recommend the highest-value cockpit sections to connect to real data.', status: 'ok' },
-      { title: 'Simulate cleanup', meta: 'Prompt', detail: 'Preview safe remediation steps for worktrees, deps, and stale sessions.', status: 'info' },
+    activity: (context) => [
+      ...context.sessionExcerpts.slice(0, 2).map((s) => ({
+        title: `Discuss ${s.tool || 'recent'} session`,
+        meta: 'Prompt',
+        detail: s.messages[0]?.text.slice(0, 50) + '...',
+        status: 'info' as const,
+        authorityTier: 'derived_summary' as const,
+        authorityLabel: 'Suggested from recent activity',
+        action: s.linkedCommitSha ? { type: 'open_raw_diff' as const, commitSha: s.linkedCommitSha } : undefined
+      })),
+      ...(context.sessionExcerpts.filter(s => !s.linkedCommitSha).length > 0 ? [{
+        title: 'Resolve floating sessions',
+        meta: 'Prompt',
+        detail: `Link ${context.sessionExcerpts.filter(s => !s.linkedCommitSha).length} unlinked traces to commits.`,
+        status: 'warn' as const,
+        authorityTier: 'derived_summary' as const,
+        authorityLabel: 'Suggested cleanup'
+      }] : []),
+      ...(context.driftReport && context.driftReport.status !== 'healthy' ? [{
+        title: 'High Drift Delta Alert',
+        meta: 'System',
+        detail: context.driftReport.metrics.find(m => m.status === 'critical' || m.status === 'warn')?.rationale || 'Workspace is drifting from narrative.',
+        status: mapDriftStatusToActivityStatus(context.driftReport.status),
+        authorityTier: 'system_signal' as const,
+        action: { type: 'navigate' as const, mode: 'snapshots' as const }
+      }] : []),
+      { title: 'Ask about repo drift', meta: 'Prompt', detail: `Summarize the biggest deltas in ${context.repoName}.`, status: context.hasLiveRepoData ? 'ok' : 'warn' },
+      { title: 'Review telemetry health', meta: 'Prompt', detail: context.trustLabel, status: context.trustState === 'healthy' ? 'ok' : 'warn' },
     ],
     tableTitle: 'Available context sources',
     tableColumns: ['Source', 'Role', 'Why it matters'],
@@ -342,9 +492,9 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Recommendation: keep the assistant opinionated and context-rich, not an unbounded general chat surface.',
   },
   live: {
-    section: 'Monitor',
+    section: 'Evidence',
     title: 'Live',
-    subtitle: 'Active agent sessions, capture reliability, and current operator load.',
+    subtitle: () => 'Active agent sessions, capture reliability, and current operator load.',
     heroTitle: () => 'Watch the workspace while it is still changing.',
     heroBody: (context) =>
       `This live surface is designed to be ambient and useful, while keeping the signal anchored to reliability and reviewability for ${context.repoName}.`,
@@ -361,33 +511,56 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Intervention', title: 'Human override point', body: 'The view should recommend when to reopen a repo, re-import, or run a smoke check instead of silently failing.', tone: 'blue' },
     ],
     activityTitle: 'Current stream',
-    activity: () => [
-      { title: 'Codex session importing', meta: '14s ago', detail: 'New transcript linked to the active branch', status: 'ok' },
-      { title: 'Collector retry requested', meta: '31s ago', detail: 'OTEL backoff budget consumed once', status: 'warn' },
-      { title: 'Repo index stable', meta: '2m ago', detail: 'No re-scan required for current dashboard slice', status: 'info' },
-      { title: 'Cleanup suggestion deferred', meta: '5m ago', detail: 'Stale process candidate requires explicit user action', status: 'critical' },
+    activity: (context) => [
+      ...context.sessionExcerpts.slice(0, 3).map(s => normalizeActivity({
+        type: 'Live',
+        label: `${s.tool} session`,
+        value: 'Imported',
+        description: `Linked at ${formatConfidence(s.linkConfidence)} confidence`,
+        time: s.importedAtISO || 'now',
+        authority: LIVE_CAPTURE_AUTHORITY
+      })),
+      { title: 'Repo index stable', meta: 'now', detail: 'No re-scan required for current dashboard slice', status: 'info', authorityTier: 'live_repo', authorityLabel: 'Local indexer' },
     ],
     tableTitle: 'Live lanes',
     tableColumns: ['Lane', 'State', 'Operator note'],
-    tableRows: () => [
-      { primary: 'Codex', secondary: 'Streaming', tertiary: 'Transcript + tool events still updating' },
-      { primary: 'Claude', secondary: 'Quiet', tertiary: 'No new events in the last 10 minutes' },
-      { primary: 'Kimi', secondary: 'Imported only', tertiary: 'Available for history, not live capture' },
-      { primary: 'OTEL receiver', secondary: 'Watching', tertiary: 'Ready to surface stale/drop reasons' },
-    ],
+    tableRows: (context) => {
+      const toolCues = Array.from(new Set(context.sessionExcerpts.map(s => s.tool))).filter(Boolean);
+      return [
+        ...toolCues.map(t => ({
+          primary: String(t),
+          secondary: context.sessionExcerpts.some(s => s.tool === t) ? 'Active' : 'Standby',
+          tertiary: `${context.sessionExcerpts.filter(s => s.tool === t).length} sessions in history`
+        })),
+        { primary: 'OTEL receiver', secondary: context.trustState === 'healthy' ? 'Watching' : 'Degraded', tertiary: context.trustLabel },
+      ].slice(0, 4);
+    },
     footerNote: () => 'This page should feel ambient and calm: quick to scan, explicit about trust, and never noisy for the sake of motion.',
   },
   sessions: {
-    section: 'Monitor',
+    section: 'Evidence',
     title: 'Sessions',
-    subtitle: 'Recent AI sessions, linked commits, and conversation health.',
+    subtitle: () => 'History of interactive traces and captures',
     heroTitle: (context) => `Browse session history without leaving ${context.repoName}.`,
     heroBody: () =>
       'Session history deserves a dedicated operational index, not just excerpts buried inside repo mode. This view makes those histories first-class.',
     metrics: (context) => [
-      { label: 'Saved sessions', value: `${context.sessionCount}`, detail: 'Imported and linked where possible', tone: 'blue' },
-      { label: 'Auto-linked', value: '68%', detail: 'Commit association confidence', tone: 'violet' },
-      { label: 'Needs review', value: '4', detail: 'Manual confirmation recommended', tone: 'amber' },
+      { label: 'Total sessions', value: String(context.sessionCount), detail: 'Indexed across all sources', tone: 'blue' },
+      {
+        label: 'Recorded today',
+        value: String(context.sessionExcerpts.filter(s => {
+          const today = new Date().toISOString().split('T')[0];
+          return s.importedAtISO?.startsWith(today);
+        }).length),
+        detail: 'New captures since midnight',
+        tone: 'violet'
+      },
+      {
+        label: 'Auto-imports',
+        value: context.autoIngestEnabled ? 'Active' : 'Standby',
+        detail: context.autoIngestEnabled ? 'Listening for file changes' : 'Manual imports only',
+        tone: context.autoIngestEnabled ? 'green' : 'slate'
+      },
       { label: 'Primary model', value: 'GPT-5', detail: 'Most recent session mix', tone: 'green' },
     ],
     highlightsTitle: 'Session lenses',
@@ -397,33 +570,40 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Actionable', title: 'Session-to-repo bridge', body: 'One click should move from a session summary into the exact repo narrative context.', tone: 'violet' },
     ],
     activityTitle: 'Recent sessions',
-    activity: () => [
-      { title: 'Implement dashboard v3 contract', meta: 'Codex · 28m', detail: 'Linked to active dashboard branch with high confidence', status: 'ok' },
-      { title: 'Audit rollout artifacts', meta: 'Claude · 41m', detail: 'Follow-up required on evidence packaging', status: 'warn' },
-      { title: 'Trace ingestion validation', meta: 'Codex · 9m', detail: 'Imported but awaiting branch confirmation', status: 'info' },
-      { title: 'Spec deepening loop', meta: 'Kimi · 52m', detail: 'Historical context only, no auto-link applied', status: 'info' },
+    activity: (context) => [
+      ...context.sessionExcerpts.slice(0, 5).map(s => normalizeActivity({
+        type: s.tool || 'Session',
+        label: s.messages[0]?.text.slice(0, 30) || 'Active conversation',
+        value: 'Imported',
+        description: `Imported session with ${s.redactionCount ?? 0} redactions`,
+        time: s.importedAtISO || 'Just now',
+        authority: LIVE_CAPTURE_AUTHORITY
+      })),
+      { title: 'Session capture service', meta: 'Status', detail: context.trustLabel, status: context.trustState === 'healthy' ? 'ok' : 'info' },
     ],
     tableTitle: 'Session queues',
     tableColumns: ['Session', 'Link state', 'Next step'],
-    tableRows: () => [
-      { primary: 'dashboard-v3-plan', secondary: 'Linked', tertiary: 'Open repo evidence' },
-      { primary: 'rollout-gates-review', secondary: 'Needs review', tertiary: 'Validate commit association' },
-      { primary: 'telemetry-hardening', secondary: 'Linked', tertiary: 'Check capture confidence' },
-      { primary: 'cost-anomaly-scan', secondary: 'Imported', tertiary: 'Route into costs cockpit' },
-    ],
+    tableRows: (context) => [
+      ...context.sessionExcerpts.slice(0, 4).map(s => ({
+        primary: s.messages[0]?.text.slice(0, 30) || 'Session context',
+        secondary: s.linkedCommitSha ? `Linked to ${s.linkedCommitSha.slice(0, 7)}` : 'Floating',
+        tertiary: s.needsReview ? 'Validate association' : 'Open repo evidence'
+      })),
+      ...(context.sessionCount === 0 ? [{ primary: 'No sessions found', secondary: '-', tertiary: 'Import a trace to begin' }] : [])
+    ].slice(0, 4),
     footerNote: () => 'Sessions should read like reviewable narrative evidence, not just log storage.',
   },
   transcripts: {
-    section: 'Monitor',
+    section: 'Evidence',
     title: 'Transcripts',
-    subtitle: 'Indexed conversation search across imported sessions and commits.',
+    subtitle: () => 'Indexed conversation search across imported sessions and commits.',
     heroTitle: () => 'Search the conversation layer directly.',
     heroBody: () =>
       'This surface focuses on precise lookup, quoted matches, and fast jumps into the surrounding repo or session context.',
-    metrics: () => [
-      { label: 'Indexed transcripts', value: '128', detail: 'Across local agent tools', tone: 'blue' },
-      { label: 'Quoted matches', value: '19', detail: 'In the current filter set', tone: 'violet' },
-      { label: 'Redactions applied', value: '7', detail: 'Unsafe content hidden before render', tone: 'green' },
+    metrics: (context) => [
+      { label: 'Indexed transcripts', value: String(context.sessionCount), detail: 'Across local agent tools', tone: 'blue' },
+      { label: 'Total messages', value: String(context.sessionExcerpts.reduce((acc, s) => acc + s.messages.length, 0)), detail: 'Available for deep search', tone: 'violet' },
+      { label: 'Redactions applied', value: String(context.sessionExcerpts.reduce((acc, s) => acc + (s.redactionCount || 0), 0)), detail: 'Unsafe content hidden', tone: 'green' },
       { label: 'Search freshness', value: 'Live', detail: 'Indexes refresh after import', tone: 'slate' },
     ],
     highlightsTitle: 'Search patterns',
@@ -432,35 +612,43 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Review', title: 'Spot unsafe assumptions', body: 'Surface transcripts with high tool usage or low-confidence links for manual review.', tone: 'amber' },
       { eyebrow: 'Trace', title: 'Follow a decision', body: 'Jump from a quoted answer to the exact file, diff, and evidence trail.', tone: 'blue' },
     ],
-    activityTitle: 'Search examples',
-    activity: () => [
-      { title: '“why this changed”', meta: '12 matches', detail: 'Mostly in branch narrative and rollout analysis sessions', status: 'ok' },
-      { title: '“capture degraded”', meta: '7 matches', detail: 'Useful for trust-state debugging and regression checks', status: 'warn' },
-      { title: '“dashboard v3”', meta: '16 matches', detail: 'Strong coverage across plan, spec, and implementation passes', status: 'info' },
-      { title: '“open repo”', meta: '9 matches', detail: 'Good candidate for assistant prompt suggestions', status: 'info' },
-    ],
-    tableTitle: 'Common result groups',
-    tableColumns: ['Query lane', 'Best source', 'Jump target'],
-    tableRows: () => [
-      { primary: 'Narrative rationale', secondary: 'Linked session excerpts', tertiary: 'Repo evidence panel' },
-      { primary: 'Operational failures', secondary: 'Telemetry-heavy sessions', tertiary: 'Status or live view' },
-      { primary: 'Cost questions', secondary: 'Budget review transcripts', tertiary: 'Costs cockpit' },
-      { primary: 'Workflow history', secondary: 'Cross-repo discussions', tertiary: 'Work graph cockpit' },
-    ],
+    activityTitle: 'Search coverage',
+    activity: (context) => {
+      const toolGroups = Array.from(new Set(context.sessionExcerpts.map(s => s.tool))).filter(Boolean);
+      return [
+        ...toolGroups.map(t => ({
+          title: `Search in ${t} sessions`,
+          meta: `${context.sessionExcerpts.filter(s => s.tool === t).length} sessions`,
+          detail: `Covering ${context.sessionExcerpts.filter(s => s.tool === t).reduce((acc, s) => acc + s.messages.length, 0)} messages`,
+          status: 'info' as const
+        })),
+        ...(context.sessionCount === 0 ? [{ title: 'No transcripts indexed', meta: 'Empty', detail: 'Import sessions to enable transcript search', status: 'warn' as const }] : [])
+      ].slice(0, 4);
+    },
+    tableTitle: 'Transcript sources',
+    tableColumns: ['Source', 'Type', 'Search depth'],
+    tableRows: (context) => [
+      ...context.sessionExcerpts.slice(0, 3).map(s => ({
+        primary: s.messages[0]?.text.slice(0, 25) || 'Session',
+        secondary: String(s.tool),
+        tertiary: `${s.messages.length} interactions`
+      })),
+      { primary: 'Git History', secondary: 'Repo', tertiary: `${context.commitCount} commit narratives` }
+    ].slice(0, 4),
     footerNote: () => 'Search quality matters more than volume here; keep results trustworthy and fast to inspect.',
   },
   tools: {
-    section: 'Monitor',
+    section: 'Evidence',
     title: 'Tools',
-    subtitle: 'Usage mix, failure hotspots, and most-edited files across sessions.',
+    subtitle: () => 'Usage mix, failure hotspots, and most-edited files across sessions.',
     heroTitle: () => 'Understand how agent tools are shaping the repo.',
     heroBody: () =>
       'This page treats tool analytics as a first-class operator view while keeping the emphasis on where tool behavior produced meaningful repo impact.',
-    metrics: () => [
-      { label: 'Tool calls', value: '1.8k', detail: 'Last 30 days', tone: 'blue' },
-      { label: 'Hot tool', value: 'codex', detail: 'Highest recent usage share', tone: 'violet' },
-      { label: 'Error-prone lane', value: 'shell', detail: 'Most retries and guardrail hits', tone: 'amber' },
-      { label: 'Edited files', value: '64', detail: 'Touched by tracked sessions', tone: 'green' },
+    metrics: (context) => [
+      { label: 'Active tools', value: String(new Set(context.sessionExcerpts.map(s => s.tool)).size), detail: 'Providing session traces', tone: 'blue' },
+      { label: 'Hot tool', value: context.sessionExcerpts[0]?.tool || 'None', detail: 'Highest recent activity', tone: 'violet' },
+      { label: 'Tool sessions', value: String(context.sessionCount), detail: 'Total instrumented sessions', tone: 'green' },
+      { label: 'Avg duration', value: `${Math.round(context.sessionExcerpts.reduce((acc, s) => acc + (s.durationMin || 0), 0) / (context.sessionCount || 1))}m`, detail: 'Per session average', tone: 'slate' },
     ],
     highlightsTitle: 'Tool insights',
     highlights: () => [
@@ -468,35 +656,45 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Pressure', title: 'Retry concentration', body: 'Highlight tools that correlate with parse errors, blocked commands, or manual handoffs.', tone: 'amber' },
       { eyebrow: 'Impact', title: 'Most-edited files', body: 'Promote files that absorb the most tool-driven churn so review effort follows reality.', tone: 'violet' },
     ],
-    activityTitle: 'Observed tool patterns',
-    activity: () => [
-      { title: 'Shell-heavy spike', meta: 'Today', detail: 'Inline script recovery and temp-file pivots remain common under strict shells', status: 'warn' },
-      { title: 'Apply patch stable', meta: 'Today', detail: 'Manual edits stay deterministic when work is scoped cleanly', status: 'ok' },
-      { title: 'View-image usage', meta: 'Today', detail: 'Useful for visual verification while the cockpit continues to evolve', status: 'info' },
-      { title: 'Test loop intact', meta: 'Today', detail: 'Validation commands remain the final confidence layer', status: 'ok' },
-    ],
+    activityTitle: 'Observed tool activity',
+    activity: (context) => [
+      ...context.sessionExcerpts.slice(0, 4).map(s => normalizeActivity({
+        type: String(s.tool),
+        label: s.messages[0]?.text.slice(0, 25) || 'Tool session',
+        value: s.durationMin ? `${s.durationMin}m` : 'Active',
+        description: `Linked by ${s.autoLinked ? 'auto-link' : 'manual'} at ${formatConfidence(s.linkConfidence)}`,
+        time: s.importedAtISO || 'Just now',
+        authority: inferCaptureAuthority(context.captureReliabilityStatus)
+      })),
+      ...(context.sessionCount === 0 ? [{ title: 'No tool data', meta: 'Waiting', detail: 'Instrumented sessions will appear here', status: 'info' as const }] : [])
+    ].slice(0, 4),
     tableTitle: 'Tool hotspots',
-    tableColumns: ['Tool', 'Observed pattern', 'Recommended response'],
-    tableRows: () => [
-      { primary: 'exec_command', secondary: 'Shell quoting failures cluster here', tertiary: 'Pivot to temp scripts sooner' },
-      { primary: 'apply_patch', secondary: 'Cleanest code edit path', tertiary: 'Prefer for scoped UI changes' },
-      { primary: 'view_image', secondary: 'High value for visual QA', tertiary: 'Use to verify layout families' },
-      { primary: 'pnpm test:deep', secondary: 'Confidence gate', tertiary: 'Run after view routing changes' },
-    ],
+    tableColumns: ['Tool', 'Efficiency', 'Operator note'],
+    tableRows: (context) => [
+      ...Array.from(new Set(context.sessionExcerpts.map(s => s.tool))).map(t => {
+        const count = context.sessionExcerpts.filter(s => s.tool === t).length;
+        return {
+          primary: String(t),
+          secondary: count > 5 ? 'High volume' : 'Stable',
+          tertiary: `${count} sessions tracked`
+        };
+      }),
+      { primary: 'cli-shell', secondary: 'Manual', tertiary: 'Fallback for custom ops' }
+    ].slice(0, 4),
     footerNote: () => 'Tools view should help operators learn from execution patterns, not just count commands.',
   },
   costs: {
-    section: 'Monitor',
+    section: 'Evidence',
     title: 'Costs',
-    subtitle: 'Model spend, burn rate, projection, and anomaly windows.',
+    subtitle: () => 'Model spend, burn rate, projection, and anomaly windows.',
     heroTitle: () => 'Cost visibility is part of the operator cockpit, not an afterthought.',
     heroBody: () =>
       'This page turns cost analytics into a calmer, more decision-oriented surface: current burn, which models dominate it, and where a budget alert should trigger follow-up.',
-    metrics: () => [
-      { label: 'Today', value: '$18.40', detail: 'Within configured burn window', tone: 'green' },
-      { label: 'Month', value: '$284', detail: 'Projected to land at $341', tone: 'blue' },
-      { label: 'Top model', value: 'GPT-5', detail: 'Largest share of session spend', tone: 'violet' },
-      { label: 'Anomalies', value: '2', detail: 'Review sessions with unusual spikes', tone: 'amber' },
+    metrics: (context) => [
+      { label: 'Today', value: `$${(context.sessionCount * 0.15).toFixed(2)}`, detail: 'Estimated from session activity', tone: 'green' },
+      { label: 'Month', value: `$${(context.sessionCount * 4.2).toFixed(0)}`, detail: 'Projected monthly burn', tone: 'blue' },
+      { label: 'Primary spend lane', value: 'Codex', detail: 'Default cost posture for the current shell phase', tone: 'violet' },
+      { label: 'Active sessions', value: String(context.sessionCount), detail: 'Contributing to total costs', tone: 'amber' },
     ],
     highlightsTitle: 'Budget lenses',
     highlights: () => [
@@ -505,26 +703,34 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Intervention', title: 'Suggest safer responses', body: 'Recommend throttling, review, or provider shifts without performing them automatically.', tone: 'amber' },
     ],
     activityTitle: 'Recent spend signals',
-    activity: () => [
-      { title: 'Claude long-run session', meta: '$4.10', detail: 'Large transcript + diff review created a visible spike', status: 'warn' },
-      { title: 'Codex implementation burst', meta: '$2.30', detail: 'Short, high-throughput edit loop with clean validation', status: 'ok' },
-      { title: 'Kimi background analysis', meta: '$0.80', detail: 'Low-cost context expansion, no action required', status: 'info' },
+    activity: (context) => [
+      ...context.sessionExcerpts.slice(0, 3).map(s => ({
+        title: `${s.tool} session cost`,
+        meta: `$${calculateDeterministicCost(s)}`,
+        detail: `Spend attributed to ${s.messages.length} messages`,
+        status: 'info' as const,
+      })),
       { title: 'Budget threshold warning', meta: 'Preview', detail: 'Monthly projection is nearing configured soft cap', status: 'warn' },
     ],
     tableTitle: 'Spend by model',
     tableColumns: ['Model', 'Trend', 'Operator response'],
-    tableRows: () => [
-      { primary: 'GPT-5', secondary: 'Up this week', tertiary: 'Keep for implementation-heavy loops' },
-      { primary: 'Claude Sonnet', secondary: 'Stable', tertiary: 'Use for long-form review and synthesis' },
-      { primary: 'Kimi', secondary: 'Low', tertiary: 'Good for supporting analysis' },
-      { primary: 'Unknown legacy runs', secondary: 'Needs audit', tertiary: 'Backfill metadata where possible' },
-    ],
+    tableRows: (context) => {
+      const tools = Array.from(new Set(context.sessionExcerpts.map(s => s.tool))).filter(Boolean);
+      return [
+        ...tools.map(t => ({
+          primary: String(t),
+          secondary: 'Stable',
+          tertiary: `Attributed to ${context.sessionExcerpts.filter(s => s.tool === t).length} sessions`
+        })),
+        { primary: 'Legacy runs', secondary: 'Archived', tertiary: 'Historical context only' }
+      ].slice(0, 4);
+    },
     footerNote: () => 'Cost clarity becomes more credible when each spike has a session and workflow explanation attached to it.',
   },
   timeline: {
-    section: 'Monitor',
+    section: 'Evidence',
     title: 'Timeline',
-    subtitle: 'Commit rhythm, branch context, and narrative drill-down entry points.',
+    subtitle: () => 'Commit rhythm, branch context, and narrative drill-down entry points.',
     heroTitle: () => 'Move from chronology to comprehension.',
     heroBody: () =>
       'Timeline should be more than chronology. In Trace Narrative it becomes the bridge between operator context and narrative evidence.',
@@ -541,70 +747,98 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Audit', title: 'Expose weak joins', body: 'Missing or low-confidence narrative links belong in the open, not behind perfect-looking badges.', tone: 'amber' },
     ],
     activityTitle: 'Timeline moments',
-    activity: () => [
-      { title: 'Spec deepening landed', meta: 'This morning', detail: 'Dashboard contract moved from visual demo to behavioral source of truth', status: 'ok' },
-      { title: 'Trust overlay added', meta: 'Earlier', detail: 'Capture degradation is now distinct from dashboard state', status: 'ok' },
-      { title: 'Stale-doc drift found', meta: 'Earlier', detail: 'Historical naming required cleanup and relabeling', status: 'warn' },
-      { title: 'UI routing gap', meta: 'Now', detail: 'Sidebar modes exist but several still need first-class content', status: 'critical' },
+    activity: (context) => [
+      { title: 'Active branch indexed', meta: 'now', detail: `${context.commitCount} commits verified in ${context.repoName}`, status: 'ok' },
+      ...context.sessionExcerpts.slice(0, 2).map(s => normalizeActivity({
+        type: 'Timeline',
+        label: `${s.tool} link`,
+        value: s.linkedCommitSha ? 'Linked' : 'Floating',
+        description: s.linkedCommitSha ? `Tied to ${s.linkedCommitSha?.slice(0, 7)}` : 'Awaiting manual join',
+        time: s.importedAtISO || 'recently',
+        authority: LIVE_CAPTURE_AUTHORITY
+      })),
+      { title: 'Capture posture', meta: 'Current', detail: context.trustLabel, status: context.trustState === 'healthy' ? 'ok' : 'warn' },
     ],
     tableTitle: 'Drill-down paths',
     tableColumns: ['Entry point', 'Narrative use', 'Preferred landing'],
-    tableRows: () => [
-      { primary: 'Commit node', secondary: 'Why did this change?', tertiary: 'Repo mode narrative panel' },
-      { primary: 'Session badge', secondary: 'Which prompt caused this?', tertiary: 'Linked session excerpt' },
-      { primary: 'Trust warning', secondary: 'Can I rely on this?', tertiary: 'Status or attribution cockpit' },
-      { primary: 'File hotspot', secondary: 'Where is the churn?', tertiary: 'Diffs or tools cockpit' },
-    ],
+    tableRows: (context) => [
+      { primary: 'Latest commit', secondary: context.repoName, tertiary: `Index of ${context.commitCount} verified entries` },
+      ...context.sessionExcerpts.filter(s => !!s.linkedCommitSha).slice(0, 3).map(s => ({
+        primary: `Session: ${s.tool}`,
+        secondary: `Linked to ${s.linkedCommitSha?.slice(0, 7)}`,
+        tertiary: 'Explore narrative bridge'
+      })),
+      ...(context.sessionExcerpts.filter(s => !s.linkedCommitSha).length > 0 ? [{
+        primary: 'Unlinked traces',
+        secondary: `${context.sessionExcerpts.filter(s => !s.linkedCommitSha).length} floating`,
+        tertiary: 'Link sessions to commits for visibility'
+      }] : [])
+    ].slice(0, 4),
     footerNote: () => 'Timeline should remain a bridge surface: lightweight, fast, and one click away from deeper evidence.',
   },
   'repo-pulse': {
     section: 'Workspace',
     title: 'Repo Pulse',
-    subtitle: 'Repo cleanliness, freshness, and things that quietly need attention.',
+    subtitle: (context) => context.narrative?.summary || 'Repo cleanliness, freshness, and things that quietly need attention.',
     heroTitle: (context) => `${context.repoName} is only one pulse in the workspace.`,
     heroBody: () =>
       'This page helps the operator see which repos are quiet, drifting, or risky before those issues become interruptive.',
-    metrics: () => [
-      { label: 'Repos watched', value: '9', detail: 'Across the active workspace', tone: 'blue' },
-      { label: 'Dirty repos', value: '3', detail: 'Uncommitted changes detected', tone: 'amber' },
-      { label: 'Unpushed branches', value: '2', detail: 'Potential hidden work', tone: 'violet' },
-      { label: 'Healthy repos', value: '4', detail: 'Clean and recently synced', tone: 'green' },
+    metrics: (context) => [
+      { label: 'Repos watched', value: '1', detail: 'Primary workspace connected', tone: 'blue' },
+      { label: 'Dirty repos', value: context.changedFiles.length > 0 ? '1' : '0', detail: context.changedFiles.length > 0 ? 'Uncommitted changes detected' : 'No uncommitted changes detected', tone: context.changedFiles.length > 0 ? 'amber' : 'green' },
+      { label: 'Active story', value: String(context.commitCount), detail: 'Commits in current branch', tone: 'violet' },
+      { label: 'Linked context', value: String(context.sessionCount), detail: 'Associated agent sessions', tone: 'amber' },
     ],
     highlightsTitle: 'Pulse heuristics',
-    highlights: () => [
-      { eyebrow: 'Freshness', title: 'What changed recently?', body: 'Sort by recent commit activity to keep the workspace map aligned with actual attention.', tone: 'blue' },
-      { eyebrow: 'Risk', title: 'Where is drift hiding?', body: 'Call out dirty or unpushed repos that look harmless until they block a later flow.', tone: 'amber' },
-      { eyebrow: 'Prioritization', title: 'What is actually worth opening?', body: 'Recommend the next repo to inspect instead of making the operator scan everything manually.', tone: 'violet' },
+    highlights: (context) => [
+      { eyebrow: 'Narrative', title: 'Contextual Summary', body: context.narrative?.summary || 'No narrative detected for this branch yet.', tone: 'violet' },
+      ... (context.narrative?.highlights.map(h => ({
+        eyebrow: 'Insight',
+        title: h.title,
+        body: h.whyThisMatters,
+        tone: 'blue' as CockpitTone
+      })) || [
+        { eyebrow: 'Freshness', title: 'What changed recently?', body: 'Sort by recent commit activity to keep the workspace map aligned with actual attention.', tone: 'blue' },
+        { eyebrow: 'Risk', title: 'Where is drift hiding?', body: 'Call out dirty or unpushed repos that look harmless until they block a later flow.', tone: 'amber' },
+      ]),
     ],
     activityTitle: 'Repo status feed',
-    activity: () => [
-      { title: 'trace-narrative', meta: 'dirty', detail: 'UI work in progress across cockpit and dashboard files', status: 'warn' },
+    activity: (context) => [
+      { 
+        title: context.repoName, 
+        meta: context.hasLiveRepoData ? 'active' : 'preview', 
+        detail: context.hasLiveRepoData 
+          ? `Indexed state with ${context.commitCount} commits and ${context.sessionCount} sessions.` 
+          : 'Showing fallback preview for the workspace.', 
+        status: context.hasLiveRepoData ? 'ok' : 'warn' 
+      },
       { title: 'coding-harness', meta: 'clean', detail: 'Recent rollout closure suggests no immediate action', status: 'ok' },
       { title: 'config/codex', meta: 'ahead', detail: 'Guardrail and automation changes pending review', status: 'info' },
       { title: 'otel-collector', meta: 'watch', detail: 'Telemetry hardening is still a shared dependency', status: 'warn' },
     ],
     tableTitle: 'Pulse queue',
     tableColumns: ['Repo', 'Current state', 'Suggested move'],
-    tableRows: () => [
-      { primary: 'trace-narrative', secondary: 'Active UI redesign', tertiary: 'Validate sidebar-to-view routing' },
-      { primary: 'config/codex', secondary: 'Automation pressure', tertiary: 'Review blocker overlap before more additions' },
-      { primary: 'otel-collector', secondary: 'Reliability infra', tertiary: 'Preserve stats-first diagnostics' },
-      { primary: 'agent-skills', secondary: 'Documentation drift', tertiary: 'Reconcile skill paths and discoverability' },
+    tableRows: (context) => [
+      { primary: context.repoName, secondary: context.hasLiveRepoData ? 'Ready' : 'Preview', tertiary: context.hasLiveRepoData ? 'Everything indexed and summarized' : 'Loading workspace context...' },
+      { primary: 'coding-harness', secondary: 'Archived', tertiary: 'Rollout pass was 2 days ago' },
+      { primary: 'config/codex', secondary: 'Clean', tertiary: 'No new guardrail drift detected' },
+      { primary: 'otel-collector', secondary: 'Quiet', tertiary: 'Last activity was 4h ago' },
     ],
     footerNote: () => 'Repo pulse works best when it pushes the operator toward the right repo, not just a bigger list.',
   },
   diffs: {
     section: 'Workspace',
     title: 'Diffs',
-    subtitle: 'Session-linked file changes and high-churn surfaces.',
+    subtitle: () => 'Session-linked file changes and high-churn surfaces.',
     heroTitle: () => 'Make file change review feel connected to the story, not detached from it.',
     heroBody: () =>
       'In Trace Narrative, the diff surface should become the evidence-centric companion to repo mode: changed files, linked sessions, and review hotspots.',
-    metrics: () => [
-      { label: 'Changed files', value: '27', detail: 'Across the active review window', tone: 'blue' },
-      { label: 'Session-linked', value: '14', detail: 'Files with direct conversation context', tone: 'violet' },
-      { label: 'High churn', value: '5', detail: 'Touched repeatedly this week', tone: 'amber' },
-      { label: 'Ready for review', value: '18', detail: 'Sufficient evidence present', tone: 'green' },
+    metrics: (context) => [
+      { label: 'Changed files', value: String(context.changedFiles.length), detail: 'Across the active review window', tone: 'blue' },
+      { label: 'Session-linked', value: String(context.sessionExcerpts.filter(s => !!s.linkedCommitSha).length), detail: 'Files with direct conversation context', tone: 'violet' },
+      { label: 'Active traces', value: String(context.sessionCount), detail: 'Providing narrative evidence', tone: 'amber' },
+      { label: 'Drift churn', value: String(context.driftReport?.metrics.find(m => m.id === 'uncommitted_churn')?.value || 0), detail: 'Uncommitted churn (loc)', tone: context.driftReport?.status === 'healthy' ? 'green' : 'amber' },
+      { label: 'Ready for review', value: context.changedFiles.length > 0 ? String(context.changedFiles.length) : '0', detail: 'Sufficient evidence present', tone: 'green' },
     ],
     highlightsTitle: 'Diff workflows',
     highlights: () => [
@@ -613,34 +847,49 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Speed', title: 'Keep review friction low', body: 'Use this page for quick scan-and-open, then hand off to repo mode for deep reading.', tone: 'blue' },
     ],
     activityTitle: 'Diff hotspots',
-    activity: () => [
-      { title: 'src/App.tsx', meta: 'navigation', detail: 'Cockpit routing and fallback behavior are changing here', status: 'ok' },
-      { title: 'src/ui/components/Sidebar.tsx', meta: 'shell', detail: 'Mode groups now need to align with the expanded cockpit information architecture', status: 'warn' },
-      { title: 'src/ui/views/DashboardView.tsx', meta: 'dashboard', detail: 'Already carries the v3 cockpit visual language', status: 'info' },
-      { title: 'src/styles.css', meta: 'system', detail: 'Existing tokens can support the broader cockpit without a rebrand', status: 'info' },
+    activity: (context) => [
+      ...context.changedFiles.slice(0, 4).map(file => ({
+        title: file,
+        meta: 'local change',
+        detail: 'Touched in current workspace session',
+        status: 'ok' as const
+      })),
+      ...(context.changedFiles.length === 0 ? [{ title: 'No active diffs', meta: 'Clean', detail: 'Workspace matches branch head', status: 'ok' as const }] : [])
     ],
     tableTitle: 'File review queue',
     tableColumns: ['File', 'Narrative state', 'Why inspect'],
-    tableRows: () => [
-      { primary: 'src/App.tsx', secondary: 'High impact', tertiary: 'Controls shell routing and view orchestration' },
-      { primary: 'src/ui/views/CockpitView.tsx', secondary: 'New', tertiary: 'Defines the updated operator surfaces' },
-      { primary: 'src/ui/views/cockpitViewData.ts', secondary: 'New', tertiary: 'Encodes the new cockpit information architecture' },
-      { primary: 'src/ui/components/TopNav.tsx', secondary: 'Shared nav', tertiary: 'Should reflect cockpit umbrella cleanly' },
+    tableRows: (context) => [
+      ...context.changedFiles.slice(0, 8).map(file => {
+        const isLinked = context.sessionExcerpts.some(s => s.messages.some(m => m.text?.includes(file)));
+        const evidence = context.narrative?.evidenceLinks.find(e => e.filePath?.includes(file) || e.label.includes(file));
+        
+        return {
+          primary: file,
+          secondary: isLinked ? 'Linked' : 'Metadata',
+          tertiary: isLinked ? 'Referenced in session activity' : (evidence ? 'Mentioned in narrative' : 'Pending narrative verification'),
+          action: evidence ? { type: 'open_evidence' as const, evidenceId: evidence.id } : undefined
+        };
+      }),
+      ...(context.changedFiles.length === 0 ? [
+        { primary: 'src/App.tsx', secondary: 'Stable', tertiary: 'Controls shell routing and view orchestration' },
+        { primary: 'src/ui/views/CockpitView.tsx', secondary: 'Stable', tertiary: 'Defines the updated operator surfaces' }
+      ] : [])
     ],
     footerNote: () => 'Diffs page should reduce context-switch cost and make it obvious when repo mode is the right next step.',
   },
   snapshots: {
     section: 'Workspace',
     title: 'Snapshots',
-    subtitle: 'Saved workspace states, branch checkpoints, and recovery moments.',
+    subtitle: () => 'Saved workspace states, branch checkpoints, and recovery moments.',
     heroTitle: () => 'Treat workspace state as something you can revisit, not just remember.',
     heroBody: () =>
       'This view keeps snapshot thinking simple: save meaningful checkpoints, then compare or recover from them later.',
-    metrics: () => [
-      { label: 'Saved snapshots', value: '11', detail: 'Across repos and worktrees', tone: 'blue' },
-      { label: 'Pinned baselines', value: '3', detail: 'Used for rollout or release checks', tone: 'violet' },
-      { label: 'Recovery ready', value: '6', detail: 'Include enough context to replay safely', tone: 'green' },
-      { label: 'Stale captures', value: '2', detail: 'Need refresh before reuse', tone: 'amber' },
+    metrics: (context) => [
+      { label: 'Saved snapshots', value: String(context.snapshots.length), detail: `${context.snapshots.length} checkpoints in local storage`, tone: 'blue' },
+      { label: 'Repo state', value: context.hasLiveRepoData ? 'Live' : 'Static', detail: 'Based on current loader health', tone: 'violet' },
+      { label: 'Recovery ready', value: context.snapshots.length > 0 ? 'Yes' : 'No', detail: context.snapshots.length > 0 ? 'Latest snapshots available' : 'Awaiting local capture service', tone: 'green' },
+      { label: 'Drift staleness', value: `${context.driftReport?.metrics.find(m => m.id === 'snapshot_staleness')?.value || 0}h`, detail: 'Time since last checkpoint', tone: context.driftReport?.status === 'healthy' ? 'green' : 'amber' },
+      { label: 'Files in dirty state', value: String(context.changedFiles.length), detail: 'Uncommitted changes in workspace', tone: 'amber' },
     ],
     highlightsTitle: 'Snapshot roles',
     highlights: () => [
@@ -649,26 +898,29 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { eyebrow: 'Recover', title: 'Support rollback reasoning', body: 'Keep enough metadata that a snapshot can justify a revert or a retry, not just exist as a timestamp.', tone: 'violet' },
     ],
     activityTitle: 'Recent checkpoints',
-    activity: () => [
-      { title: 'dashboard-v3 preflight', meta: 'Pinned', detail: 'Captured before layout migration work accelerated', status: 'ok' },
-      { title: 'telemetry hardening baseline', meta: 'Pinned', detail: 'Used for degraded-capture comparisons', status: 'info' },
-      { title: 'release artifacts checkpoint', meta: 'Saved', detail: 'Reference for rollout gating and audit review', status: 'ok' },
-      { title: 'stale worktree snapshot', meta: 'Needs refresh', detail: 'Environment drift makes this unreliable now', status: 'warn' },
-    ],
+    activity: (context) => (context.snapshots.slice(0, 4).map(snap => ({
+      title: snap.message || `Snapshot ${snap.id.slice(5, 12)}`,
+      meta: new Date(snap.atISO).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      detail: `${snap.filesChanged.length} files changed on ${snap.branch}`,
+      status: (snap.type === 'automatic' ? 'info' : 'ok') as 'info' | 'ok'
+    })) as CockpitActivityItem[]).concat(context.snapshots.length === 0 ? [
+      { title: 'No snapshots captured', meta: 'Idle', detail: 'Snapshot engine is active but awaiting trigger', status: 'info' }
+    ] : []),
     tableTitle: 'Snapshot inventory',
-    tableColumns: ['Checkpoint', 'Use case', 'Confidence'],
-    tableRows: () => [
-      { primary: 'dashboard-v3-preflight', secondary: 'UI migration baseline', tertiary: 'High' },
-      { primary: 'telemetry-scale-check', secondary: 'Reliability comparison', tertiary: 'Medium' },
-      { primary: 'release-artifacts-stage-a', secondary: 'Rollout audit', tertiary: 'High' },
-      { primary: 'workspace-cleanup-before-after', secondary: 'Operational hygiene', tertiary: 'Medium' },
-    ],
+    tableColumns: ['Checkpoint', 'Type', 'Change count'],
+    tableRows: (context) => context.snapshots.map(snap => ({
+      primary: snap.id,
+      secondary: snap.type.charAt(0).toUpperCase() + snap.type.slice(1),
+      tertiary: `${snap.filesChanged.length} files changed`
+    })).concat(context.snapshots.length === 0 ? [
+      { primary: 'Automatic preflight', secondary: 'Health check', tertiary: '0 files' }
+    ] : []),
     footerNote: () => 'Snapshots become powerful when they explain what was true, not just when they were saved.',
   },
   worktrees: {
     section: 'Workspace',
     title: 'Worktrees',
-    subtitle: 'Branch isolation, detached states, and workspace sprawl.',
+    subtitle: () => 'Branch isolation, detached states, and workspace sprawl.',
     heroTitle: () => 'See every active worktree before it surprises you.',
     heroBody: () =>
       'This view helps the operator catch detached, stale, or oversized worktrees before they turn into cleanup debt.',
@@ -704,7 +956,7 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
   attribution: {
     section: 'Workspace',
     title: 'Attribution',
-    subtitle: 'AI vs human contribution signals, evidence gaps, and trust cues.',
+    subtitle: () => 'AI vs human contribution signals, evidence gaps, and trust cues.',
     heroTitle: () => 'Attribution only helps if its confidence is visible.',
     heroBody: () =>
       'This view should make contribution signals useful without pretending they are perfect. The differentiator is not just attribution presence, but whether the operator can inspect and trust it.',
@@ -738,9 +990,9 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Attribution page should reinforce trust, not weaken it by overclaiming.',
   },
   skills: {
-    section: 'Ecosystem',
+    section: 'Integrations',
     title: 'Skills',
-    subtitle: 'Local skill inventory, quality cues, and discovery lanes.',
+    subtitle: () => 'Local skill inventory, quality cues, and discovery lanes.',
     heroTitle: () => 'Skills are part of the workstation, not external trivia.',
     heroBody: () =>
       'This view promotes skill availability and quality signals into the cockpit. It should make local capabilities discoverable without becoming a marketplace.',
@@ -774,9 +1026,9 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Skills view should help the operator choose the right workflow, not drown them in catalogue depth.',
   },
   agents: {
-    section: 'Ecosystem',
+    section: 'Integrations',
     title: 'Agents',
-    subtitle: 'Repo-local agent definitions, multi-agent roles, and orchestration readiness.',
+    subtitle: () => 'Repo-local agent definitions, multi-agent roles, and orchestration readiness.',
     heroTitle: () => 'Make agent surfaces explicit when they exist, and honest when they do not.',
     heroBody: () =>
       'In Trace Narrative this should highlight actual agent presence, role coverage, and whether the workspace is ready for parallel execution.',
@@ -810,9 +1062,9 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Agents page should help the operator decide when not to delegate just as much as when to do it.',
   },
   memory: {
-    section: 'Ecosystem',
+    section: 'Integrations',
     title: 'Memory',
-    subtitle: 'Workspace memory state, reusable learnings, and context hygiene.',
+    subtitle: () => 'Workspace memory state, reusable learnings, and context hygiene.',
     heroTitle: () => 'Durable memory should be guidance, not mythology.',
     heroBody: () =>
       'This view makes memory awareness operational: what memory exists, what looks stale, and how it influences the current workspace.',
@@ -846,9 +1098,9 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Memory page should keep prior context useful without letting it outrank current repository truth.',
   },
   hooks: {
-    section: 'Ecosystem',
+    section: 'Integrations',
     title: 'Hooks',
-    subtitle: 'Trigger points, health, and command safety around workstation hooks.',
+    subtitle: () => 'Trigger points, health, and command safety around workstation hooks.',
     heroTitle: () => 'Hooks are part of the blast radius model.',
     heroBody: () =>
       'This page should show which hooks are active, where they fire, and whether they are healthy enough to trust.',
@@ -882,9 +1134,9 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Hooks page should explain operational consequences, not just list file names.',
   },
   setup: {
-    section: 'Ecosystem',
+    section: 'Integrations',
     title: 'Setup',
-    subtitle: 'Repo instructions, config roots, MCP health, and onboarding readiness.',
+    subtitle: () => 'Repo instructions, config roots, MCP health, and onboarding readiness.',
     heroTitle: () => 'Operators need a setup map as much as a feature list.',
     heroBody: () =>
       'This page should tell a clear story about what is configured, what is missing, and how that affects trust in the rest of the app.',
@@ -918,9 +1170,9 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Setup page should answer “why is this view behaving this way?” before the operator has to ask.',
   },
   ports: {
-    section: 'Ecosystem',
+    section: 'Integrations',
     title: 'Ports',
-    subtitle: 'Bound services, local addresses, and process ownership clues.',
+    subtitle: () => 'Bound services, local addresses, and process ownership clues.',
     heroTitle: () => 'Local network state belongs in the cockpit when it affects trust.',
     heroBody: () =>
       'Here the ports surface becomes a lightweight debugging tool for local app servers, OTEL receivers, and automation webhooks.',
@@ -956,15 +1208,15 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
   hygiene: {
     section: 'Health',
     title: 'Hygiene',
-    subtitle: 'Zombie processes, divergence, dead directories, and cleanup suggestions.',
+    subtitle: () => 'Zombie processes, divergence, dead directories, and cleanup suggestions.',
     heroTitle: () => 'Operational cleanliness deserves a dedicated view.',
     heroBody: () =>
       'This page can be highly useful while still being clear about risk, reversibility, and when a human should inspect before acting.',
-    metrics: () => [
-      { label: 'Cleanup cues', value: '6', detail: 'Across repos and processes', tone: 'amber' },
-      { label: 'Safe actions', value: '3', detail: 'Low-blast-radius suggestions', tone: 'green' },
-      { label: 'Needs review', value: '3', detail: 'Human confirmation strongly recommended', tone: 'red' },
-      { label: 'Hidden debt', value: '2', detail: 'Dead paths or stale stashes found', tone: 'violet' },
+    metrics: (context) => [
+      { label: 'Stale sessions', value: String(Math.max(0, context.sessionCount - 5)), detail: 'Candidates for cleanup or archival', tone: 'amber' },
+      { label: 'Repo health', value: context.hasLiveRepoData ? 'Stable' : 'Unknown', detail: 'Based on current index state', tone: 'green' },
+      { label: 'Linked rate', value: context.sessionCount > 0 ? `${Math.round((context.sessionExcerpts.filter(s => !!s.linkedCommitSha).length / context.sessionCount) * 100)}%` : '0%', detail: 'Sessions with thread connections', tone: 'blue' },
+      { label: 'Trust state', value: context.trustState === 'healthy' ? 'Verified' : 'Review', detail: context.trustLabel, tone: 'violet' },
     ],
     highlightsTitle: 'Cleanup philosophy',
     highlights: () => [
@@ -981,18 +1233,22 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     ],
     tableTitle: 'Cleanup queue',
     tableColumns: ['Issue', 'Observed risk', 'Recommended response'],
-    tableRows: () => [
-      { primary: 'Detached worktree', secondary: 'High', tertiary: 'Inspect branch intent before delete' },
-      { primary: 'Remote divergence', secondary: 'Medium', tertiary: 'Review sync path and stash state first' },
+    tableRows: (context) => [
+      ...(context.sessionExcerpts.filter(s => !s.linkedCommitSha).length > 0 ? [{
+        primary: 'Unlinked sessions',
+        secondary: 'Medium',
+        tertiary: `${context.sessionExcerpts.filter(s => !s.linkedCommitSha).length} traces awaiting repo association`
+      }] : []),
+      { primary: 'Remote divergence', secondary: 'Low', tertiary: 'Review sync path and stash state first' },
       { primary: 'Zombie process', secondary: 'Low', tertiary: 'Offer kill preview, not instant action' },
       { primary: 'Dead directory', secondary: 'Low', tertiary: 'Surface path and owner before cleanup' },
-    ],
+    ].slice(0, 4),
     footerNote: () => 'Hygiene page should feel trustworthy because it is cautious, not because it is aggressive.',
   },
   deps: {
     section: 'Health',
     title: 'Dependencies',
-    subtitle: 'Package freshness, major updates, and known risk signals.',
+    subtitle: () => 'Package freshness, major updates, and known risk signals.',
     heroTitle: () => 'Dependency drift is part of operational health.',
     heroBody: () =>
       'This version keeps the focus on decision-making: what is outdated, what is risky, and what is actually worth upgrading now.',
@@ -1028,7 +1284,7 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
   env: {
     section: 'Health',
     title: 'Env Files',
-    subtitle: 'Environment file hygiene, gitignore coverage, and example parity.',
+    subtitle: () => 'Environment file hygiene, gitignore coverage, and example parity.',
     heroTitle: () => 'Config hygiene deserves its own visibility.',
     heroBody: () =>
       'Env-file inspection matters because these files shape trust and safety. This page keeps the signal focused on coverage, examples, and avoidable leakage risks.',
@@ -1062,15 +1318,15 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
     footerNote: () => 'Env page should reinforce safe defaults without turning into a secret browser.',
   },
   settings: {
-    section: 'Config',
+    section: 'Configure',
     title: 'Settings',
-    subtitle: 'Scan roots, provider toggles, budgets, and app behavior.',
+    subtitle: () => 'Scan roots, Codex capture defaults, budgets, and app behavior.',
     heroTitle: () => 'Settings should explain the operator contract, not just expose switches.',
     heroBody: () =>
       'Settings are a broad control surface, but the emphasis stays on why each setting affects trust, capture, or operator workload.',
     metrics: () => [
       { label: 'Scan roots', value: '3', detail: 'Active workspace directories', tone: 'blue' },
-      { label: 'Data sources', value: '2', detail: 'Codex and Claude enabled', tone: 'violet' },
+      { label: 'Data sources', value: 'Codex-first', detail: 'Other providers stay staged until the shell narrative is stable', tone: 'violet' },
       { label: 'Budgets', value: 'Configured', detail: 'Daily and monthly caps visible', tone: 'green' },
       { label: 'Drift risk', value: 'Low', detail: 'Settings look aligned with current flows', tone: 'amber' },
     ],
@@ -1085,7 +1341,7 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
       { title: 'Codex source enabled', meta: 'Current', detail: 'Needed for richer session and cost visibility', status: 'ok' },
       { title: 'Budget thresholds set', meta: 'Current', detail: 'Soft warnings help costs stay understandable', status: 'info' },
       { title: 'Auto-scan scope review', meta: 'Suggested', detail: 'Keep roots explicit as workspace breadth grows', status: 'warn' },
-      { title: 'Provider drift', meta: 'Watch', detail: 'Settings should stay aligned with actual assistant routes', status: 'critical' },
+      { title: 'Provider expansion held', meta: 'Watch', detail: 'Do not broaden sources until Codex-first trust is working cleanly', status: 'critical' },
     ],
     tableTitle: 'Setting groups',
     tableColumns: ['Group', 'Why it matters', 'Current note'],
@@ -1100,7 +1356,7 @@ const cockpitDefinitions: Record<CockpitMode, CockpitDefinition> = {
   status: {
     section: 'Health',
     title: 'System Status',
-    subtitle: 'A single place for trust posture, capability health, and recent failures.',
+    subtitle: () => 'A single place for trust posture, capability health, and recent failures.',
     heroTitle: () => 'Make the app’s reliability visible without making it dramatic.',
     heroBody: (context) =>
       `This page gathers the trust signals that affect every other cockpit section in ${context.repoName}: capture posture, authority boundaries, and whether recent failures need explicit follow-up.`,
@@ -1139,15 +1395,16 @@ export function buildCockpitViewModel(
   mode: CockpitMode,
   repoState: RepoState,
   captureReliabilityStatus?: CaptureReliabilityStatus | null,
+  autoIngestEnabled?: boolean,
 ): CockpitViewModel {
-  const context = buildContext(repoState, captureReliabilityStatus);
+  const context = buildContext(repoState, captureReliabilityStatus, autoIngestEnabled);
   const definition = cockpitDefinitions[mode];
 
   return {
     mode,
     section: definition.section,
     title: definition.title,
-    subtitle: definition.subtitle,
+    subtitle: definition.subtitle(context),
     heroTitle: definition.heroTitle(context),
     heroBody: definition.heroBody(context),
     heroAuthorityTier: context.trustAuthority.authorityTier,
@@ -1162,5 +1419,6 @@ export function buildCockpitViewModel(
     tableColumns: definition.tableColumns,
     tableRows: definition.tableRows(context).map((row) => normalizeTableRow(row, context)),
     footerNote: definition.footerNote(context),
+    driftReport: context.driftReport,
   };
 }

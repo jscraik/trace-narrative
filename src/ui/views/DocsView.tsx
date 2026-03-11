@@ -95,7 +95,7 @@ export function DocsView(props: {
           <div>
             <h3 className="mb-1 text-sm font-medium text-text-primary">Desktop App Required</h3>
             <p className="text-sm leading-relaxed text-text-secondary">
-              The Docs view needs access to your local file system to generate documentation. Please open Firefly
+              The Docs view needs access to your local file system to generate documentation. Please open Trace
               Narrative in the desktop app to use this feature.
             </p>
           </div>

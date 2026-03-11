@@ -12,8 +12,10 @@ vi.mock('../db', () => ({
 vi.mock('../git', () => ({
   getAggregateStatsForCommits: vi.fn(),
   getCommitDetails: vi.fn(),
+  getDirtyFiles: vi.fn(),
   getHeadBranch: vi.fn(),
   getHeadSha: vi.fn(),
+  getWorkingTreeChurn: vi.fn(),
   listCommits: vi.fn(),
   resolveGitRoot: vi.fn(),
 }));
@@ -62,8 +64,10 @@ import {
 import {
   getAggregateStatsForCommits,
   getCommitDetails,
+  getDirtyFiles,
   getHeadBranch,
   getHeadSha,
+  getWorkingTreeChurn,
   listCommits,
   resolveGitRoot,
 } from '../git';
@@ -92,6 +96,8 @@ const mockUpsertRepo = vi.mocked(upsertRepo);
 const mockListCommits = vi.mocked(listCommits);
 const mockCacheCommitSummaries = vi.mocked(cacheCommitSummaries);
 const mockGetAggregateStatsForCommits = vi.mocked(getAggregateStatsForCommits);
+const mockGetDirtyFiles = vi.mocked(getDirtyFiles);
+const mockGetWorkingTreeChurn = vi.mocked(getWorkingTreeChurn);
 const mockImportAttributionNotesBatch = vi.mocked(importAttributionNotesBatch);
 const mockImportSessionLinkNotesBatch = vi.mocked(importSessionLinkNotesBatch);
 const mockGetStoryAnchorStatus = vi.mocked(getStoryAnchorStatus);
@@ -147,6 +153,8 @@ describe('indexer', () => {
     mockListCommits.mockResolvedValue(mockCommits);
     mockCacheCommitSummaries.mockResolvedValue(undefined);
     mockGetAggregateStatsForCommits.mockResolvedValue(mockAggregateStats);
+    mockGetDirtyFiles.mockResolvedValue([]);
+    mockGetWorkingTreeChurn.mockResolvedValue(0);
     mockImportAttributionNotesBatch.mockResolvedValue({ total: 0, imported: 0, missing: 0, failed: 0 });
     mockImportSessionLinkNotesBatch.mockResolvedValue({ total: 0, imported: 0, missing: 0, failed: 0 });
     mockGetStoryAnchorStatus.mockResolvedValue([]);
@@ -192,6 +200,7 @@ describe('indexer', () => {
       expect(result.repo.branch).toBe('main');
       expect(result.model.title).toBe('main');
       expect(result.model.status).toBe('open');
+      expect(result.model.dirtyChurnLines).toBe(0);
     });
 
     it('should handle attribution notes import failure gracefully', async () => {

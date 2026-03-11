@@ -40,20 +40,20 @@ export function RecentActivity({ items, onViewAll, onItemClick }: RecentActivity
     return (
         <div className="glass-panel rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-text-primary">Recent Activity</h3>
+                <h3 className="font-semibold text-text-primary">Evidence Trail</h3>
                 {onViewAll && (
                     <button
                         type="button"
                         onClick={onViewAll}
                         className="text-sm text-accent-blue hover:underline transition-colors"
                     >
-                        View all activity →
+                        Open repo trail →
                     </button>
                 )}
             </div>
             <div className="space-y-1">
                 {items.length === 0 ? (
-                    <p className="text-sm text-text-muted py-4 text-center">No recent activity</p>
+                    <p className="text-sm text-text-muted py-4 text-center">No evidence events yet</p>
                 ) : (
                     items.map((item) => (
                         <button

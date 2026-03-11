@@ -4,6 +4,7 @@ import { EMPTY_BRANCH_MODEL } from './core/models/emptyBranchModel';
 import { setOtelReceiverEnabled } from './core/tauri/otelReceiver';
 import { normalizeHttpUrl } from './core/utils/url';
 import type {
+  BranchViewModel,
   DashboardFilter,
   Mode,
   TraceCollectorConfig
@@ -12,6 +13,7 @@ import { useAutoIngest } from './hooks/useAutoIngest';
 import { useCommitData } from './hooks/useCommitData';
 import { useRepoLoader } from './hooks/useRepoLoader';
 import { useSessionImport } from './hooks/useSessionImport';
+import { useSnapshots } from './hooks/useSnapshots';
 import { useTraceCollector } from './hooks/useTraceCollector';
 import { useUpdater } from './hooks/useUpdater';
 import { RepoEmptyState } from './ui/components/RepoEmptyState';
@@ -19,6 +21,9 @@ import { Sidebar } from './ui/components/Sidebar';
 import { UpdatePrompt } from './ui/components/UpdatePrompt';
 import { BranchView } from './ui/views/BranchView';
 import { CockpitView } from './ui/views/CockpitView';
+import {
+  type CockpitTableRow,
+} from './ui/views/cockpitViewData';
 import { DashboardView } from './ui/views/DashboardView';
 import {
   DASHBOARD_FOCUS_RESTORE_MS,
@@ -30,6 +35,7 @@ type AgentationComponentType = (typeof import('agentation'))['Agentation'];
 
 export default function App() {
   const [mode, setMode] = useState<Mode>('dashboard');
+  const [cockpitAction, setCockpitAction] = useState<import('./ui/views/cockpitViewData').CockpitAction | undefined>(undefined);
   const [dashboardFilter, setDashboardFilter] = useState<DashboardFilter | null>(null);
   const [isExitingFilteredView, setIsExitingFilteredView] = useState(false);
   const clearFilterTimerRef = useRef<number | null>(null);
@@ -154,6 +160,16 @@ export default function App() {
     repoId: repoState.status === 'ready' ? repoState.repo.repoId : 0,
     model: modelForHooks,
     setRepoState: (updater) => {
+      setRepoState((prev) => {
+        if (prev.status !== 'ready') return prev;
+        return { ...prev, model: updater(prev.model) };
+      });
+    }
+  });
+
+  useSnapshots({
+    repoRoot: repoState.status === 'ready' ? repoState.repo.root : '',
+    setRepoState: (updater: (prev: BranchViewModel) => BranchViewModel) => {
       setRepoState((prev) => {
         if (prev.status !== 'ready') return prev;
         return { ...prev, model: updater(prev.model) };
@@ -357,6 +373,8 @@ export default function App() {
             onLogoutCodexAppServerAccount={autoIngest.logoutCodexAppServerAccount}
             githubConnectorEnabled={githubConnectorEnabled}
             onToggleGitHubConnector={handleToggleGitHubConnector}
+            pendingAction={cockpitAction}
+            onActionProcessed={() => setCockpitAction(undefined)}
           />
         );
       }
@@ -369,9 +387,18 @@ export default function App() {
         mode={mode}
         repoState={repoState}
         captureReliabilityStatus={autoIngest.captureReliabilityStatus}
+        autoIngestEnabled={autoIngest.ingestStatus.enabled}
         onModeChange={setMode}
         onOpenRepo={openRepo}
         onImportSession={sessionImportHandlers.importSession}
+        onAction={(action) => {
+          if (action.type === 'navigate') {
+            setMode(action.mode);
+          } else {
+            setCockpitAction(action);
+            setMode('repo');
+          }
+        }}
       />
     );
   };
@@ -399,8 +426,7 @@ export default function App() {
         )}
 
         {/* Header navigation and actions */}
-        {(mode === 'repo' || mode === 'docs') && (
-          <TopNav
+        <TopNav
             mode={mode}
             onModeChange={setMode}
             repoPath={repoRoot}
@@ -410,7 +436,6 @@ export default function App() {
             onImportAgentTrace={sessionImportHandlers.importAgentTrace}
             importEnabled={repoState.status === 'ready'}
           />
-        )}
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-hidden relative flex flex-col">

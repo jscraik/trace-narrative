@@ -10,7 +10,7 @@ interface TopFilesTableProps {
 }
 
 /**
- * TopFilesTable — Displays ranked list of files by AI contribution.
+ * TopFilesTable — Displays ranked files by trace evidence coverage.
  *
  * Per dashboard-motion-spec.yml:
  * - Row hover: bg-accent-blue-bg, 150ms ease-out
@@ -28,7 +28,7 @@ export function TopFilesTable({
   if (files.length === 0) {
     return (
       <div className="text-center py-12 text-text-muted text-sm">
-        No files data available for this time range.
+        No attributed files are available for this window.
       </div>
     );
   }
@@ -37,7 +37,7 @@ export function TopFilesTable({
     <section data-top-files-table>
       <div className="card p-4 animate-fade-in-up delay-100">
         <h2 className="text-lg font-semibold text-text-primary mb-4">
-          Top AI-Contributed Files
+          Evidence-Ranked Files
         </h2>
 
         <div className="overflow-hidden rounded-lg border border-border-light bg-bg-secondary">

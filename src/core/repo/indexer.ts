@@ -1,7 +1,16 @@
 import type { BranchViewModel, IntentItem, TimelineNode } from '../types';
 import { BRANCH_NARRATIVE_SCHEMA_VERSION, composeBranchNarrative } from '../narrative/composeBranchNarrative';
 import { cacheCommitSummaries, cacheFileChanges, getCachedFileChanges, upsertRepo } from './db';
-import { getAggregateStatsForCommits, getCommitDetails, getHeadBranch, getHeadSha, listCommits, resolveGitRoot } from './git';
+import {
+  getAggregateStatsForCommits,
+  getCommitDetails,
+  getDirtyFiles,
+  getHeadBranch,
+  getHeadSha,
+  getWorkingTreeChurn,
+  listCommits,
+  resolveGitRoot,
+} from './git';
 import {
   branchStatsPayload,
   ensureRepoNarrativeLayout,
@@ -16,6 +25,7 @@ import { loadTraceConfig } from './traceConfig';
 import { importAttributionNotesBatch } from '../attribution-api';
 import { getStoryAnchorStatus, importSessionLinkNotesBatch, type StoryAnchorCommitStatus } from '../story-anchors-api';
 import { getLatestTestRunSummaryByCommit } from './testRuns';
+import { listSnapshots } from './snapshots';
 
 export type IndexingProgress = {
   phase: string;
@@ -139,6 +149,19 @@ export async function indexRepo(
   };
   
   reportProgress('trace', 'Scanning trace data…');
+  let dirtyFiles: string[] = [];
+  let dirtyChurnLines = 0;
+  try {
+    dirtyFiles = await getDirtyFiles(root);
+  } catch (e) {
+    console.warn('[Indexer] Dirty-file scan failed:', e);
+  }
+  try {
+    dirtyChurnLines = await getWorkingTreeChurn(root);
+  } catch (e) {
+    console.warn('[Indexer] Dirty-churn scan failed:', e);
+  }
+  const snapshots = await listSnapshots(root);
   try {
     otelIngest = await ingestCodexOtelLogFile({
       repoRoot: root,
@@ -274,9 +297,12 @@ export async function indexRepo(
     intent,
     timeline,
     sessionExcerpts,
+    dirtyFiles,
+    dirtyChurnLines,
     traceSummaries: { byCommit: trace.byCommit, byFileByCommit: trace.byFileByCommit },
     traceStatus: otelIngest.status,
     traceConfig,
+    snapshots,
     meta: { repoPath: root, branchName: branch, headSha, repoId }
   };
   const model: BranchViewModel = {

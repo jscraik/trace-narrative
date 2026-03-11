@@ -10,36 +10,36 @@ interface QuickAction {
 interface QuickActionsProps {
     repoName?: string;
     branchName?: string;
-    onAnalyzeBranch?: () => void;
+    onOpenEvidence?: () => void;
     onImportSession?: () => void;
-    onAskAboutCode?: () => void;
+    onReviewHygiene?: () => void;
 }
 
 export function QuickActions({
     repoName: _repoName,
     branchName,
-    onAnalyzeBranch,
+    onOpenEvidence,
     onImportSession,
-    onAskAboutCode,
+    onReviewHygiene,
 }: QuickActionsProps) {
     const actions: QuickAction[] = [
         {
-            title: 'Analyze Latest Branch',
-            description: `Review recent changes and AI contributions${branchName ? ` on ${branchName}` : ''}`,
+            title: 'Open Repo Evidence',
+            description: `Inspect commit-linked files and narrative context${branchName ? ` on ${branchName}` : ''}`,
             icon: <FolderOpen className="w-5 h-5 text-accent-violet" />,
-            onClick: onAnalyzeBranch,
+            onClick: onOpenEvidence,
         },
         {
-            title: 'Import Session',
-            description: 'Add Claude, Codex, or Kimi session logs to your timeline',
+            title: 'Import Codex Session',
+            description: 'Start with Codex session evidence, then layer in other providers later',
             icon: <Upload className="w-5 h-5 text-accent-blue" />,
             onClick: onImportSession,
         },
         {
-            title: 'Ask About Your Code',
-            description: 'Get AI-powered insights about patterns and decisions',
+            title: 'Review Hygiene',
+            description: 'Check cleanup cues before trust drift turns into narrative confusion',
             icon: <Sparkles className="w-5 h-5 text-accent-amber" />,
-            onClick: onAskAboutCode,
+            onClick: onReviewHygiene,
         },
     ];
 

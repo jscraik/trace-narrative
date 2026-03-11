@@ -29,6 +29,24 @@ export type Mode =
   | 'attribution'
   | 'status';
 
+/**
+ * AnchorMode — the three dedicated views with distinct behavior and richer interaction models.
+ * These bypass the shared cockpit surface and must never be routed through CockpitView.
+ */
+export type AnchorMode = 'dashboard' | 'repo' | 'docs';
+
+/**
+ * CockpitMode — every Mode that is NOT an anchor.
+ * All cockpit modes render via the shared CockpitView + cockpitViewData contract.
+ */
+export type CockpitMode = Exclude<Mode, AnchorMode>;
+
+/**
+ * ViewSection — the sidebar grouping for each mode.
+ * Determines section headers and framing in operator-facing copy.
+ */
+export type ViewSection = 'Narrative' | 'Evidence' | 'Workspace' | 'Integrations' | 'Health' | 'Configure';
+
 
 
 export type Stats = {
@@ -38,6 +56,19 @@ export type Stats = {
   commits: number;
   prompts: number;
   responses: number;
+};
+
+export type SnapshotType = 'automatic' | 'manual' | 'preflight' | 'recovery';
+
+export type Snapshot = {
+  id: string;
+  atISO: string;
+  type: SnapshotType;
+  branch: string;
+  headSha: string;
+  filesChanged: string[];
+  message?: string;
+  metadata?: Record<string, any>;
 };
 
 export type HeaderMetricUnavailableReason =
@@ -407,6 +438,10 @@ export type BranchViewModel = {
   timeline: TimelineNode[];
   // Optional, mainly for demo mode
   sessionExcerpts?: SessionExcerpt[];
+  // Dirty working-tree files (live repo mode)
+  dirtyFiles?: string[];
+  // Added + removed lines across staged and unstaged working-tree diffs (live repo mode)
+  dirtyChurnLines?: number;
   filesChanged?: FileChange[];
   diffsByFile?: Record<string, string>;
   traceSummaries?: {
@@ -416,6 +451,7 @@ export type BranchViewModel = {
   traceStatus?: TraceCollectorStatus;
   traceConfig?: TraceCollectorConfig;
   narrative?: BranchNarrative;
+  snapshots?: Snapshot[];
   meta?: {
     repoPath?: string;
     branchName?: string;
@@ -546,7 +582,7 @@ export type DashboardState =
 export type DashboardTrustState = 'healthy' | 'degraded';
 
 export type CockpitTrustState = DashboardTrustState;
-export type DataAuthorityTier = 'live_repo' | 'live_capture' | 'derived_summary' | 'static_scaffold';
+export type DataAuthorityTier = 'live_repo' | 'live_capture' | 'derived_summary' | 'static_scaffold' | 'system_signal';
 
 export type DashboardPanelStatus = 'ready' | 'loading' | 'empty' | 'error' | 'degraded';
 

@@ -482,13 +482,22 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     recallLaneItemId?: string;
     recallLaneConfidenceBand?: NarrativeConfidenceTier;
     fallbackItemId?: string;
+    targetCommitSha?: string;
   }) => {
     if (activeBranchScopeRef.current !== branchScopeKey) {
       return;
     }
 
+    const targetCommitSha = laneContext?.targetCommitSha;
+    const switchedCommit = Boolean(targetCommitSha && targetCommitSha !== selectedNodeId);
+    const activeCommitSha = targetCommitSha ?? selectedNodeId ?? undefined;
+
     setDetailLevel('diff');
-    if (!selectedFile && files[0]?.path) {
+    if (switchedCommit && targetCommitSha) {
+      setTrackingSettledNodeId(null);
+      setSelectedNodeId(targetCommitSha);
+      selectFile(null);
+    } else if (!selectedFile && files[0]?.path) {
       selectFile(files[0].path);
     }
     bumpObservability('fallbackUsedCount');
@@ -502,14 +511,14 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
       recallLaneItemId: laneContext?.recallLaneItemId,
       recallLaneConfidenceBand: laneContext?.recallLaneConfidenceBand,
       viewInstanceId: narrativeViewInstanceIdRef.current ?? undefined,
-      itemId: laneContext?.fallbackItemId ?? laneContext?.recallLaneItemId ?? selectedNodeId ?? undefined,
+      itemId: laneContext?.fallbackItemId ?? laneContext?.recallLaneItemId ?? activeCommitSha,
       funnelStep: 'evidence_ready',
       eventOutcome: 'fallback',
-      funnelSessionId: `${telemetryBranchScope}:${selectedNodeId ?? 'none'}:${selectedFile ?? 'no-file'}`,
+      funnelSessionId: `${telemetryBranchScope}:${activeCommitSha ?? 'none'}:${selectedFile ?? 'no-file'}`,
     });
     emitFirstWinCompleted(
       'fallback',
-      laneContext?.fallbackItemId ?? laneContext?.recallLaneItemId ?? selectedNodeId ?? undefined
+      laneContext?.fallbackItemId ?? laneContext?.recallLaneItemId ?? activeCommitSha
     );
   }, [
     bumpObservability,
@@ -549,6 +558,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
         handleOpenRawDiff({
           ...laneContext,
           fallbackItemId: link.commitSha ?? link.id,
+          targetCommitSha: link.commitSha,
         });
       }
       if (link.filePath) {
@@ -606,6 +616,31 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     if (payload.selectedNodeId !== selectedNodeId) return;
     setTrackingSettledNodeId(payload.selectedNodeId);
   }, [selectedNodeId]);
+
+  // Handle deep-linking from cockpit views
+  useEffect(() => {
+    if (!props.pendingAction) return;
+
+    if (props.pendingAction.type === 'open_evidence') {
+      const { evidenceId } = props.pendingAction;
+      const link = narrative.evidenceLinks.find((l) => l.id === evidenceId);
+
+      if (link) {
+        handleOpenEvidence(link);
+      }
+      props.onActionProcessed?.();
+      return;
+    }
+
+    if (props.pendingAction.type === 'open_raw_diff') {
+      const { commitSha } = props.pendingAction;
+      handleOpenRawDiff({
+        fallbackItemId: commitSha,
+        targetCommitSha: commitSha,
+      });
+      props.onActionProcessed?.();
+    }
+  }, [props.pendingAction, narrative.evidenceLinks, handleOpenEvidence, handleOpenRawDiff, props.onActionProcessed]);
 
   // Ask-Why state extracted to dedicated hook
   const { askWhyState, handleSubmitAskWhy, handleOpenAskWhyCitation } = useBranchAskWhyState({

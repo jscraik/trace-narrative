@@ -14,9 +14,12 @@ import type {
   TraceRange,
 } from '../../core/types';
 import type { IngestIssue, IngestStatus } from '../../hooks/useAutoIngest';
+import type { CockpitTableRow } from './cockpitViewData';
 
 export interface BranchViewProps {
   model: BranchViewModel;
+  pendingAction?: CockpitTableRow['action'];
+  onActionProcessed?: () => void;
   dashboardFilter?: DashboardFilter | null;
   onClearFilter?: () => void;
   isExitingFilteredView?: boolean;

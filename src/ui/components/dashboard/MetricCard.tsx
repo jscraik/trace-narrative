@@ -26,7 +26,7 @@ const dotColorMap: Record<AccentColor, string> = {
 };
 
 /**
- * MetricCard — Firefly-inspired design.
+ * MetricCard — Trace shell metric card.
  *
  * Layout matches the v3 HTML demo:
  * - Gradient background card

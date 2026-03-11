@@ -108,3 +108,34 @@ export async function getAggregateStatsForCommits(path: string, limit = 50): Pro
 
   return { added, removed, uniqueFiles: fileSet.size };
 }
+
+export async function getDirtyFiles(path: string): Promise<string[]> {
+  // Get untracked and modified files
+  const stdout = await git(path, ['status', '--porcelain']);
+  const files: string[] = [];
+  const lines = stdout.split(/\r?\n/);
+  for (const line of lines) {
+    if (line.length > 3) {
+      files.push(line.slice(3).trim());
+    }
+  }
+  return files;
+}
+
+export async function getWorkingTreeChurn(path: string): Promise<number> {
+  const [unstagedNumstat, stagedNumstat] = await Promise.all([
+    git(path, ['diff', '--numstat', '--no-color']),
+    git(path, ['diff', '--cached', '--numstat', '--no-color'])
+  ]);
+
+  const unstagedTotal = parseNumstat(unstagedNumstat).reduce(
+    (sum, change) => sum + change.additions + change.deletions,
+    0
+  );
+  const stagedTotal = parseNumstat(stagedNumstat).reduce(
+    (sum, change) => sum + change.additions + change.deletions,
+    0
+  );
+
+  return unstagedTotal + stagedTotal;
+}

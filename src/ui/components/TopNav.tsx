@@ -29,30 +29,46 @@ export function TopNav(props: {
     children
   } = props;
 
-  const Tab = (p: { id: Mode; label: string; icon: ReactNode }) => (
-    <button
-      role="tab"
-      aria-selected={mode === p.id}
-      tabIndex={mode === p.id ? 0 : -1}
-      className={clsx(
-        'inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75',
-        mode === p.id
-          ? 'bg-bg-secondary text-text-primary shadow-sm'
-          : 'text-text-tertiary hover:bg-bg-hover hover:text-text-secondary hover:scale-105 active:scale-95'
-      )}
-      onClick={() => onModeChange(p.id)}
-      type="button"
-    >
-      {p.icon}
-      <span>{p.label}</span>
-    </button>
-  );
+  const isCockpitMode = (m: Mode) => m !== 'repo' && m !== 'docs';
+  const surfaceLabel = mode === 'repo'
+    ? 'Repo evidence'
+    : mode === 'docs'
+      ? 'Docs workspace'
+      : 'Narrative surface';
+  const surfaceNote = mode === 'repo'
+    ? 'Commit-linked files, diffs, and trace evidence'
+    : mode === 'docs'
+      ? 'Guides, runbooks, and repo-facing documentation'
+      : 'Codex-first reconstruction across story, evidence, and trust';
+
+  const Tab = (p: { id: Mode; label: string; icon: ReactNode }) => {
+    const isActive = p.id === 'dashboard' ? isCockpitMode(mode) : mode === p.id;
+    return (
+      <button
+        role="tab"
+        aria-selected={isActive}
+        tabIndex={isActive ? 0 : -1}
+        className={clsx(
+          'inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75',
+          isActive
+            ? 'bg-bg-secondary text-text-primary shadow-sm'
+            : 'text-text-tertiary hover:bg-bg-hover hover:text-text-secondary hover:scale-105 active:scale-95'
+        )}
+        onClick={() => onModeChange(p.id)}
+        type="button"
+      >
+        {p.icon}
+        <span>{p.label}</span>
+      </button>
+    );
+  };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
     const order: Mode[] = ['repo', 'dashboard', 'docs'];
-    const currentIndex = order.indexOf(mode);
+    const currentMode = isCockpitMode(mode) ? 'dashboard' : mode;
+    const currentIndex = order.indexOf(currentMode as Mode);
     if (currentIndex === -1) return;
     if (event.key === 'Home') {
       onModeChange(order[0]);
@@ -70,11 +86,12 @@ export function TopNav(props: {
   return (
     <header className="grid h-14 w-full grid-cols-[1fr_auto_1fr] items-center border-b border-border-light bg-bg-secondary px-4">
       <div className="flex items-center gap-3 justify-self-start">
-        <div className="flex items-center gap-2">
-          {/* Using a span for the text logo */}
-          <span className="text-xl font-semibold tracking-tight text-text-primary flex items-baseline gap-1.5">
-            <span className="brand-trace text-2xl">Trace</span> Narrative
+        <div className="flex flex-col">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-text-muted">
+            Trace Narrative
           </span>
+          <span className="text-sm font-medium text-text-primary">{surfaceLabel}</span>
+          <span className="hidden text-xs text-text-muted xl:block">{surfaceNote}</span>
         </div>
       </div>
 
@@ -88,7 +105,7 @@ export function TopNav(props: {
 
 
           <Tab id="repo" label="Repo" icon={<GitBranch className="h-4 w-4" />} />
-          <Tab id="dashboard" label="Cockpit" icon={<BarChart3 className="h-4 w-4" />} />
+          <Tab id="dashboard" label="Narrative" icon={<BarChart3 className="h-4 w-4" />} />
           <Tab id="docs" label="Docs" icon={<BookOpen className="h-4 w-4" />} />
         </div>
       </nav>

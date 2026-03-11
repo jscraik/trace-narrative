@@ -52,3 +52,5 @@ dev
 typecheck
 Typecheck
 onboarding
+worktree
+worktrees

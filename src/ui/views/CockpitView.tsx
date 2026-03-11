@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { ArrowRight, ArrowUpRight, Clock3, Search, Sparkles } from 'lucide-react';
+import type { KeyboardEvent } from 'react';
 
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
@@ -11,15 +12,18 @@ import {
   type CockpitMetric,
   type CockpitMode,
   type CockpitTone,
+  type CockpitTableRow,
 } from './cockpitViewData';
 
 interface CockpitViewProps {
   mode: CockpitMode;
   repoState: RepoState;
   captureReliabilityStatus?: CaptureReliabilityStatus | null;
+  autoIngestEnabled?: boolean;
   onModeChange: (mode: Mode) => void;
   onOpenRepo: () => void;
   onImportSession?: () => void;
+  onAction?: (action: NonNullable<CockpitTableRow['action']>) => void;
 }
 
 const toneClasses: Record<CockpitTone, { border: string; bg: string; text: string; dot: string }> = {
@@ -73,6 +77,7 @@ const authorityCueClassByTier: Record<CockpitAuthorityCue['authorityTier'], stri
   live_capture: 'border-accent-green-light bg-accent-green-bg text-accent-green',
   derived_summary: 'border-accent-violet-light bg-accent-violet/10 text-accent-violet',
   static_scaffold: 'border-border-subtle bg-bg-secondary text-text-muted',
+  system_signal: 'border-accent-red-light bg-accent-red-bg text-accent-red',
 };
 
 function authorityShortLabel(tier?: CockpitAuthorityCue['authorityTier']): string {
@@ -83,8 +88,12 @@ function authorityShortLabel(tier?: CockpitAuthorityCue['authorityTier']): strin
       return 'Live';
     case 'derived_summary':
       return 'Derived';
+    case 'static_scaffold':
+      return 'Mock';
+    case 'system_signal':
+      return 'Signal';
     default:
-      return 'Preview';
+      return 'Info';
   }
 }
 
@@ -101,6 +110,17 @@ function AuthorityCue({ authorityTier, authorityLabel }: CockpitAuthorityCue) {
       {cue}
     </span>
   );
+}
+
+function handleActionKeyDown(
+  event: KeyboardEvent<HTMLElement>,
+  action: NonNullable<CockpitTableRow['action']> | undefined,
+  onAction: CockpitViewProps['onAction'],
+) {
+  if (!action) return;
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  onAction?.(action);
 }
 
 function MetricCard({ metric }: { metric: CockpitMetric & CockpitAuthorityCue }) {
@@ -129,11 +149,13 @@ export function CockpitView({
   mode,
   repoState,
   captureReliabilityStatus,
+  autoIngestEnabled,
   onModeChange,
   onOpenRepo,
   onImportSession,
+  onAction,
 }: CockpitViewProps) {
-  const viewModel = buildCockpitViewModel(mode, repoState, captureReliabilityStatus);
+  const viewModel = buildCockpitViewModel(mode, repoState, captureReliabilityStatus, autoIngestEnabled);
   const repoPath = repoState.status === 'ready' ? repoState.repo.root : repoState.status !== 'idle' ? repoState.path ?? '~/dev/trace-narrative' : '~/dev/trace-narrative';
 
   return (
@@ -236,13 +258,25 @@ export function CockpitView({
                   return (
                     <article
                       key={highlight.title}
-                      className={clsx('rounded-2xl border p-4', tone.border, tone.bg)}
+                      onClick={() => highlight.action && onAction?.(highlight.action)}
+                      onKeyDown={(event) => handleActionKeyDown(event, highlight.action, onAction)}
+                      role={highlight.action ? 'button' : undefined}
+                      tabIndex={highlight.action ? 0 : undefined}
+                      className={clsx(
+                        'group rounded-2xl border p-4 transition-all duration-200',
+                        tone.border,
+                        tone.bg,
+                        highlight.action && 'cursor-pointer hover:shadow-md hover:translate-y-[-2px]'
+                      )}
                       data-authority-tier={highlight.authorityTier}
                       data-authority-label={highlight.authorityLabel}
                     >
-                      <p className={clsx('text-[11px] font-semibold uppercase tracking-[0.18em]', tone.text)}>
-                        {highlight.eyebrow}
-                      </p>
+                      <div className="flex items-start justify-between">
+                        <p className={clsx('text-[11px] font-semibold uppercase tracking-[0.18em]', tone.text)}>
+                          {highlight.eyebrow}
+                        </p>
+                        {highlight.action && <ArrowUpRight className={clsx('h-3.5 w-3.5 opacity-40 transition-opacity group-hover:opacity-100', tone.text)} />}
+                      </div>
                       <AuthorityCue
                         authorityTier={highlight.authorityTier}
                         authorityLabel={highlight.authorityLabel}
@@ -260,18 +294,33 @@ export function CockpitView({
                 {viewModel.activityTitle}
               </p>
               <div className="mt-4 space-y-3">
-                {viewModel.activity.map((item) => (
+                {viewModel.activity.map((item, i) => (
                   <article
-                    key={`${item.title}-${item.meta}`}
-                    className="rounded-2xl border border-border-subtle bg-bg-primary/80 p-4"
-                      data-authority-tier={item.authorityTier}
-                      data-authority-label={item.authorityLabel}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
+                    key={`${item.title}-${i}`}
+                    onClick={() => item.action && onAction?.(item.action)}
+                    onKeyDown={(event) => handleActionKeyDown(event, item.action, onAction)}
+                    role={item.action ? 'button' : undefined}
+                    tabIndex={item.action ? 0 : undefined}
+                    className={clsx(
+                      'group rounded-2xl border border-border-subtle bg-bg-primary/80 p-4 transition-all duration-200',
+                      item.action && 'cursor-pointer hover:bg-bg-secondary hover:shadow-sm hover:translate-x-1'
+                    )}
+                    data-authority-tier={item.authorityTier}
+                    data-authority-label={item.authorityLabel}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className={clsx('h-2 w-2 rounded-full', 
+                            item.status === 'ok' ? 'bg-accent-green' : 
+                            item.status === 'warn' ? 'bg-accent-amber' : 
+                            item.status === 'critical' ? 'bg-accent-red' : 'bg-accent-blue'
+                          )} />
                           <h4 className="text-sm font-semibold text-text-primary">{item.title}</h4>
-                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-text-muted">{item.meta}</p>
                         </div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-text-muted">{item.meta}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
                         <AuthorityCue
                           authorityTier={item.authorityTier}
                           authorityLabel={item.authorityLabel}
@@ -281,11 +330,18 @@ export function CockpitView({
                             'rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]',
                             statusBadgeClasses[item.status],
                           )}
-                      >
-                        {item.status}
-                      </span>
+                        >
+                          {item.status}
+                        </span>
+                      </div>
                     </div>
                     <p className="mt-3 text-sm leading-6 text-text-secondary">{item.detail}</p>
+                    {item.action && (
+                      <div className="mt-2 flex items-center gap-1 text-[10px] font-medium text-accent-violet opacity-0 transition-opacity group-hover:opacity-100">
+                        <ArrowUpRight className="h-3 w-3" />
+                        Execute suggestion
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
@@ -318,12 +374,24 @@ export function CockpitView({
                   {viewModel.tableRows.map((row) => (
                     <tr
                       key={row.primary}
-                      className="rounded-2xl bg-bg-primary"
+                      onClick={() => row.action && onAction?.(row.action)}
+                      onKeyDown={(event) => handleActionKeyDown(event, row.action, onAction)}
+                      role={row.action ? 'button' : undefined}
+                      tabIndex={row.action ? 0 : undefined}
+                      className={clsx(
+                        'group rounded-2xl bg-bg-primary transition-all duration-200',
+                        row.action && 'cursor-pointer hover:bg-bg-secondary hover:shadow-sm hover:translate-x-1'
+                      )}
                       data-authority-tier={row.authorityTier}
                       data-authority-label={row.authorityLabel}
                     >
                       <td className="rounded-l-2xl border-y border-l border-border-subtle px-4 py-4 text-sm font-semibold text-text-primary">
-                        {row.primary}
+                        <div className="flex items-center gap-2">
+                          {row.primary}
+                          {row.action && (
+                            <ArrowUpRight className="h-3.5 w-3.5 text-accent-violet opacity-0 transition-opacity group-hover:opacity-100" />
+                          )}
+                        </div>
                         <div className="mt-2">
                           <AuthorityCue
                             authorityTier={row.authorityTier}
@@ -335,7 +403,12 @@ export function CockpitView({
                         {row.secondary}
                       </td>
                       <td className="rounded-r-2xl border-y border-r border-border-subtle px-4 py-4 text-sm text-text-secondary">
-                        {row.tertiary}
+                        <div className="flex items-center justify-between gap-4">
+                          {row.tertiary}
+                          {row.action && (
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-accent-violet">Open</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

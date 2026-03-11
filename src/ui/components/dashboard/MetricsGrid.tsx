@@ -1,6 +1,6 @@
 import { Cpu } from 'lucide-react';
 import type { PeriodStats, ToolStats } from '../../../core/types';
-import { computeTrend, getTrendColor } from '../../../core/attribution-api';
+import { computeTrend, formatToolName, getTrendColor } from '../../../core/attribution-api';
 import { MetricCard } from './MetricCard';
 
 interface MetricsGridProps {
@@ -9,15 +9,6 @@ interface MetricsGridProps {
   toolBreakdown: ToolStats[];
 }
 
-/**
- * MetricsGrid — v3 Firefly-inspired 4-column grid.
- *
- * Metrics (matching v3 HTML demo):
- * 1. Total Commits (green dot)
- * 2. AI Attribution % (violet dot, violet value)
- * 3. Linked Sessions (green dot)
- * 4. System Health (pulsing green dot, green value)
- */
 export function MetricsGrid({
   currentPeriod,
   previousPeriod,
@@ -58,16 +49,25 @@ export function MetricsGrid({
     ? Math.round(currentPeriod.attribution.aiPercentage - previousPeriod.attribution.aiPercentage)
     : undefined;
 
-  const _aiLines = currentPeriod.attribution.aiAgentLines + currentPeriod.attribution.aiAssistLines;
+  const attributedLinesTrend = computeTrend(
+    currentPeriod.attribution.totalLines,
+    previousPeriod?.attribution.totalLines,
+  );
+  const attributedLinesColor = attributedLinesTrend
+    ? getTrendColor({
+      metric: 'ai-lines',
+      direction: attributedLinesTrend,
+      currentValue: currentPeriod.attribution.totalLines,
+      previousValue: previousPeriod?.attribution.totalLines,
+    })
+    : undefined;
 
-  // Top tool badge
+  const attributedLinesDelta = previousPeriod
+    ? currentPeriod.attribution.totalLines - previousPeriod.attribution.totalLines
+    : undefined;
+
   const topTool = toolBreakdown[0];
-  const _toolIcon = topTool ? (
-    <div className="flex items-center gap-1 rounded-md bg-bg-tertiary px-2 py-1 text-xs font-medium text-text-secondary">
-      <Cpu className="w-3 h-3" aria-hidden="true" />
-      <span>{topTool.tool}</span>
-    </div>
-  ) : null;
+  const topToolLabel = topTool ? formatToolName(topTool.tool) : 'Codex';
 
   return (
     <section
@@ -97,24 +97,38 @@ export function MetricsGrid({
           valueColorClass="text-accent-violet"
         />
 
-        {/* Linked Sessions */}
+        {/* Attributed Lines */}
         <MetricCard
           index={2}
-          label="Linked Sessions"
-          value="23"
-          accentColor="green"
-          trendSubtitle="+3 new"
+          label="Attributed Lines"
+          value={currentPeriod.attribution.totalLines.toLocaleString()}
+          trend={attributedLinesColor}
+          trendSubtitle={
+            attributedLinesDelta !== undefined
+              ? `${attributedLinesDelta >= 0 ? '+' : ''}${attributedLinesDelta.toLocaleString()} vs last period`
+              : 'Lines linked to attribution evidence'
+          }
+          accentColor="blue"
         />
 
-        {/* System Health */}
+        {/* Primary Tool */}
         <MetricCard
           index={3}
-          label="System Health"
-          value="94%"
-          accentColor="green"
-          pulse
-          valueColorClass="text-accent-green"
-          trendSubtitle="All systems operational"
+          label="Primary Tool"
+          value={topToolLabel}
+          accentColor="violet"
+          valueColorClass="text-text-primary"
+          trendSubtitle={
+            topTool
+              ? `${topTool.lineCount.toLocaleString()} lines in this window`
+              : 'Codex-first shell view'
+          }
+          icon={
+            <div className="flex items-center gap-1 rounded-md bg-bg-tertiary px-2 py-1 text-xs font-medium text-text-secondary">
+              <Cpu className="w-3 h-3" aria-hidden="true" />
+              <span>source</span>
+            </div>
+          }
         />
       </div>
     </section>

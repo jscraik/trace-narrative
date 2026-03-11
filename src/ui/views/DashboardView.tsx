@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  formatToolName,
   getDashboardStats,
   timeRangeToDateRange,
   type DashboardEmptyReason,
@@ -578,6 +579,12 @@ export function DashboardView({
     return <DashboardLoadingState />;
   }
 
+  const topTool = stats.currentPeriod.toolBreakdown[0];
+  const topToolLabel = topTool ? formatToolName(topTool.tool) : 'Codex';
+  const narrativeWindowLabel = typeof stats.timeRange === 'string' ? stats.timeRange.toUpperCase() : 'CUSTOM';
+  const evidenceFileCount = stats.topFiles.total;
+  const nextMoveLabel = dashboardTrustState === 'healthy' ? 'Open repo evidence' : 'Review trust center';
+
   return (
     <div className="dashboard-container h-full min-h-0 flex flex-col animate-in fade-in slide-in-from-bottom-1 motion-page-enter">
       <DashboardHeader
@@ -594,12 +601,42 @@ export function DashboardView({
       {/* Scrollable dashboard content */}
       <main className="flex-1 overflow-y-auto px-6 py-6" data-dashboard-content>
         <div className="max-w-6xl">
-          {/* v3 Greeting */}
-          <h2 className="text-xl font-bold text-text-primary mb-6">
-            {greeting}, Jamie
-          </h2>
+          <section className="mb-6 space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent-violet-light bg-accent-violet/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-violet">
+              Narrative Brief
+            </div>
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
+                  {greeting}. {stats.repo.name} is telling a {dashboardTrustState === 'healthy' ? 'grounded' : 'partial'} story.
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
+                  This window covers {stats.currentPeriod.period.commits} commits, {stats.currentPeriod.attribution.totalLines.toLocaleString()} attributed lines, and {evidenceFileCount} high-signal files. {topToolLabel} is the primary captured tool in the current view.
+                </p>
+              </div>
+              <div className="inline-flex items-center rounded-full border border-border-light bg-bg-secondary px-3 py-1 text-xs text-text-secondary">
+                Codex-first shell phase
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <article className="glass-panel rounded-2xl p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">Story Window</p>
+                <p className="mt-2 text-lg font-semibold text-text-primary">{stats.currentPeriod.period.commits} commits in {narrativeWindowLabel}</p>
+                <p className="mt-1 text-sm text-text-secondary">Use this as the narrative frame before drilling into individual files.</p>
+              </article>
+              <article className="glass-panel rounded-2xl p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">Evidence Coverage</p>
+                <p className="mt-2 text-lg font-semibold text-text-primary">{evidenceFileCount} files with attribution evidence</p>
+                <p className="mt-1 text-sm text-text-secondary">These are the highest-signal surfaces for reconstructing what changed and why.</p>
+              </article>
+              <article className="glass-panel rounded-2xl p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">Next Move</p>
+                <p className="mt-2 text-lg font-semibold text-text-primary">{nextMoveLabel}</p>
+                <p className="mt-1 text-sm text-text-secondary">Stay anchored in repo evidence first, then move outward into hygiene or documentation.</p>
+              </article>
+            </div>
+          </section>
 
-          {/* v3 Metrics Grid (4-column) */}
           <div data-panel-status={panelStatusMap.metrics}>
             <MetricsGrid
               currentPeriod={stats.currentPeriod}
@@ -608,16 +645,15 @@ export function DashboardView({
             />
           </div>
 
-          {/* v3 Quick Actions (3-column glass panels) */}
           <QuickActions
             repoName={stats.repo.name}
-            onAnalyzeBranch={() => handleDrillDown({ type: "ai-only" })}
+            branchName={repoState.status === 'ready' ? repoState.repo.branch : undefined}
+            onOpenEvidence={() => onModeChange("repo")}
             onImportSession={handleImportSession}
-            onAskAboutCode={() => onModeChange("docs")}
+            onReviewHygiene={() => onModeChange("hygiene")}
           />
 
 
-          {/* v3 Recent Activity (timeline-style) */}
           <div className="mb-6">
             <RecentActivity
               items={recentActivityItems}
@@ -628,8 +664,6 @@ export function DashboardView({
               onItemClick={handleDrillDown}
             />
           </div>
-
-          {/* Top Files Table (collapsible detail) */}
           <div data-panel-status={panelStatusMap.topFiles} className="mb-6">
             <TopFilesTable
               files={visibleFiles}
@@ -642,7 +676,6 @@ export function DashboardView({
         </div>
       </main>
 
-      {/* v3 Bottom Stats Bar */}
       <BottomStats
         repoCount={1}
         sessionCount={stats.currentPeriod.period.commits}

@@ -14,6 +14,7 @@ export function BranchSummaryBar({
     const commitCount = model.timeline.filter((n) => n.type === 'commit').length;
     const fileCount = model.stats.files;
     const headline =
+        model.narrative?.summary ||
         model.title ||
         (commitCount === 1
             ? '1 commit'
@@ -36,6 +37,17 @@ export function BranchSummaryBar({
                 </span>
                 <span>files</span>
             </div>
+            {model.narrative && (
+                <>
+                    <div className="h-3 w-px bg-border-light" aria-hidden="true" />
+                    <div className="flex items-center gap-1.5">
+                        <span className={`h-1.5 w-1.5 rounded-full ${model.narrative.confidence > 0.8 ? 'bg-accent-green' : 'bg-accent-amber'}`} />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+                            Narration {Math.round(model.narrative.confidence * 100)}%
+                        </span>
+                    </div>
+                </>
+            )}
             <div className="h-3 w-px bg-border-light" aria-hidden="true" />
             <div className="flex-1 truncate text-sm font-medium text-text-primary">
                 {headline}

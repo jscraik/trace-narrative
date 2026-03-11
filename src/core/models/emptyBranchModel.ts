@@ -15,4 +15,5 @@ export const EMPTY_BRANCH_MODEL: BranchViewModel = {
   },
   intent: [],
   timeline: [],
+  snapshots: [],
 };

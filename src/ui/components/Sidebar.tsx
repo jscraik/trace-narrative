@@ -54,6 +54,8 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
         return (
             <button
                 type="button"
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => onModeChange(id)}
                 className={clsx(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
@@ -99,44 +101,44 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
             </div>
 
             {/* Nav */}
-            <nav className="flex-1 py-4 px-3 space-y-6 overflow-y-auto scrollbar-thin">
+            <div role="tablist" aria-label="Sidebar mode navigation" className="flex-1 py-4 px-3 space-y-6 overflow-y-auto scrollbar-thin">
                 <div>
-                    <SectionLabel>Overview</SectionLabel>
+                    <SectionLabel>Narrative</SectionLabel>
                     <div className="space-y-1">
-                        <NavItem id="dashboard" label="Overview" icon={BarChart3} />
-                        <NavItem id="work-graph" label="Workspace Graph" icon={Activity} />
-                        <NavItem id="assistant" label="Story Copilot" icon={MessageSquare} badge="Beta" />
+                        <NavItem id="dashboard" label="Narrative Brief" icon={BarChart3} />
+                        <NavItem id="work-graph" label="Story Map" icon={Activity} />
+                        <NavItem id="assistant" label="Codex Copilot" icon={MessageSquare} badge="Codex" />
                     </div>
                 </div>
 
                 <div>
-                    <SectionLabel>Monitor</SectionLabel>
+                    <SectionLabel>Evidence</SectionLabel>
                     <div className="space-y-1">
-                        <NavItem id="live" label="Live Trace" icon={Zap} />
+                        <NavItem id="live" label="Live Capture" icon={Zap} />
                         <NavItem id="sessions" label="Sessions" icon={Clock} badge={12} />
                         <NavItem id="transcripts" label="Transcript Lens" icon={FileSearch} />
                         <NavItem id="tools" label="Tool Pulse" icon={Sparkles} />
-                        <NavItem id="costs" label="Costs" icon={DollarSign} />
-                        <NavItem id="timeline" label="Decision Timeline" icon={History} />
+                        <NavItem id="costs" label="Cost Watch" icon={DollarSign} />
+                        <NavItem id="timeline" label="Causal Timeline" icon={History} />
                     </div>
                 </div>
 
                 <div>
                     <SectionLabel>Workspace</SectionLabel>
                     <div className="space-y-1">
-                        <NavItem id="repo" label="Repos" icon={GitBranch} badge={4} />
+                        <NavItem id="repo" label="Repo Evidence" icon={GitBranch} badge={4} />
                         <NavItem id="repo-pulse" label="Workspace Pulse" icon={FolderGit2} />
                         <NavItem id="diffs" label="Diff Review" icon={FileCode} />
                         <NavItem id="snapshots" label="Checkpoints" icon={Layers3} />
                         <NavItem id="worktrees" label="Worktrees" icon={Workflow} />
-                        <NavItem id="attribution" label="Trace Lens" icon={ShieldCheck} />
+                        <NavItem id="attribution" label="Attribution Lens" icon={ShieldCheck} />
                     </div>
                 </div>
 
                 <div>
-                    <SectionLabel>Ecosystem</SectionLabel>
+                    <SectionLabel>Integrations</SectionLabel>
                     <div className="space-y-1">
-                        <NavItem id="skills" label="Skills" icon={LibraryBig} />
+                        <NavItem id="skills" label="Codex Skills" icon={LibraryBig} />
                         <NavItem id="agents" label="Agent Roles" icon={Bot} />
                         <NavItem id="memory" label="Memory Graph" icon={Brain} />
                         <NavItem id="hooks" label="Hooks" icon={PlugZap} />
@@ -148,7 +150,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                 <div>
                     <SectionLabel>Health</SectionLabel>
                     <div className="space-y-1">
-                        <NavItem id="hygiene" label="Cleanup Queue" icon={ShieldAlert} />
+                        <NavItem id="hygiene" label="Hygiene" icon={ShieldAlert} />
                         <NavItem id="deps" label="Dependency Watch" icon={PackageSearch} />
                         <NavItem id="env" label="Env Hygiene" icon={KeyRound} />
                         <NavItem id="status" label="Trust Center" icon={ShieldCheck} status="OK" />
@@ -156,7 +158,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                 </div>
 
                 <div>
-                    <SectionLabel>Config</SectionLabel>
+                    <SectionLabel>Configure</SectionLabel>
                     <div className="space-y-1">
                         <NavItem id="docs" label="Docs" icon={BookOpen} />
                         <NavItem id="settings" label="Settings" icon={Settings} />
@@ -184,7 +186,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                         </button>
                     </div>
                 </div>
-            </nav>
+            </div>
 
             {/* Footer / Search */}
             <div className="p-3 border-t border-border-subtle">

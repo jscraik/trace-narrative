@@ -27,7 +27,7 @@ const EMPTY_STATES: Record<Exclude<DashboardEmptyReason, 'no-repo'>, EmptyStateC
     icon: <Bot className="w-16 h-16 text-accent-blue" />,
     iconBackground: 'bg-accent-blue-bg',
     title: 'No AI contributions detected',
-    message: 'Import AI coding sessions (Claude Code, Codex, Cursor) to see attribution data and track your AI usage.',
+    message: 'Import Codex sessions first to establish a trustworthy baseline. Additional providers can be layered in after the Codex flow is stable.',
     primaryAction: {
       label: 'Import Sessions',
       onClick: () => {/* Navigate to import */ },

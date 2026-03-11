@@ -137,7 +137,7 @@ describe('CockpitView', () => {
     );
 
     expect(screen.getByLabelText('Capture reliability degraded')).toBeInTheDocument();
-    expect(screen.getByText('Capture degraded')).toBeInTheDocument();
+    expect(screen.getAllByText('Capture degraded').length).toBeGreaterThan(0);
   });
 
   it('renders derived-summary authority cues for OTEL_ONLY capture reliability', () => {
@@ -194,7 +194,8 @@ describe('CockpitView', () => {
       live_repo: 'Repo',
       live_capture: 'Live',
       derived_summary: 'Derived',
-      static_scaffold: 'Preview',
+      static_scaffold: 'Mock',
+      system_signal: 'Signal',
     };
 
     cueElements.forEach((el) => {
