@@ -47,52 +47,9 @@ Phase 1 is intentionally narrow so the package is useful immediately instead of 
   - [docs/design-system-local-tarball-workflow.md](/Users/jamiecraik/dev/trace-narrative/docs/design-system-local-tarball-workflow.md)
 - Source scan:
   - `src/ui/views`
-  - `src/ui/components/dashboard`
-  - `src/ui/components/story-anchors`
-  - `src/ui/components/right-panel-tabs`
-  - `src/ui/components/session-excerpts`
-  - `src/ui/components/auto-ingest-setup`
-  - root support files:
-    - `src/ui/components/TopNav.tsx`
-    - `src/ui/components/NarrativeGovernancePanel.tsx`
-    - `src/ui/components/NeedsAttentionList.tsx`
-    - `src/ui/components/GitHubConnectorPanel.tsx`
-    - `src/ui/components/AgentTraceSummary.tsx`
-    - `src/ui/components/SourceLensStats.tsx`
-    - `src/ui/components/CaptureActivityStrip.tsx`
-    - `src/ui/components/SessionExcerpts.tsx`
-    - `src/ui/components/TelemetrySettingsPanel.tsx`
-    - `src/ui/components/Select.tsx`
-    - `src/ui/components/SourceLensEmptyStates.tsx`
-    - `src/ui/components/StepsSummaryCard.tsx`
-    - `src/ui/components/Timeline.tsx`
-    - `src/ui/components/AttributionSettingsPanel.tsx`
-    - `src/ui/components/BranchHeader.tsx`
-    - `src/ui/components/Breadcrumb.tsx`
-    - `src/ui/components/DiffViewer.tsx`
-    - `src/ui/components/IngestStatusStrip.tsx`
-    - `src/ui/components/SourceLensLineTable.tsx`
-    - `src/ui/components/BranchSummaryBar.tsx`
-    - `src/ui/components/DecisionArchaeologyPanel.tsx`
-    - `src/ui/components/Dialog.tsx`
-    - `src/ui/components/FireflyHero.stories.tsx`
-    - `src/ui/components/AskWhyAnswerCard.tsx`
-    - `src/ui/components/BadgePill.tsx`
-    - `src/ui/components/TimelineNode.tsx`
-    - `src/ui/components/FilesChanged.tsx`
-    - `src/ui/components/RepositoryPlaceholderCard.tsx`
-    - `src/ui/components/Sidebar.tsx`
-    - `src/ui/components/SourceLensView.tsx`
-    - `src/ui/components/StoryAnchorsPanel.tsx`
-    - `src/ui/components/DocsOverviewPanel.tsx`
-    - `src/ui/components/AtlasSearchPanel.tsx`
-    - `src/ui/components/AuthorBadge.tsx`
-    - `src/ui/components/BranchNarrativePanelSections.tsx`
-    - `src/ui/components/TestResultsPanel.tsx`
-    - `src/ui/components/TraceTranscriptPanel.tsx`
-    - `src/ui/components/TrustStateIndicator.tsx`
+  - `src/ui/components`
 
-This scope protects the narrative-facing shell copy, screen composition work, the dashboard-specific evidence widgets, the story anchor surface that explains how traces connect into a readable narrative, the right-panel control surface that holds session, attribution, atlas, tests, and settings workflows, the session excerpt support components that make commit-to-session links legible, the auto-ingest setup surface that configures Codex-first capture reliability, and a growing root-level shell support batch around navigation, governance, attention states, GitHub context, AI trace summary, source-lens stats, capture activity, session evidence, telemetry settings, selector affordances, empty states, step summaries, timeline scaffolding, attribution controls, repo evidence headers, breadcrumbs, diff reading, ingestion status, source-lens line evidence, branch summaries, decision archaeology, dialog primitives, storybook-facing brand surfaces, ask-why analysis, timeline badges, timeline nodes, file-evidence lists, repo placeholder states, sidebar navigation, source-lens framing, the story-anchors panel wrapper, docs overview rendering, Atlas search inspection, attribution badges, branch narrative summary controls, test-results evidence framing, transcript message rendering, and trust-state recovery affordances. We can expand it further once the rest of the component surface is cleaned up enough to keep the CI signal meaningful.
+This scope protects the narrative-facing shell copy, screen composition work, and the full `src/ui/components` surface in one consistent pass. That includes the dashboard evidence widgets, story anchors, right-panel workflows, session excerpt support components, auto-ingest setup, repo evidence panels, docs overview rendering, Atlas search inspection, attribution badges, transcript rendering, trust-state recovery affordances, and the rest of the live shell components without needing a brittle file-by-file allowlist.
 
 ## Expansion Rules
 
