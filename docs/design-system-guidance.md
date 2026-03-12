@@ -51,10 +51,11 @@ Phase 1 is intentionally narrow so the package is useful immediately instead of 
   - `src/App.tsx`
   - `src/AppContent.tsx`
   - `src/main.tsx`
+  - `src/styles/trace-signal.css`
 
-This scope protects the narrative-facing shell copy, screen composition work, the full `src/ui/components` surface, and the app-shell entrypoints that mount and route the live experience. That includes the dashboard evidence widgets, story anchors, right-panel workflows, session excerpt support components, auto-ingest setup, repo evidence panels, docs overview rendering, Atlas search inspection, attribution badges, transcript rendering, trust-state recovery affordances, and the rest of the live shell components without needing a brittle file-by-file allowlist.
+This scope protects the narrative-facing shell copy, screen composition work, the full `src/ui/components` surface, the app-shell entrypoints that mount and route the live experience, and the dedicated Trace brand-signal stylesheet that supports the shell identity. That includes the dashboard evidence widgets, story anchors, right-panel workflows, session excerpt support components, auto-ingest setup, repo evidence panels, docs overview rendering, Atlas search inspection, attribution badges, transcript rendering, trust-state recovery affordances, and the live trace-signal motion and brand treatments without needing a brittle file-by-file allowlist.
 
-The next nearest presentation-oriented surfaces outside this scope are `src/styles` and `src/assets`. We audited them before this expansion and intentionally deferred them because they are a separate, noisier design-system debt lane than the app shell entrypoints.
+The next nearest presentation-oriented surfaces outside this scope are the broader [src/styles.css](/Users/jamiecraik/dev/trace-narrative/src/styles.css) foundation layer and `src/assets`. We audited them before this expansion and intentionally deferred them because they are a separate, noisier design-system debt lane than the app shell entrypoints and the smaller trace-signal stylesheet.
 
 ## Expansion Rules
 
