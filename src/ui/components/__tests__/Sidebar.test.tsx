@@ -11,7 +11,7 @@
  * - Section group labels match the ViewSection contract.
  */
 
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Mode } from '../../../core/types';
 import { Sidebar } from '../Sidebar';
@@ -35,7 +35,7 @@ const ANCHOR_MODES_TO_LABELS: Array<[Mode, string]> = [
  * Shared surface modes and their canonical sidebar labels.
  * Each label must appear at least once as a nav button in the sidebar.
  */
-const COCKPIT_MODES_TO_LABELS: Array<[Mode, string]> = [
+const SURFACE_MODES_TO_LABELS: Array<[Mode, string]> = [
   ['live', 'Live Capture'],
   ['sessions', 'Sessions'],
   ['transcripts', 'Transcript Lens'],
@@ -59,7 +59,6 @@ const COCKPIT_MODES_TO_LABELS: Array<[Mode, string]> = [
   ['env', 'Env Hygiene'],
   ['status', 'Trust Center'],
   ['settings', 'Settings'],
-  ['assistant', 'Codex Copilot'],
 ];
 
 const EXPECTED_SECTION_HEADERS = ['Narrative', 'Evidence', 'Workspace', 'Integrations', 'Health', 'Configure'];
@@ -77,6 +76,11 @@ function renderSidebar(activeMode: Mode = 'dashboard') {
       onImportSession={vi.fn()}
     />,
   );
+}
+
+function toggleFullMap() {
+  const toggle = screen.getByRole('button', { name: /show full map/i });
+  fireEvent.click(toggle);
 }
 
 /**
@@ -123,7 +127,7 @@ describe('Sidebar', () => {
   });
 
   describe('surface mode canonical labels — nav button presence', () => {
-    it.each(COCKPIT_MODES_TO_LABELS)(
+    it.each(SURFACE_MODES_TO_LABELS)(
       'surface mode "%s" has a nav button with label "%s"',
       (mode, label) => {
         renderSidebar(mode as Mode);
@@ -135,12 +139,13 @@ describe('Sidebar', () => {
   });
 
   describe('routing completeness', () => {
-    it('every expected mode label appears as a nav button in a single render', () => {
+    it('every non-demoted mode label appears once full map is enabled', () => {
       renderSidebar('dashboard');
+      toggleFullMap();
       const buttons = navButtonLabels();
       const allExpectedLabels = [
-        ...ANCHOR_MODES_TO_LABELS.map(([, label]) => label),
-        ...COCKPIT_MODES_TO_LABELS.map(([, label]) => label),
+        ...ANCHOR_MODES_TO_LABELS.filter(([mode]) => mode !== 'docs').map(([, label]) => label),
+        ...SURFACE_MODES_TO_LABELS.map(([, label]) => label),
       ];
       for (const label of allExpectedLabels) {
         const present = buttons.some((t) => t.includes(label));
@@ -156,6 +161,40 @@ describe('Sidebar', () => {
       renderSidebar();
       const sidebar = document.querySelector('aside');
       expect(sidebar?.textContent).not.toContain(alias);
+    });
+  });
+
+  describe('primary-first sidebar behavior', () => {
+    it('hides non-primary labels until full map is enabled', () => {
+      renderSidebar('dashboard');
+      expect(screen.queryByRole('tab', { name: /story map/i })).toBeNull();
+      expect(screen.queryByRole('tab', { name: /sessions/i })).toBeNull();
+      expect(screen.queryByRole('tab', { name: /tool pulse/i })).toBeNull();
+      expect(screen.queryByRole('tab', { name: /dependency watch/i })).toBeNull();
+      expect(screen.queryByRole('tab', { name: /^docs$/i })).toBeNull();
+    });
+
+    it('reveals non-primary labels after enabling full map', () => {
+      renderSidebar('dashboard');
+      toggleFullMap();
+      expect(screen.getByRole('tab', { name: /story map/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /sessions/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /tool pulse/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /dependency watch/i })).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /^docs$/i })).toBeNull();
+    });
+
+    it('keeps docs hidden from the map until docs is the active mode', () => {
+      renderSidebar('dashboard');
+      toggleFullMap();
+      expect(screen.queryByRole('tab', { name: /^docs$/i })).toBeNull();
+    });
+
+    it('still shows docs when the docs route is already active', () => {
+      renderSidebar('docs');
+      expect(screen.getByRole('tab', { name: /^docs$/i })).toBeInTheDocument();
+      toggleFullMap();
+      expect(screen.getByRole('tab', { name: /^docs$/i })).toBeInTheDocument();
     });
   });
 

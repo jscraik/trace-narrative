@@ -26,7 +26,7 @@ The earlier shell inconsistencies were mostly resolved during the Trace Narrativ
 ### Visual Verification
 
 - [x] Verify the red `Signal` authority badge in a mocked critical drift state on live shared surfaces.
-- [ ] Confirm the remaining `OK` pill alignment and padding in graph/timeline activity rows.
+- [x] Confirm the remaining `OK` pill alignment and padding in graph/timeline activity rows.
 - [x] Reconfirm the Trust Center surface still reads cleanly after the signature provenance lane is introduced.
 
 ### Rollout Readiness

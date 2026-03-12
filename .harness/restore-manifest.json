@@ -1,5 +1,5 @@
 {
-  "harnessVersion": "0.7.1",
+  "harnessVersion": "0.8.1",
   "files": [
     {
       "path": "harness.contract.json",
@@ -7,9 +7,37 @@
       "backupHash": "367515e7c11972e1"
     },
     {
+      "path": "memory.json",
+      "action": "modified",
+      "backupHash": "5d9fc88f6936a6a7"
+    },
+    {
+      "path": ".greptile/config.json",
+      "action": "modified",
+      "backupHash": "b885a531c05ee4f0"
+    },
+    {
+      "path": ".greptile/rules.md",
+      "action": "modified",
+      "backupHash": "be68af0876c999cb"
+    },
+    {
+      "path": ".greptile/files.json",
+      "action": "modified",
+      "backupHash": "a7e59c07d8b2b7e3"
+    },
+    {
+      "path": ".github/workflows/greptile-review.yml",
+      "action": "created"
+    },
+    {
       "path": ".github/workflows/pr-pipeline.yml",
       "action": "modified",
       "backupHash": "e45cc7ad4955fa1d"
+    },
+    {
+      "path": ".github/workflows/secret-scan.yml",
+      "action": "created"
     },
     {
       "path": "CONTRIBUTING.md",
@@ -20,6 +48,108 @@
       "path": ".github/PULL_REQUEST_TEMPLATE.md",
       "action": "modified",
       "backupHash": "18813c86948efc57"
+    },
+    {
+      "path": "scripts/validate-commit-msg.js",
+      "action": "modified",
+      "backupHash": "9dd586a81c5075a6"
+    },
+    {
+      "path": "scripts/setup-git-hooks.js",
+      "action": "modified",
+      "backupHash": "c8e00f3d8d413b5e"
+    },
+    {
+      "path": "scripts/check-staged-secrets.sh",
+      "action": "created"
+    },
+    {
+      "path": "scripts/check-doc-style.sh",
+      "action": "created"
+    },
+    {
+      "path": "scripts/check-related-tests.sh",
+      "action": "created"
+    },
+    {
+      "path": "scripts/check-semgrep-changed.sh",
+      "action": "created"
+    },
+    {
+      "path": "scripts/semgrep-pre-push.yml",
+      "action": "created"
+    },
+    {
+      "path": "scripts/refresh-diagram-context.sh",
+      "action": "modified",
+      "backupHash": "6fd2e9ff2695a32b"
+    },
+    {
+      "path": "scripts/check-diagram-freshness.sh",
+      "action": "created"
+    },
+    {
+      "path": ".diagram/.gitkeep",
+      "action": "created"
+    },
+    {
+      "path": ".diagram/context/diagram-context.md",
+      "action": "modified",
+      "backupHash": "25565be2835e93d9"
+    },
+    {
+      "path": ".diagramrc",
+      "action": "modified",
+      "backupHash": "31ca75a1693be0c0"
+    },
+    {
+      "path": "biome.json",
+      "action": "modified",
+      "backupHash": "2bc8a1f5e9380d5a"
+    },
+    {
+      "path": ".gitleaks.toml",
+      "action": "modified",
+      "backupHash": "f40ac94aac00bf36"
+    },
+    {
+      "path": "prek.toml",
+      "action": "modified",
+      "backupHash": "72359463e1c50ddc"
+    },
+    {
+      "path": ".mise.toml",
+      "action": "created"
+    },
+    {
+      "path": "scripts/codex-preflight.sh",
+      "action": "modified",
+      "backupHash": "fd7b3a1bc4680d29"
+    },
+    {
+      "path": "scripts/check-environment.sh",
+      "action": "modified",
+      "backupHash": "5999dbce2ab20fe2"
+    },
+    {
+      "path": ".codex/environments/environment.toml",
+      "action": "modified",
+      "backupHash": "cd49adffccd28c2b"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "action": "modified",
+      "backupHash": "1c0d972ee49103af"
+    },
+    {
+      "path": ".github/CODEOWNERS",
+      "action": "modified",
+      "backupHash": "3d36a1bf06148bc6"
+    },
+    {
+      "path": "Makefile",
+      "action": "modified",
+      "backupHash": "76ed074a9305c040"
     }
   ]
 }

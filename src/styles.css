@@ -449,25 +449,21 @@ body {
 
 /* Sidebar active state enhancer */
 .nav-item-active {
-  background: color-mix(in oklab, var(--accent-blue) 12%, var(--bg-tertiary));
+  background: color-mix(in oklab, var(--accent-blue) 16%, var(--bg-secondary));
   color: var(--text-primary);
-  position: relative;
-}
-
-.nav-item-active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 20%;
-  bottom: 20%;
-  width: 0.1875rem;
-  background: var(--accent-blue);
-  border-radius: 0 0.125rem 0.125rem 0;
-  box-shadow: 0 0 0.5rem var(--accent-blue);
+  border: 0.0625rem solid color-mix(in oklab, var(--accent-blue) 30%, var(--outline-default) 70%);
 }
 
 :root[data-theme="dark"] .nav-item-active {
-  background: color-mix(in oklab, var(--accent-blue) 15%, var(--bg-tertiary));
+  background: color-mix(in oklab, var(--accent-blue) 18%, var(--bg-secondary));
+  border-color: color-mix(in oklab, var(--accent-blue) 36%, var(--outline-default) 64%);
+}
+
+.app-canvas {
+  background-image:
+    radial-gradient(circle at 14% 8%, color-mix(in oklab, var(--accent-blue) 10%, transparent) 0%, transparent 52%),
+    radial-gradient(circle at 88% 0%, color-mix(in oklab, var(--accent-violet) 12%, transparent) 0%, transparent 48%),
+    linear-gradient(180deg, color-mix(in oklab, var(--bg-secondary) 22%, var(--bg-primary) 78%) 0%, var(--bg-primary) 100%);
 }
 
 /* v3 Dashboard — Activity row hover */

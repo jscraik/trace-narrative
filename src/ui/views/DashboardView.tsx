@@ -109,7 +109,7 @@ export function DashboardView({
           onOpenRepo={handleOpenRepo}
           onImportSession={handleImportSession}
         />
-        <DashboardEmptyState reason={emptyReason} />
+        <DashboardEmptyState reason={emptyReason} onOpenRepo={handleOpenRepo} />
       </div>
     );
   }

@@ -12,7 +12,6 @@ import {
     FileCode,
     ShieldCheck,
     Search,
-    MessageSquare,
     FileSearch,
     LibraryBig,
     Bot,
@@ -29,6 +28,7 @@ import {
     KeyRound
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import type {
     Mode
 } from '../../core/types';
@@ -41,7 +41,86 @@ interface SidebarProps {
     onImportSession?: () => void;
 }
 
+interface NavEntry {
+    id: Mode;
+    label: string;
+    icon: ComponentType<{ className?: string }>;
+    badge?: ReactNode;
+    status?: string;
+    primary?: boolean;
+    showInFullMap?: boolean;
+}
+
+interface NavSection {
+    label: string;
+    items: NavEntry[];
+}
+
 export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: SidebarProps) {
+    const [showFullMap, setShowFullMap] = useState(false);
+
+    const sections = useMemo<NavSection[]>(
+        () => [
+            {
+                label: 'Narrative',
+                items: [
+                    { id: 'dashboard', label: 'Narrative Brief', icon: BarChart3, primary: true },
+                    { id: 'work-graph', label: 'Story Map', icon: Activity },
+                ],
+            },
+            {
+                label: 'Evidence',
+                items: [
+                    { id: 'live', label: 'Live Capture', icon: Zap, primary: true },
+                    { id: 'timeline', label: 'Causal Timeline', icon: History },
+                    { id: 'sessions', label: 'Sessions', icon: Clock, badge: 12 },
+                    { id: 'transcripts', label: 'Transcript Lens', icon: FileSearch },
+                    { id: 'tools', label: 'Tool Pulse', icon: Sparkles },
+                    { id: 'costs', label: 'Cost Watch', icon: DollarSign },
+                ],
+            },
+            {
+                label: 'Workspace',
+                items: [
+                    { id: 'repo', label: 'Repo Evidence', icon: GitBranch, badge: 4, primary: true },
+                    { id: 'repo-pulse', label: 'Workspace Pulse', icon: FolderGit2 },
+                    { id: 'diffs', label: 'Diff Review', icon: FileCode },
+                    { id: 'snapshots', label: 'Checkpoints', icon: Layers3 },
+                    { id: 'worktrees', label: 'Worktrees', icon: Workflow },
+                    { id: 'attribution', label: 'Attribution Lens', icon: ShieldCheck },
+                ],
+            },
+            {
+                label: 'Integrations',
+                items: [
+                    { id: 'setup', label: 'Setup', icon: TerminalSquare, primary: true },
+                    { id: 'skills', label: 'Codex Skills', icon: LibraryBig },
+                    { id: 'agents', label: 'Agent Roles', icon: Bot },
+                    { id: 'memory', label: 'Memory Graph', icon: Brain },
+                    { id: 'hooks', label: 'Hooks', icon: PlugZap },
+                    { id: 'ports', label: 'Ports', icon: HardDrive },
+                ],
+            },
+            {
+                label: 'Health',
+                items: [
+                    { id: 'hygiene', label: 'Hygiene', icon: ShieldAlert, primary: true },
+                    { id: 'status', label: 'Trust Center', icon: ShieldCheck, status: 'OK', primary: true },
+                    { id: 'deps', label: 'Dependency Watch', icon: PackageSearch },
+                    { id: 'env', label: 'Env Hygiene', icon: KeyRound },
+                ],
+            },
+            {
+                label: 'Configure',
+                items: [
+                    { id: 'settings', label: 'Settings', icon: Settings, primary: true },
+                    { id: 'docs', label: 'Docs', icon: BookOpen, showInFullMap: false },
+                ],
+            },
+        ],
+        [],
+    );
+
     const NavItem = ({ id, label, icon: Icon, badge, status }: {
         id: Mode;
         label: string;
@@ -90,11 +169,10 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
     );
 
     return (
-        <aside className="w-60 flex-shrink-0 flex flex-col border-r border-border-subtle bg-bg-secondary h-screen sticky top-0">
+        <aside className="w-56 flex-shrink-0 flex flex-col border-r border-border-subtle bg-bg-secondary/90 h-screen sticky top-0 backdrop-blur-md">
             {/* Brand */}
-            <div className="h-14 flex items-center gap-3 px-4 border-b border-border-subtle relative group cursor-default">
-                <div className="absolute inset-0 bg-accent-violet/5 opacity-0 group-hover:opacity-100 transition-opacity blur-xl rounded-full translate-x-[-20%] translate-y-[-20%]" />
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent-violet-bg shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+            <div className="h-14 flex items-center gap-3 px-4 border-b border-border-subtle relative cursor-default">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent-violet-bg/70 border border-border-subtle">
                     <Zap className="w-5 h-5 text-accent-violet" />
                 </div>
                 <span className="font-bold text-sm tracking-tight text-text-primary">Trace Narrative</span>
@@ -102,67 +180,43 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
 
             {/* Nav */}
             <div role="tablist" aria-label="Sidebar mode navigation" className="flex-1 py-4 px-3 space-y-6 overflow-y-auto scrollbar-thin">
-                <div>
-                    <SectionLabel>Narrative</SectionLabel>
-                    <div className="space-y-1">
-                        <NavItem id="dashboard" label="Narrative Brief" icon={BarChart3} />
-                        <NavItem id="work-graph" label="Story Map" icon={Activity} />
-                        <NavItem id="assistant" label="Codex Copilot" icon={MessageSquare} badge="Codex" />
-                    </div>
-                </div>
+                {sections.map((section) => {
+                    const visibleItems = section.items.filter(
+                        (item) => item.id === mode || item.primary || (showFullMap && item.showInFullMap !== false),
+                    );
+                    if (visibleItems.length === 0) {
+                        return null;
+                    }
+
+                    return (
+                        <div key={section.label}>
+                            <SectionLabel>{section.label}</SectionLabel>
+                            <div className="space-y-1">
+                                {visibleItems.map((item) => (
+                                    <NavItem
+                                        key={item.id}
+                                        id={item.id}
+                                        label={item.label}
+                                        icon={item.icon}
+                                        badge={item.badge}
+                                        status={item.status}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
 
                 <div>
-                    <SectionLabel>Evidence</SectionLabel>
-                    <div className="space-y-1">
-                        <NavItem id="live" label="Live Capture" icon={Zap} />
-                        <NavItem id="sessions" label="Sessions" icon={Clock} badge={12} />
-                        <NavItem id="transcripts" label="Transcript Lens" icon={FileSearch} />
-                        <NavItem id="tools" label="Tool Pulse" icon={Sparkles} />
-                        <NavItem id="costs" label="Cost Watch" icon={DollarSign} />
-                        <NavItem id="timeline" label="Causal Timeline" icon={History} />
-                    </div>
-                </div>
-
-                <div>
-                    <SectionLabel>Workspace</SectionLabel>
-                    <div className="space-y-1">
-                        <NavItem id="repo" label="Repo Evidence" icon={GitBranch} badge={4} />
-                        <NavItem id="repo-pulse" label="Workspace Pulse" icon={FolderGit2} />
-                        <NavItem id="diffs" label="Diff Review" icon={FileCode} />
-                        <NavItem id="snapshots" label="Checkpoints" icon={Layers3} />
-                        <NavItem id="worktrees" label="Worktrees" icon={Workflow} />
-                        <NavItem id="attribution" label="Attribution Lens" icon={ShieldCheck} />
-                    </div>
-                </div>
-
-                <div>
-                    <SectionLabel>Integrations</SectionLabel>
-                    <div className="space-y-1">
-                        <NavItem id="skills" label="Codex Skills" icon={LibraryBig} />
-                        <NavItem id="agents" label="Agent Roles" icon={Bot} />
-                        <NavItem id="memory" label="Memory Graph" icon={Brain} />
-                        <NavItem id="hooks" label="Hooks" icon={PlugZap} />
-                        <NavItem id="setup" label="Setup" icon={TerminalSquare} />
-                        <NavItem id="ports" label="Ports" icon={HardDrive} />
-                    </div>
-                </div>
-
-                <div>
-                    <SectionLabel>Health</SectionLabel>
-                    <div className="space-y-1">
-                        <NavItem id="hygiene" label="Hygiene" icon={ShieldAlert} />
-                        <NavItem id="deps" label="Dependency Watch" icon={PackageSearch} />
-                        <NavItem id="env" label="Env Hygiene" icon={KeyRound} />
-                        <NavItem id="status" label="Trust Center" icon={ShieldCheck} status="OK" />
-                    </div>
-                </div>
-
-                <div>
-                    <SectionLabel>Configure</SectionLabel>
-                    <div className="space-y-1">
-                        <NavItem id="docs" label="Docs" icon={BookOpen} />
-                        <NavItem id="settings" label="Settings" icon={Settings} />
-                    </div>
+                    <SectionLabel>View Scope</SectionLabel>
+                    <button
+                        type="button"
+                        onClick={() => setShowFullMap((value) => !value)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all duration-200"
+                    >
+                        <Layers3 className="w-4 h-4" />
+                        <span className="flex-1 text-left">{showFullMap ? 'Show Primary Views' : 'Show Full Map'}</span>
+                    </button>
                 </div>
 
                 <div>

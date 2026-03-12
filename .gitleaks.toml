@@ -1,26 +1,20 @@
-title = "Narrative gitleaks config"
+title = "Project gitleaks config"
+
+[extend]
+useDefault = true
 
 [allowlist]
-description = "Allow redaction/sanitization test fixtures with fake tokens"
+description = "Allowlist for test fixtures and examples."
 paths = [
-  # Existing sanitizer fixture fixtures
-  "src-tauri/src/import/redactor.rs",
-  "src-tauri/src/import/tool_sanitizer.rs",
-
-  # Fixture/examples directories
   "(^|/)docs?/",
   "(^|/)examples?/",
   "(^|/)test/",
   "(^|/)tests?/",
   "(^|/)spec/",
-  "(^|/)specs?/",
   "(^|/)__tests__/",
-
-  # Suffix-based fixture filenames
+  "(^|/)test-data/",
   "(^|/)[^.]+\\.(test|spec)\\.[^.]+$",
 ]
-
 regexes = [
-  # Keep explicit fixture token marker
   "\\[REDACTED\\]",
 ]

@@ -70,7 +70,7 @@ export function AppContent({
   surfaceAction,
   setSurfaceAction,
 }: AppContentProps) {
-  if (mode === 'dashboard') {
+  if (mode === 'dashboard' || mode === 'assistant') {
     return (
       <DashboardView
         repoState={repoState}
@@ -134,6 +134,7 @@ export function AppContent({
       return (
         <BranchView
           model={commitData.model ?? EMPTY_BRANCH_MODEL}
+          onModeChange={onModeChange}
           updateModel={(updater) => {
             setRepoState((prev) => {
               if (prev.status !== 'ready') return prev;

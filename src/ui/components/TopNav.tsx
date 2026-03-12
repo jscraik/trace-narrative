@@ -1,10 +1,170 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import clsx from 'clsx';
-import { BarChart3, BookOpen, FileText, FolderOpen, GitBranch } from 'lucide-react';
-import type { KeyboardEvent, ReactNode } from 'react';
+import {
+  BookOpen,
+  Compass,
+  FileText,
+  FolderOpen,
+  GitBranch,
+  LayoutDashboard,
+  Waypoints,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import type { Mode } from '../../core/types';
 
+type ModeMeta = {
+  label: string;
+  note: string;
+  section: 'Narrative' | 'Evidence' | 'Workspace' | 'Integrations' | 'Health' | 'Configure';
+};
+
+const MODE_LABELS: Record<Mode, ModeMeta> = {
+  dashboard: {
+    label: 'Narrative Brief',
+    note: 'Dense operator overview for what moved, what is risky, and where to verify next.',
+    section: 'Narrative',
+  },
+  repo: {
+    label: 'Repo Evidence',
+    note: 'Commit-linked files, diffs, sessions, and checkpoints for branch verification.',
+    section: 'Workspace',
+  },
+  docs: {
+    label: 'Docs',
+    note: 'Secondary reference lane for runbooks, guides, and repo-facing documentation.',
+    section: 'Configure',
+  },
+  live: {
+    label: 'Live Capture',
+    note: 'Operator tape for active sessions, stream health, and capture posture.',
+    section: 'Evidence',
+  },
+  sessions: {
+    label: 'Sessions',
+    note: 'Indexed session ledger with join confidence, follow-through, and next action.',
+    section: 'Evidence',
+  },
+  transcripts: {
+    label: 'Transcript Lens',
+    note: 'Query-first search surface for transcript snippets and source coverage.',
+    section: 'Evidence',
+  },
+  tools: {
+    label: 'Tool Pulse',
+    note: 'Secondary operator summary for tool usage and retry signals.',
+    section: 'Evidence',
+  },
+  costs: {
+    label: 'Cost Watch',
+    note: 'Secondary operator summary for spend posture and burn signals.',
+    section: 'Evidence',
+  },
+  setup: {
+    label: 'Setup',
+    note: 'Configure imports, capture, and Codex-first operator readiness.',
+    section: 'Integrations',
+  },
+  ports: {
+    label: 'Ports',
+    note: 'Watch runtime surfaces and connection points.',
+    section: 'Integrations',
+  },
+  'work-graph': {
+    label: 'Story Map',
+    note: 'Topology and prioritization view for pressure points, weak joins, and next inspection.',
+    section: 'Narrative',
+  },
+  'repo-pulse': {
+    label: 'Workspace Pulse',
+    note: 'Secondary workspace summary around the active repo lane.',
+    section: 'Workspace',
+  },
+  timeline: {
+    label: 'Causal Timeline',
+    note: 'Chronology-first review of change sequence, evidence joins, and trust handoffs.',
+    section: 'Evidence',
+  },
+  diffs: {
+    label: 'Diff Review',
+    note: 'Inspect raw file deltas and branch-level evidence changes.',
+    section: 'Workspace',
+  },
+  snapshots: {
+    label: 'Checkpoints',
+    note: 'Compare branch state against saved checkpoints and rollback markers.',
+    section: 'Workspace',
+  },
+  skills: {
+    label: 'Codex Skills',
+    note: 'Skill and tool-chain surfaces connected to the repo workflow.',
+    section: 'Integrations',
+  },
+  agents: {
+    label: 'Agent Roles',
+    note: 'Role surfaces and operator lanes for agent execution.',
+    section: 'Integrations',
+  },
+  memory: {
+    label: 'Memory Graph',
+    note: 'Persistent memory links that support repo narrative context.',
+    section: 'Integrations',
+  },
+  hooks: {
+    label: 'Hooks',
+    note: 'Observe and refine shell-level automation touchpoints.',
+    section: 'Integrations',
+  },
+  hygiene: {
+    label: 'Hygiene',
+    note: 'Cleanup, stale-state checks, and safe maintenance work.',
+    section: 'Health',
+  },
+  deps: {
+    label: 'Dependency Watch',
+    note: 'Track dependency risk without overselling it as a primary workflow.',
+    section: 'Health',
+  },
+  worktrees: {
+    label: 'Worktrees',
+    note: 'Compare parallel lanes and branch isolation state.',
+    section: 'Workspace',
+  },
+  env: {
+    label: 'Env Hygiene',
+    note: 'Environment drift and credential posture checks.',
+    section: 'Health',
+  },
+  settings: {
+    label: 'Settings',
+    note: 'Operator contract for capture, trust, scope, and Codex-first defaults.',
+    section: 'Configure',
+  },
+  assistant: {
+    label: 'Narrative Brief',
+    note: 'Codex-guided asks now live inside stronger evidence views.',
+    section: 'Narrative',
+  },
+  attribution: {
+    label: 'Attribution Lens',
+    note: 'Inspect contributor and provenance metadata behind branch claims.',
+    section: 'Workspace',
+  },
+  status: {
+    label: 'Trust Center',
+    note: 'Decide what is safe to believe now and which verification lane opens next.',
+    section: 'Health',
+  },
+};
+
+const sectionIcon = {
+  Narrative: LayoutDashboard,
+  Evidence: Waypoints,
+  Workspace: GitBranch,
+  Integrations: Compass,
+  Health: FileText,
+  Configure: BookOpen,
+} as const;
 
 export function TopNav(props: {
   mode: Mode;
@@ -26,115 +186,71 @@ export function TopNav(props: {
     onImportKimiSession,
     onImportAgentTrace,
     importEnabled,
-    children
+    children,
   } = props;
 
-  const isSurfaceMode = (m: Mode) => m !== 'repo' && m !== 'docs';
-  const surfaceLabel = mode === 'repo'
-    ? 'Repo evidence'
-    : mode === 'docs'
-      ? 'Docs workspace'
-      : 'Narrative surface';
-  const surfaceNote = mode === 'repo'
-    ? 'Commit-linked files, diffs, and trace evidence'
-    : mode === 'docs'
-      ? 'Guides, runbooks, and repo-facing documentation'
-      : 'Codex-first reconstruction across story, evidence, and trust';
-
-  const Tab = (p: { id: Mode; label: string; icon: ReactNode }) => {
-    const isActive = p.id === 'dashboard' ? isSurfaceMode(mode) : mode === p.id;
-    return (
-      <button
-        role="tab"
-        aria-selected={isActive}
-        tabIndex={isActive ? 0 : -1}
-        className={clsx(
-          'inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75',
-          isActive
-            ? 'bg-bg-secondary text-text-primary shadow-sm'
-            : 'text-text-tertiary hover:bg-bg-hover hover:text-text-secondary hover:scale-105 active:scale-95'
-        )}
-        onClick={() => onModeChange(p.id)}
-        type="button"
-      >
-        {p.icon}
-        <span>{p.label}</span>
-      </button>
-    );
-  };
-
-  const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-    event.preventDefault();
-    const order: Mode[] = ['repo', 'dashboard', 'docs'];
-    const currentMode = isSurfaceMode(mode) ? 'dashboard' : mode;
-    const currentIndex = order.indexOf(currentMode as Mode);
-    if (currentIndex === -1) return;
-    if (event.key === 'Home') {
-      onModeChange(order[0]);
-      return;
-    }
-    if (event.key === 'End') {
-      onModeChange(order[order.length - 1]);
-      return;
-    }
-    const delta = event.key === 'ArrowRight' ? 1 : -1;
-    const nextIndex = (currentIndex + delta + order.length) % order.length;
-    onModeChange(order[nextIndex]);
-  };
+  const currentModeMeta = MODE_LABELS[mode];
+  const CurrentSectionIcon = sectionIcon[currentModeMeta.section];
+  const secondaryRoutes = mode === 'docs'
+    ? [{ mode: 'dashboard' as const, label: 'Back to Brief' }]
+    : [{ mode: 'repo' as const, label: 'Repo Evidence' }, { mode: 'dashboard' as const, label: 'Narrative Brief' }]
+        .filter((route) => route.mode !== mode);
 
   return (
-    <header className="grid h-14 w-full grid-cols-[1fr_auto_1fr] items-center border-b border-border-light bg-bg-secondary px-4">
-      <div className="flex items-center gap-3 justify-self-start">
-        <div className="flex flex-col">
-          <span className="text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-            Trace Narrative
-          </span>
-          <span className="text-sm font-medium text-text-primary">{surfaceLabel}</span>
-          <span className="hidden text-xs text-text-muted xl:block">{surfaceNote}</span>
+    <header className="grid h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border-light bg-bg-secondary/95 px-4 backdrop-blur-md">
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+            <span>Trace Narrative</span>
+            <span className="text-border-light">/</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border-light bg-bg-primary px-2 py-0.5 text-text-secondary">
+              <CurrentSectionIcon className="h-3 w-3" />
+              {currentModeMeta.section}
+            </span>
+          </div>
+          <div className="mt-1 flex min-w-0 items-center gap-3">
+            <span className="truncate text-sm font-medium text-text-primary">{currentModeMeta.label}</span>
+            <span className="hidden truncate text-xs text-text-muted xl:block">{currentModeMeta.note}</span>
+          </div>
+        </div>
+
+        <div className="hidden items-center gap-2 lg:flex">
+          {secondaryRoutes.map((route) => (
+            <button
+              key={route.mode}
+              type="button"
+              onClick={() => onModeChange(route.mode)}
+              className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-primary px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-accent-blue-light hover:text-text-primary"
+            >
+              {route.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <nav className="justify-self-center" aria-label="Primary navigation">
-        <div
-          className="flex items-center gap-1 bg-bg-primary rounded-lg p-1"
-          role="tablist"
-          aria-label="View mode"
-          onKeyDown={handleTabKeyDown}
-        >
-
-
-          <Tab id="repo" label="Repo" icon={<GitBranch className="h-4 w-4" />} />
-          <Tab id="dashboard" label="Narrative" icon={<BarChart3 className="h-4 w-4" />} />
-          <Tab id="docs" label="Docs" icon={<BookOpen className="h-4 w-4" />} />
-        </div>
-      </nav>
-
       <div className="flex items-center gap-3 justify-self-end">
         {repoPath ? (
-          <div className="max-w-[44ch] truncate text-xs text-text-muted" title={repoPath}>
+          <div className="hidden max-w-[32ch] truncate rounded-full border border-border-light bg-bg-primary px-3 py-1 text-xs text-text-muted xl:block" title={repoPath}>
             {repoPath}
           </div>
         ) : null}
 
-        {(
-          <ImportMenu
-            onImportSession={onImportSession}
-            onImportKimiSession={onImportKimiSession}
-            onImportAgentTrace={onImportAgentTrace}
-            importEnabled={importEnabled}
-          />
-        )}
+        <ImportMenu
+          onImportSession={onImportSession}
+          onImportKimiSession={onImportKimiSession}
+          onImportAgentTrace={onImportAgentTrace}
+          importEnabled={importEnabled}
+        />
 
         {children}
 
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-lg bg-accent-blue px-3 py-1.5 text-sm font-medium text-accent-foreground hover:brightness-95 transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+          className="inline-flex items-center gap-2 rounded-lg bg-accent-blue px-3 py-1.5 text-sm font-medium text-accent-foreground shadow-sm transition hover:brightness-95"
           onClick={onOpenRepo}
         >
           <FolderOpen className="h-4 w-4" />
-          Open repo…
+          Open repo...
         </button>
       </div>
     </header>
@@ -156,68 +272,44 @@ function ImportMenu(props: {
       <DropdownMenu.Trigger asChild>
         <button
           type="button"
-          disabled={!importEnabled}
-          className={clsx(
-            'inline-flex items-center justify-center rounded-lg p-2 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75',
-            importEnabled
-              ? 'bg-bg-primary text-text-secondary hover:bg-border-light hover:scale-110 active:scale-90'
-              : 'bg-bg-tertiary text-text-muted cursor-not-allowed'
-          )}
-          title="Import data"
-          aria-label="Import data"
+          className="inline-flex items-center gap-2 rounded-lg border border-border-light bg-bg-primary px-3 py-1.5 text-sm font-medium text-text-secondary transition hover:border-accent-blue-light hover:text-text-primary"
         >
-          <FileText className="h-4 w-4" />
+          Import
         </button>
       </DropdownMenu.Trigger>
-
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          align="end"
           sideOffset={8}
-          className={clsx(
-            'z-50 w-56 rounded-xl border border-border-light bg-bg-secondary p-1 shadow-lg',
-            'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-            'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95'
-          )}
+          align="end"
+          className="z-50 min-w-[14rem] rounded-2xl border border-border-light bg-bg-primary p-2 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.7)]"
         >
-          {onImportSession && (
+          {onImportSession ? (
             <DropdownMenu.Item
               onSelect={onImportSession}
-              className={clsx(
-                'flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none transition-colors text-left',
-                'text-text-secondary',
-                'data-[highlighted]:bg-bg-hover data-[highlighted]:text-text-primary'
-              )}
+              disabled={importEnabled === false}
+              className={menuItemClass}
             >
-              Import session JSON…
+              Import Codex Session
             </DropdownMenu.Item>
-          )}
-          {onImportKimiSession && (
-            <DropdownMenu.Item
-              onSelect={onImportKimiSession}
-              className={clsx(
-                'flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none transition-colors text-left',
-                'text-text-secondary',
-                'data-[highlighted]:bg-bg-hover data-[highlighted]:text-text-primary'
-              )}
-            >
-              Import Kimi log…
+          ) : null}
+          {onImportKimiSession ? (
+            <DropdownMenu.Item onSelect={onImportKimiSession} className={menuItemClass}>
+              Import Kimi Session
             </DropdownMenu.Item>
-          )}
-          {onImportAgentTrace && (
-            <DropdownMenu.Item
-              onSelect={onImportAgentTrace}
-              className={clsx(
-                'flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none transition-colors text-left',
-                'text-text-secondary',
-                'data-[highlighted]:bg-bg-hover data-[highlighted]:text-text-primary'
-              )}
-            >
-              Import Agent Trace…
+          ) : null}
+          {onImportAgentTrace ? (
+            <DropdownMenu.Item onSelect={onImportAgentTrace} className={menuItemClass}>
+              Import Agent Trace
             </DropdownMenu.Item>
-          )}
+          ) : null}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
   );
 }
+
+const menuItemClass = clsx(
+  'rounded-xl px-3 py-2 text-sm text-text-secondary outline-none transition',
+  'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40',
+  'data-[highlighted]:bg-bg-secondary data-[highlighted]:text-text-primary',
+);

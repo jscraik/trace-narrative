@@ -1,38 +1,33 @@
-# Trace Narrative - Code Review Guidelines
+# Harness-managed Greptile rules
 
-## Architecture
+## Scope
 
-- This is a Tauri desktop app with React frontend and Rust backend
-- Follow the existing patterns for component organization
-- Use Framer Motion for animations (already integrated)
-- Use lucide-react for icons (already integrated)
-- Use Radix UI primitives for complex UI components
+These rules define the baseline Greptile review expectations for harness-managed repositories.
 
-## Code Style
+## Rule set
 
-### TypeScript/React
+### 1) Independent validation is mandatory
 
-- Use functional components with hooks
-- One component per file
-- Follow existing naming conventions
-- Use Tailwind CSS for styling
-- Prefer `clsx` for conditional class names
+- The coding agent must not act as approving reviewer on the same PR.
+- Every merge-ready decision requires an independent review signal.
 
-### Rust
+### 2) Governance surfaces must stay aligned
 
-- Follow standard Rust conventions
-- Run `cargo fmt` and `cargo clippy` before commits
-- Keep unsafe blocks minimal and well-documented
+If a PR changes governance, workflow, or policy files, reviewers must verify consistency across:
 
-## UI Patterns
+- `harness.contract.json`
+- `CONTRIBUTING.md`
+- `README.md`
+- `.github/PULL_REQUEST_TEMPLATE.md`
+- `.github/workflows/*.yml`
 
-- Use native `<details>` elements for collapsible sections (matches existing pattern)
-- Match the existing color system: `text-text-primary`, `bg-bg-secondary`, etc.
-- Use `text-xs` for labels, `text-sm` for body text
+### 3) Policy changes require evidence
 
-## Key Files
+- Policy, workflow, or review-gate changes must include test and validation evidence.
+- Any reduction in mandatory checks or review gates is high risk.
 
-- `src/ui/components/` - React components
-- `src/core/` - Business logic
-- `src-tauri/src/` - Rust backend
-- `harness.contract.json` - Governance policy
+### 4) Merge confidence threshold
+
+- Confidence below `4/5` is merge-blocking.
+- Confidence `4/5` may merge only when remaining items are low-risk polish.
+- Confidence `5/5` is merge-ready.

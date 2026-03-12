@@ -1,110 +1,112 @@
-# Contributing to Narrative
+# Contributing
 
-Thanks for your interest in contributing. Narrative is a desktop app built with **tauri v2** (Rust backend + React frontend) that helps developers capture the story behind their code.
+## Table of Contents
 
-## Scope
+- [Minimum workflow contract](#minimum-workflow-contract)
+- [Why this workflow exists](#why-this-workflow-exists)
+- [Branching and PR rule](#branching-and-pr-rule)
+- [Branch name policy](#branch-name-policy)
+- [Required pre-merge gates](#required-pre-merge-gates)
+- [Greptile setup baseline](#greptile-setup-baseline)
+- [Greptile config hierarchy](#greptile-config-hierarchy)
+- [Greptile merge logic for multi-scope pull requests](#greptile-merge-logic-for-multi-scope-pull-requests)
+- [Greptile confidence score policy](#greptile-confidence-score-policy)
+- [Greptile strictness policy](#greptile-strictness-policy)
+- [Greptile training and feedback loop](#greptile-training-and-feedback-loop)
+- [Recommended security scanner baseline](#recommended-security-scanner-baseline)
+- [Review artifacts requirement](#review-artifacts-requirement)
+- [Credential-safe evidence snippets](#credential-safe-evidence-snippets)
+- [Branch protection recommendation](#branch-protection-recommendation)
 
-This guide covers how to propose, make, and submit changes safely.
+## Minimum workflow contract
 
-For behavior expectations, see [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
-For security reporting, see [`SECURITY.md`](SECURITY.md).
-For user support channels, see [`SUPPORT.md`](SUPPORT.md).
+- Branch off `main` for every change.
+- No direct push to `main`.
+- Pull request required for every merge.
+- Required checks must pass before merge.
+- Greptile + Codex review artifacts are required before merge.
+- Greptile must be configured correctly using the `grepfile` skill with all required Greptile files present.
+- The coding agent must not approve its own PR; review must be independent.
+- Merge only after all gates pass.
+- Delete branch/worktree after merge.
 
-## Quick start
+## Why this workflow exists
 
-### Prerequisites
+This workflow keeps delivery auditable, reversible, and consistent even for solo development.
 
-- Node.js + pnpm
-- Rust toolchain (latest stable)
-- Git
+## Branching and PR rule
 
-### Local setup
+1. Create a dedicated branch/worktree for each task:
+   - Agent-created branch: `git switch -c codex/<short-description>`
+   - Agent-created worktree: `git worktree add ../tmp-worktree -b codex/<short-description>`
+   - Human-authored branch prefixes (when not using `codex/`): `feat/`, `fix/`, `docs/`, `refactor/`, `chore/`, `test/`
+2. Keep commits small and focused.
+3. Open a PR to merge into `main`.
+4. Do not merge until checks, reviews, and checklist items are complete.
+5. After merge, delete the remote branch and remove local worktree/branch.
 
-1. Fork and clone the repo.
-2. Install dependencies.
-3. Start the app.
+## Branch name policy
 
-```bash
-git clone https://github.com/jscraik/firefly-narrative.git
-cd firefly-narrative
-pnpm install
-pnpm tauri dev
-```
+- Use lower-case, kebab-case slugs.
+- Agent-created branches must use `codex/<short-description>`.
+- Human-authored branches may use: `feat/`, `fix/`, `docs/`, `refactor/`, `chore/`, `test/`.
+- Avoid `main`-like names and do not include secrets or issue-pii.
 
-## Development workflow
+## Required pre-merge gates
 
-### Branching
+- pnpm lint
+- pnpm typecheck
+- pnpm test
+- pnpm audit
+- pnpm check
+- test -f memory.json && jq -e '.meta.version == "1.0" and (.preamble.bootstrap | type == "boolean") and (.preamble.search | type == "boolean") and (.entries | type == "array")' memory.json >/dev/null
 
-- Create a focused branch for each change (`feature/...`, `fix/...`, or similar).
-- Keep pull requests small and reviewable.
+## Recommended security scanner baseline
 
-### Required checks
+For repositories that use Harness, recommend installing these scanners as project prerequisites:
 
-Run these before opening a pull request:
+- Gitleaks
+- Trivy
+- Semgrep
 
-```bash
-pnpm typecheck
-pnpm lint
-pnpm test
-```
+Recommended policy:
 
-If your change touches docs, also run:
+- Keep scanner binaries available in local development environments and CI runners.
+- Run scanner checks in CI on pull requests and pushes to protected branches.
+- Treat scanner findings as merge blockers unless explicitly waived with rationale.
 
-```bash
-pnpm docs:lint
-```
+## Review artifacts requirement
 
-If your change touches Rust backend behavior, run:
+Each PR must include:
 
-```bash
-cd src-tauri
-cargo check
-cargo clippy
-```
+- Greptile review artifact (URL, report, or comment reference).
+- Codex review artifact (URL, report, or comment reference).
+- Greptile confidence score for the PR.
+- Confirmation that reviewer agent is independent from coding agent.
 
-## Pull request process
+If either artifact is missing, block merge until it is added or explicitly waived by repository policy.
 
-1. Make your change with clear, focused commits.
-2. Update documentation when behavior or commands change.
-3. Confirm checks pass locally.
-4. Open a PR using the project PR template.
-5. Respond to review feedback and keep scope tight.
+## Credential-safe evidence snippets
 
-## What to contribute
+- Never use command substitution in commit messages, PR bodies, or evidence notes for secrets.
+- Do **not** use `$(gh auth token)` (or similar) inside `git commit -m ...` / `gh pr create --body ...`.
+- Use placeholders in text output:
+  - ✅ `$GITHUB_TOKEN`
+  - ✅ `${GITHUB_TOKEN}`
+  - ❌ expanded token values
+- If a token value is ever exposed in commit/PR text, treat it as compromised: rotate/revoke, rewrite history where applicable, and document remediation in the issue/PR.
 
-### Good first issues
+## Branch protection recommendation
 
-Look for issues labeled [`good first issue`](https://github.com/jscraik/firefly-narrative/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22). Maintainers curate these for new contributors.
+Configure GitHub branch protection (or rulesets) on `main`:
 
-### Areas we need help
-
-- Parser support for new AI tools (session log parsers)
-- UI/UX accessibility and polish
-- Documentation and onboarding
-- Test coverage and regression prevention
-- Bug fixes from the [bug label](https://github.com/jscraik/firefly-narrative/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
-
-### Code style
-
-- Rust: follow `cargo fmt` and `cargo clippy` defaults
-- TypeScript/React: Biome handles formatting (`pnpm lint`)
-- Commits: use conventional commits (`feat:`, `fix:`, `docs:`, etc.)
-
-## Verification
-
-After opening a PR, ensure CI passes and keep branch history clean.
-
-## Getting help
-
-- Bugs: open the bug report template
-- Features: open the feature request template
-- Security concerns: use [`SECURITY.md`](SECURITY.md) and avoid public issues
-- General support: use [`SUPPORT.md`](SUPPORT.md)
-
-## Recognition
-
-We credit contributors in project history and release notes.
-
----
-
-Questions? Open a support issue or tag [@jscraik](https://github.com/jscraik).
+- Bootstrap baseline via harness:
+  - `harness branch-protect --owner <owner> --repo <repo>`
+- Token resolution for `branch-protect`:
+  - `--token <PAT>` or env `GITHUB_TOKEN` / `GITHUB_PERSONAL_ACCESS_TOKEN`
+- Require pull request before merge.
+- Require at least one approval.
+- Require status checks: `pr-template`, `risk-policy-gate`, `dependency-review`, `actions-pinning`, `consistency-drift-health`, `lint`, `typecheck`, `test`, `audit`, `check`, `memory`, `security-scan`.
+- Require workflows to pin third-party actions to full commit SHAs.
+- Configure required checks workflows to run on both `pull_request` and `merge_group` when using merge queue.
+- Block direct pushes to `main`.

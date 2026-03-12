@@ -56,6 +56,13 @@ const statusBadgeClasses: Record<'ok' | 'warn' | 'critical' | 'info', string> = 
   info: 'border-accent-blue-light bg-accent-blue/10 text-accent-blue',
 };
 
+const statusBadgeLabels: Record<'ok' | 'warn' | 'critical' | 'info', string> = {
+  ok: 'OK',
+  warn: 'WATCH',
+  critical: 'CRITICAL',
+  info: 'INFO',
+};
+
 const authorityCueClassByTier: Record<SurfaceAuthorityCue['authorityTier'], string> = {
   live_repo: 'border-accent-blue-light bg-accent-blue/10 text-accent-blue',
   live_capture: 'border-accent-green-light bg-accent-green-bg text-accent-green',
@@ -99,7 +106,7 @@ export function AuthorityCue({ authorityTier, authorityLabel }: SurfaceAuthority
   return (
     <span
       className={clsx(
-        'inline-flex items-center rounded-full border px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em]',
+        'inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em]',
         authorityCueClassByTier[authorityTier ?? 'static_scaffold'],
       )}
       data-authority-short-label={authorityShortLabel(authorityTier)}
@@ -240,11 +247,11 @@ export function ActivitySection({
                 <AuthorityCue authorityTier={item.authorityTier} authorityLabel={item.authorityLabel} />
                 <span
                   className={clsx(
-                    'rounded-full border px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em]',
+                    'inline-flex min-w-[3.125rem] items-center justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em]',
                     statusBadgeClasses[item.status],
                   )}
                 >
-                  {item.status}
+                  {statusBadgeLabels[item.status]}
                 </span>
               </div>
             </div>

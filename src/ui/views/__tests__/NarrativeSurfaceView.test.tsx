@@ -96,10 +96,12 @@ describe('NarrativeSurfaceView', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Live' })).toBeInTheDocument();
+    expect(screen.getByText('Live capture surface')).toBeInTheDocument();
     expect(screen.getByText('Active sessions')).toBeInTheDocument();
-    expect(screen.getByText('Live monitors')).toBeInTheDocument();
-    expect(screen.getByText('Current stream')).toBeInTheDocument();
-    expect(screen.getByText('Live lanes')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Live monitors' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Current stream' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Live lanes' })).toBeInTheDocument();
+    expect(screen.getByText('Capture posture')).toBeInTheDocument();
   });
 
   it('surfaces the degraded trust badge when capture is not healthy', () => {
@@ -132,10 +134,71 @@ describe('NarrativeSurfaceView', () => {
       />,
     );
 
+    expect(screen.getByText('Story Map should act like topology, not a renamed summary. Use the lane map to see pressure, joins, and the next routing move in one scan.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Narrative pressure map' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What should move first' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Trace provenance lane' })).toBeInTheDocument();
     expect(screen.getByText('Observed')).toBeInTheDocument();
     expect(screen.getByText('Joined')).toBeInTheDocument();
     expect(screen.getByText('Derived')).toBeInTheDocument();
+  });
+
+  it('renders Sessions as a dedicated evidence review surface', () => {
+    render(
+      <NarrativeSurfaceView
+        mode="sessions"
+        repoState={createRepoState()}
+        captureReliabilityStatus={createCaptureReliabilityStatus()}
+        onModeChange={vi.fn()}
+        onOpenRepo={vi.fn()}
+        onImportSession={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('heading', { name: 'Sessions' })).toBeInTheDocument();
+    expect(screen.getByText('Treat sessions like an indexed ledger. The first frame should tell us which traces are joined, which are still floating, and which one deserves repo follow-through now.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Indexed sessions with join confidence' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What makes a session usable' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Session queues' })).toBeInTheDocument();
+  });
+
+  it('renders Transcript Lens as a dedicated search-and-verification surface', () => {
+    render(
+      <NarrativeSurfaceView
+        mode="transcripts"
+        repoState={createRepoState()}
+        captureReliabilityStatus={createCaptureReliabilityStatus()}
+        onModeChange={vi.fn()}
+        onOpenRepo={vi.fn()}
+        onImportSession={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('heading', { name: 'Transcripts' })).toBeInTheDocument();
+    expect(screen.getByText('Transcript query surface')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ask transcript-first questions' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Quoted snippets and source joins' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sources and follow-through' })).toBeInTheDocument();
+  });
+
+  it('renders Causal Timeline as a dedicated causal-analysis surface', () => {
+    render(
+      <NarrativeSurfaceView
+        mode="timeline"
+        repoState={createRepoState()}
+        captureReliabilityStatus={createCaptureReliabilityStatus()}
+        onModeChange={vi.fn()}
+        onOpenRepo={vi.fn()}
+        onImportSession={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('heading', { name: 'Timeline' })).toBeInTheDocument();
+    expect(screen.getByText('Causal Timeline earns its place when the chronology dominates the page and the review gates sit alongside it instead of competing with it.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ordered commit and milestone sequence' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What makes the sequence safe to repeat' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Session joins and trust posture' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Causal chain rail' })).toBeInTheDocument();
   });
 
   it('treats unknown capture modes as degraded trust', () => {

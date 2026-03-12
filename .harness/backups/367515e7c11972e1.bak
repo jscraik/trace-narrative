@@ -1,21 +1,13 @@
 {
   "version": "1.2.0",
   "riskTierRules": {
+    "src/auth/**": "high",
+    "src/api/**": "high",
     "src/core/security/**": "high",
-    "src/core/tauri/**": "high",
-    "src-tauri/src/secret_store.rs": "high",
-    "src-tauri/src/otlp_receiver.rs": "high",
-    "src-tauri/src/codex_app_server.rs": "high",
-    "src-tauri/src/ingest_config.rs": "high",
-    "src/core/repo/**": "medium",
-    "src/core/narrative/**": "medium",
-    "src/core/telemetry/**": "medium",
-    "src/hooks/**": "medium",
-    "src-tauri/src/**/*.rs": "medium",
-    "src/ui/**": "low",
-    "**/*.test.ts": "low",
-    "**/*.test.tsx": "low",
-    "src/styles/**": "low"
+    "src/core/repo/traceIngest.ts": "high",
+    "src/core/repo/agentTrace.ts": "high",
+    "src/lib/**": "medium",
+    "**/*.test.ts": "low"
   },
   "mergePolicy": {
     "high": [
@@ -27,43 +19,33 @@
     ],
     "low": []
   },
-  "blastRadiusRules": [
-    {
-      "pattern": "src/**/*.{tsx,ts,js}",
-      "checks": [
-        "typecheck",
-        "test",
-        "lint"
-      ],
-      "description": "TypeScript/React changes require typecheck, tests, and lint"
-    },
-    {
-      "pattern": "src-tauri/src/**/*.rs",
-      "checks": [
-        "cargo-clippy",
-        "cargo-test"
-      ],
-      "description": "Rust backend changes require clippy and tests"
-    },
-    {
-      "pattern": "docs/**/*.md",
-      "checks": [
-        "docs-lint"
-      ],
-      "description": "Documentation changes require markdown linting"
-    },
-    {
-      "pattern": "harness.contract.json",
-      "checks": [
-        "policy-gate"
-      ],
-      "description": "Contract changes impact policy enforcement"
-    }
-  ],
   "docsDriftRules": {},
   "reviewPolicy": {
     "timeoutSeconds": 600,
-    "timeoutAction": "fail"
+    "timeoutAction": "fail",
+    "requiredChecks": [
+      "security-scan",
+      "dependency-review",
+      "actions-pinning"
+    ],
+    "enforceReviewerIndependence": true
+  },
+  "branchProtection": {
+    "requiredChecks": [
+      "pr-template",
+      "risk-policy-gate",
+      "dependency-review",
+      "actions-pinning",
+      "consistency-drift-health",
+      "lint",
+      "typecheck",
+      "test",
+      "audit",
+      "check",
+      "memory",
+      "security-scan",
+      "Greptile Review"
+    ]
   },
   "evidencePolicy": {
     "requiredFor": [],
@@ -79,16 +61,17 @@
     "overrideLabel": "diff-budget-override"
   },
   "uiLoopPolicy": {
-    "fastCommand": "pnpm test",
-    "verifyCommand": "pnpm test:e2e",
-    "exploreCommand": "pnpm test:e2e:ui",
+    "fastCommand": "pnpm ui:fast",
+    "verifyCommand": "pnpm ui:verify",
+    "exploreCommand": "pnpm ui:explore",
     "sloTargets": {
-      "fastLoopSeconds": 60,
-      "verifyLoopSeconds": 180
+      "fastLoopSeconds": 30,
+      "verifyLoopSeconds": 120
     }
   },
   "runtimePolicy": {
-    "nodeVersion": "20.x"
+    "nodeVersion": "20.x",
+    "createIssueOnAgentFindings": true
   },
   "memoryPolicy": {
     "enabled": true,
@@ -145,34 +128,125 @@
   },
   "remediationPolicy": {
     "providerDefaults": {
-      "codeql": {
+      "greptile": {
         "autoApplyMaxTier": "medium",
-        "dryRunOnlyByDefault": true
+        "dryRunOnlyByDefault": false
       },
       "codex": {
         "autoApplyMaxTier": "medium",
-        "dryRunOnlyByDefault": true
+        "dryRunOnlyByDefault": false
       }
     },
-    "canonicalRerunWorkflow": "greptile-rerun.yml",
-    "marker": "<!-- harness-remediation-rerun -->",
-    "timeoutMinutes": 20,
+    "marker": "[auto-remediate]",
+    "timeoutMinutes": 10,
     "retryLimit": 3,
     "requireEvidence": true
   },
-  "gapCasePolicy": {
-    "requiredEvidenceStatuses": [
-      "passed",
-      "approved"
+  "loopStageContracts": {
+    "risk-policy-gate": {
+      "inputs": [
+        "changed_files",
+        "harness.contract.json"
+      ],
+      "outputs": [
+        "risk-policy-gate.result"
+      ],
+      "schema": "loop-stage-contract/v1",
+      "failPolicy": "fail_closed",
+      "if": "always()",
+      "permissions": [
+        "contents:read",
+        "pull-requests:read"
+      ],
+      "timeoutMinutes": 15,
+      "concurrency": "none"
+    },
+    "review-gate": {
+      "inputs": [
+        "risk-policy-gate.result",
+        "head_sha",
+        "harness.contract.json"
+      ],
+      "outputs": [
+        "review-gate.result"
+      ],
+      "schema": "loop-stage-contract/v1",
+      "failPolicy": "fail_closed",
+      "if": "always()",
+      "permissions": [
+        "contents:read",
+        "pull-requests:read"
+      ],
+      "timeoutMinutes": 15,
+      "concurrency": "none"
+    },
+    "evidence-verify": {
+      "inputs": [
+        "review-gate.result",
+        "evidence_files",
+        "harness.contract.json"
+      ],
+      "outputs": [
+        "evidence-verify.result",
+        "browser-evidence-artifacts"
+      ],
+      "schema": "loop-stage-contract/v1",
+      "failPolicy": "fail_closed",
+      "if": "always()",
+      "permissions": [
+        "contents:read"
+      ],
+      "timeoutMinutes": 15,
+      "concurrency": "none"
+    },
+    "remediation-decision": {
+      "inputs": [
+        "evidence-verify.result",
+        "findings.json",
+        "harness.contract.json"
+      ],
+      "outputs": [
+        "remediation-decision.result",
+        "remediation-decision-artifacts"
+      ],
+      "schema": "loop-stage-contract/v1",
+      "failPolicy": "fail_closed",
+      "if": "always()",
+      "permissions": [
+        "contents:read",
+        "pull-requests:write"
+      ],
+      "timeoutMinutes": 15,
+      "concurrency": "none"
+    }
+  },
+  "pilotGapCasePolicy": {
+    "enabled": false,
+    "defaultSlaHours": 72,
+    "requireClosureEvidence": true,
+    "storePath": ".harness/gap-cases.v1.json"
+  },
+  "pilotRollbackPolicy": {
+    "autoTrigger": true,
+    "requireManualRelease": true,
+    "completionMarkerPath": ".harness/rollback-marker.json",
+    "mode": "manual"
+  },
+  "pilotAuthzPolicy": {
+    "githubScopeAllowlist": [
+      "pull_requests:write",
+      "contents:read",
+      "issues:write"
     ],
-    "requiredCloseReasons": [
-      "fix",
-      "workaround",
-      "waived"
+    "repoAllowlist": [
+      "jscraik/trace-narrative"
     ],
-    "defaultDueDays": 7,
-    "caseIdPrefix": "gap-",
-    "caseStore": ".harness/gap-cases.json",
-    "allowEvidencelessResolve": false
+    "branchAllowlist": [],
+    "protectedBranchDenylist": [
+      "main",
+      "master",
+      "release/*"
+    ],
+    "enforceBranchProtection": true
   }
 }

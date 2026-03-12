@@ -525,7 +525,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
     footerNote: () => 'Recommended next step: use this page to spot the weak joins first, then drop into Repo Evidence for the underlying branch story.',
   },
   assistant: {
-    section: 'Narrative',
+    section: 'Integrations',
     title: 'Codex Copilot',
     subtitle: () => 'A Codex-first copilot for repos, sessions, costs, and hygiene.',
     heroTitle: (context) => `Turn ${context.repoName} into a Codex-grounded narrative partner.`,

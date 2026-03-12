@@ -36,7 +36,7 @@ export default function App() {
   const [AgentationComponent, setAgentationComponent] = useState<AgentationComponentType | null>(null);
   const rawAgentationEndpoint = import.meta.env.VITE_AGENTATION_ENDPOINT as string | undefined;
   const normalizedAgentationEndpoint = normalizeHttpUrl(rawAgentationEndpoint);
-  const isAgentationEnabled = Boolean(normalizedAgentationEndpoint);
+  const isAgentationEnabled = import.meta.env.DEV && Boolean(normalizedAgentationEndpoint);
 
   const rawAgentationWebhookUrl = import.meta.env.VITE_AGENTATION_WEBHOOK_URL as string | undefined;
   const normalizedAgentationWebhookUrl = normalizeHttpUrl(rawAgentationWebhookUrl);
@@ -287,7 +287,7 @@ export default function App() {
         {/* Main Content Area */}
         <main className="flex-1 overflow-hidden relative flex flex-col">
           {/* `min-h-0` is critical so nested flex children can scroll instead of overflowing */}
-          <div className="flex-1 min-h-0 overflow-hidden bg-bg-tertiary">
+          <div className="app-canvas flex-1 min-h-0 overflow-hidden">
             <AppContent
               mode={mode}
               repoState={repoState}

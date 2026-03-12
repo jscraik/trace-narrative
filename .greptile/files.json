@@ -1,15 +1,36 @@
 {
-  "schemas": [
-    "src/core/types.ts"
+  "contextFiles": [
+    {
+      "path": "harness.contract.json",
+      "role": "primary governance contract"
+    },
+    {
+      "path": "package.json",
+      "role": "project scripts and package metadata"
+    },
+    {
+      "path": "README.md",
+      "role": "operator-facing setup and workflow docs"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "role": "contributor governance requirements"
+    },
+    {
+      "path": ".github/workflows/pr-pipeline.yml",
+      "role": "required checks workflow"
+    }
   ],
   "apiSpecs": [
-    "src-tauri/src/codex_app_server.rs",
-    "src-tauri/src/otlp_receiver.rs"
+    "contracts/**/*.schema.json",
+    "openapi/**/*.json",
+    "openapi/**/*.yaml",
+    "src/**/*.ts"
   ],
-  "keyFiles": [
-    "src/ui/components/TopNav.tsx",
-    "src/ui/views/BranchViewLayout.tsx",
-    "src/core/story-anchors-api.ts",
-    "harness.contract.json"
+  "schemaFiles": [
+    "contracts/**/*.schema.json",
+    "schemas/**/*.json",
+    "openapi/**/*.json",
+    "openapi/**/*.yaml"
   ]
 }

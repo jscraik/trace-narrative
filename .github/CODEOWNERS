@@ -1,10 +1,7 @@
-# Default owner for all files in this repository.
-* @jscraik
-
-/.github/branch-protection-manifest.md @jscraik
-/.github/workflows/gov-security-gates.yml @jscraik
-/.github/scripts/gov_security_gates.py @jscraik
-/GOVERNANCE/** @jscraik
-/COMPLIANCE/** @jscraik
-/SECURITY/** @jscraik
-/EVALUATION/** @jscraik
+# Governance-sensitive surfaces
+/.github/workflows/** @jscraik
+/harness.contract.json @jscraik
+/CONTRIBUTING.md @jscraik
+/AGENTS.md @jscraik
+/scripts/codex-preflight.sh @jscraik
+/scripts/check-environment.sh @jscraik

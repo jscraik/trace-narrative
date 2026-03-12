@@ -1,13 +1,43 @@
 {
+  "version": "1.0",
   "strictness": 2,
-  "commentTypes": ["issues", "suggestions", "architecture"],
-  "fileChangeLimit": 15,
+  "fileChangeLimit": 300,
+  "commentTypes": [
+    "bug-risk",
+    "security",
+    "performance",
+    "architecture",
+    "maintainability"
+  ],
+  "enableCrossFileGraphQueries": true,
+  "requireIndependentValidation": true,
+  "confidence": {
+    "minMergeScore": 4,
+    "targetScore": 5
+  },
+  "rules": [
+    {
+      "id": "independent-ai-validation",
+      "glob": "**/*",
+      "description": "Coding agent must not approve its own PR; separate review signal required.",
+      "severity": "high"
+    },
+    {
+      "id": "governance-parity",
+      "glob": "**/*",
+      "description": "Changes to governance, workflow, or policy surfaces must keep docs, required checks, and implementation aligned.",
+      "severity": "high"
+    },
+    {
+      "id": "evidence-required-for-review-policy",
+      "glob": "**/*",
+      "description": "Policy, workflow, or review-gate changes require validation evidence before merge.",
+      "severity": "medium"
+    }
+  ],
   "ignorePatterns": [
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/coverage/**",
-    "**/*.snap"
+    "dist/**",
+    "coverage/**",
+    "node_modules/**"
   ]
 }

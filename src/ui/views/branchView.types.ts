@@ -11,6 +11,7 @@ import type {
   BranchViewModel,
   DashboardFilter,
   FileChange,
+  Mode,
   TraceRange,
 } from '../../core/types';
 import type { IngestIssue, IngestStatus } from '../../hooks/useAutoIngest';
@@ -18,6 +19,7 @@ import type { SurfaceTableRow } from './narrativeSurfaceData';
 
 export interface BranchViewProps {
   model: BranchViewModel;
+  onModeChange?: (mode: Mode) => void;
   pendingAction?: SurfaceTableRow['action'];
   onActionProcessed?: () => void;
   dashboardFilter?: DashboardFilter | null;

@@ -67,6 +67,7 @@ function deriveTrustStateFromCaptureStatus(status: CaptureReliabilityStatus | nu
 export function useBranchViewController(props: BranchViewProps): ComponentProps<typeof BranchViewLayout> {
   const {
     model,
+    onModeChange,
     dashboardFilter,
     onClearFilter,
     isExitingFilteredView,
@@ -808,5 +809,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
     onDismissActionError,
     rightPanelProps,
     timelineProps,
+    captureReliabilityStatus,
+    onModeChange,
   };
 }

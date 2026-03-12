@@ -1,7 +1,7 @@
 # Harness Development Makefile
 # Run `make help` to see available commands
 
-.PHONY: help install dev build test lint fmt typecheck check clean hooks setup
+.PHONY: help install setup preflight hooks hooks-pre-commit hooks-pre-push secrets-staged docs-style-changed related-tests semgrep-changed diagrams-check dev build lint docs-lint fmt typecheck test check audit secrets security clean reset ci diagrams env-check
 
 # Default target
 help: ## Show this help message
@@ -17,8 +17,44 @@ install: ## Install dependencies
 
 setup: install hooks ## Full setup: install deps and configure git hooks
 
+preflight: ## Run repository preflight checks (required local-memory gate by default)
+	@bash ./scripts/codex-preflight.sh
+
 hooks: ## Setup git hooks
-	pnpm exec simple-git-hooks
+	node scripts/setup-git-hooks.js
+
+hooks-pre-commit: ## Run local pre-commit gates before creating a commit
+	pnpm lint
+	pnpm docs:lint
+	pnpm typecheck
+	$(MAKE) secrets-staged
+	$(MAKE) docs-style-changed
+	$(MAKE) related-tests
+
+hooks-pre-push: ## Run local pre-push governance gates before pushing
+	pnpm exec tsx src/cli.ts docs-gate --mode required --json
+	@bash ./scripts/check-diagram-freshness.sh
+	pnpm exec tsx src/cli.ts tooling-audit --path . --json
+	@bash ./scripts/check-environment.sh
+	$(MAKE) semgrep-changed
+	pnpm test
+	pnpm build
+	pnpm audit
+
+secrets-staged: ## Scan staged content for secrets before committing
+	pnpm run secrets:staged
+
+docs-style-changed: ## Run Vale on staged authoritative docs only
+	pnpm run docs:style:changed
+
+related-tests: ## Run Vitest related mode for staged src implementation files
+	pnpm run test:related
+
+semgrep-changed: ## Run narrow Semgrep rules against changed src implementation files
+	pnpm run semgrep:changed
+
+diagrams-check: ## Refresh architecture diagrams when sensitive paths change and fail on drift
+	@bash ./scripts/check-diagram-freshness.sh
 
 # === Development ===
 
@@ -33,8 +69,11 @@ build: ## Build for production
 lint: ## Run linter
 	pnpm lint
 
-fmt: ## Format code with Biome
-	pnpm exec biome format --write .
+docs-lint: ## Lint markdown/docs
+	pnpm docs:lint
+
+fmt: ## Format code
+	pnpm fmt
 
 typecheck: ## Run TypeScript type checking
 	pnpm typecheck
@@ -42,7 +81,8 @@ typecheck: ## Run TypeScript type checking
 test: ## Run tests
 	pnpm test
 
-check: lint typecheck test ## Run all checks (lint, typecheck, test)
+check: ## Run all required quality gates
+	pnpm check
 
 # === Security ===
 
@@ -65,14 +105,15 @@ reset: clean ## Full reset: clean and reinstall
 
 # === CI ===
 
-ci: check audit ## Run CI checks (check + audit)
+ci: ## Run CI-equivalent local checks
+	pnpm check
 
 # === Diagrams ===
 
 diagrams: ## Generate architecture diagrams
-	pnpm exec diagram all . --output-dir AI/diagrams
+	@bash ./scripts/refresh-diagram-context.sh --force
 
 # === Environment ===
 
-env-check: ## Check local project environment and harness wiring
+env-check: ## Check environment policy envelope
 	@bash ./scripts/check-environment.sh

@@ -2,30 +2,11 @@
 # Install prek: mise install cargo-prek || cargo install prek
 # Run: prek install && prek run --all-files
 
-[default_install_hook_types]
-pre_commit = true
+[hooks]
+pre-commit = ["make hooks-pre-commit"]
+pre-push = ["make hooks-pre-push"]
 
-[[repos]]
-repo = "local"
-
-[[repos.hooks]]
-id = "lint"
-name = "Lint"
-entry = "pnpm lint"
-language = "system"
-pass_filenames = false
-
-[[repos.hooks]]
-id = "typecheck"
-name = "TypeCheck"
-entry = "pnpm typecheck"
-language = "system"
-pass_filenames = false
-
-[[repos.hooks]]
-id = "test"
-name = "Tests"
-entry = "pnpm test"
-language = "system"
-pass_filenames = false
-stages = ["pre-push"]
+[tools]
+biome = "1.9.4"
+typescript = "5.7"
+vitest = "3.2"

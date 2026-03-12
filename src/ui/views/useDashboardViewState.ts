@@ -25,7 +25,9 @@ import {
   DASHBOARD_DROPPED_REQUEST_TTL_MS,
   deriveDashboardTrustState,
   hashDashboardRequestKey,
+  resolveDashboardRuntimeEnvironment,
 } from './dashboardState';
+import { MOCK_DASHBOARD_STATS } from './dashboardMockStats';
 
 interface UseDashboardViewStateProps {
   repoState: RepoState;
@@ -173,6 +175,12 @@ export function useDashboardViewState({
     droppedRequestDiagnosticsRef.current = retainedEntries.slice(-DASHBOARD_DROPPED_REQUEST_LIMIT);
   }, []);
 
+  const runtimeEnvironment = resolveDashboardRuntimeEnvironment();
+  const useBrowserMockData =
+    runtimeEnvironment === 'dev'
+    && repoState.status === 'ready'
+    && repoState.repo.root === '/mock/repo';
+
   const fetchStats = useCallback(
     async (isLoadMore = false) => {
       if (repoState.status !== 'ready') {
@@ -237,7 +245,17 @@ export function useDashboardViewState({
       setCanRetry(true);
 
       try {
-        const data = await getDashboardStats(repoState.repo.repoId, timeRange, filesOffset, 20);
+        const data = useBrowserMockData
+          ? {
+            ...MOCK_DASHBOARD_STATS,
+            repo: {
+              id: repoState.repo.repoId,
+              path: repoState.repo.root,
+              name: repoState.repo.root.split('/').filter(Boolean).pop() || MOCK_DASHBOARD_STATS.repo.name,
+            },
+            timeRange,
+          }
+          : await getDashboardStats(repoState.repo.repoId, timeRange, filesOffset, 20);
         if (isStaleRequest('superseded')) return;
 
         if (data.currentPeriod.period.commits === 0) {
@@ -290,7 +308,7 @@ export function useDashboardViewState({
         }
       }
     },
-    [captureReliabilityStatus, filesOffset, recordDroppedRequest, repoState, setActionError, timeRange],
+    [captureReliabilityStatus, filesOffset, recordDroppedRequest, repoState, setActionError, timeRange, useBrowserMockData],
   );
 
   useEffect(() => {

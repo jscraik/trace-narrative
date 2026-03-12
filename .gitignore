@@ -69,6 +69,7 @@ coverage/
 .agent/
 tmp/
 *.bak.*
+.tmp_pr_body.md
 app-state.png
 app-working.png
 .agents/

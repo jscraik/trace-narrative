@@ -8,8 +8,8 @@
  * This script:
  *   1. Adds simple-git-hooks to devDependencies (if not present)
  *   2. Adds postinstall script to run simple-git-hooks
- *   3. Adds simple-git-hooks configuration
- *   4. Runs pnpm install to activate hooks
+ *   3. Enforces required simple-git-hooks configuration
+ *   4. Runs package-manager install to activate hooks
  */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -18,10 +18,18 @@ import { execFileSync } from "node:child_process";
 
 const PACKAGE_JSON_PATH = resolve(process.cwd(), "package.json");
 const REQUIRED_HOOKS = {
-	"pre-commit": "pnpm lint && pnpm docs:lint && pnpm typecheck",
+	"pre-commit": "make hooks-pre-commit",
 	"commit-msg": "node scripts/validate-commit-msg.js $1",
-	"pre-push": "pnpm lint && pnpm docs:lint && pnpm typecheck && pnpm audit && pnpm test:deep",
+	"pre-push": "make hooks-pre-push",
 };
+const REQUIRED_SCRIPTS = {
+  "secrets:staged": "bash scripts/check-staged-secrets.sh",
+  "docs:style:changed": "bash scripts/check-doc-style.sh",
+  "test:related": "bash scripts/check-related-tests.sh",
+  "semgrep:changed": "bash scripts/check-semgrep-changed.sh"
+};
+const POSTINSTALL_BOOTSTRAP =
+	"command -v simple-git-hooks >/dev/null 2>&1 && simple-git-hooks || true";
 
 function main() {
 	if (!existsSync(PACKAGE_JSON_PATH)) {
@@ -63,27 +71,35 @@ function main() {
 	// Add postinstall script if not present
 	const scripts = packageJson.scripts;
 	if (!scripts.postinstall) {
-		scripts.postinstall = "simple-git-hooks";
+		scripts.postinstall = POSTINSTALL_BOOTSTRAP;
 		console.info("✓ Added postinstall script");
 		modified = true;
 	} else if (!scripts.postinstall.includes("simple-git-hooks")) {
 		// Prepend simple-git-hooks to existing postinstall
-		scripts.postinstall = `simple-git-hooks && ${scripts.postinstall}`;
+		scripts.postinstall = `${POSTINSTALL_BOOTSTRAP} && ${scripts.postinstall}`;
 		console.info("✓ Prepended simple-git-hooks to postinstall");
 		modified = true;
 	}
 
-	// Add or align simple-git-hooks configuration with repository policy
-	if (!packageJson["simple-git-hooks"]) {
-		packageJson["simple-git-hooks"] = {};
+	// Enforce required helper scripts used by the hook targets
+	const mergedScripts = { ...scripts, ...REQUIRED_SCRIPTS };
+	if (JSON.stringify(scripts) !== JSON.stringify(mergedScripts)) {
+		packageJson.scripts = mergedScripts;
+		console.info("✓ Enforced required hook helper scripts");
+		modified = true;
+	} else {
+		console.info("✓ Required hook helper scripts already present");
 	}
-	const hooks = packageJson["simple-git-hooks"];
-	for (const [hookName, hookCommand] of Object.entries(REQUIRED_HOOKS)) {
-		if (hooks[hookName] !== hookCommand) {
-			hooks[hookName] = hookCommand;
-			console.info(`✓ Set ${hookName} hook`);
-			modified = true;
-		}
+
+	// Enforce required simple-git-hooks configuration
+	const existingHooks = packageJson["simple-git-hooks"] ?? {};
+	const mergedHooks = { ...existingHooks, ...REQUIRED_HOOKS };
+	if (JSON.stringify(existingHooks) !== JSON.stringify(mergedHooks)) {
+		packageJson["simple-git-hooks"] = mergedHooks;
+		console.info("✓ Enforced required simple-git-hooks configuration");
+		modified = true;
+	} else {
+		console.info("✓ Required simple-git-hooks configuration already present");
 	}
 
 	// Write changes if modified
@@ -92,15 +108,15 @@ function main() {
 		console.info("\n✓ package.json updated");
 	}
 
-	// Run pnpm install to activate hooks (using execFileSync for safety)
+	// Run install to activate hooks (using execFileSync for safety)
 	console.info("\nInstalling dependencies to activate hooks...");
 	try {
 		execFileSync("pnpm", ["install"], { stdio: "inherit" });
 		console.info("\n✓ Git hooks installed and active!");
 		console.info("\nHooks enabled:");
-		console.info("  • pre-commit: pnpm lint && pnpm docs:lint && pnpm typecheck");
+		console.info("  • pre-commit: make hooks-pre-commit");
 		console.info("  • commit-msg: validates conventional commit format");
-		console.info("  • pre-push: pnpm lint && pnpm docs:lint && pnpm typecheck && pnpm audit && pnpm test:deep");
+		console.info("  • pre-push: make hooks-pre-push");
 	} catch {
 		console.error("\n⚠️  Failed to run pnpm install. Run it manually to activate hooks.");
 	}

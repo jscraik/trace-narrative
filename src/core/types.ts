@@ -37,7 +37,8 @@ export type AnchorMode = 'dashboard' | 'repo' | 'docs';
 
 /**
  * SurfaceMode — every Mode that is NOT an anchor.
- * All non-anchor modes render via the shared NarrativeSurfaceView + narrativeSurfaceData contract.
+ * All non-anchor modes enter NarrativeSurfaceView; some still use the shared surface contract,
+ * while signature evidence screens can branch into dedicated layouts from there.
  */
 export type SurfaceMode = Exclude<Mode, AnchorMode>;
 

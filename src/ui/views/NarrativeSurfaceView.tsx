@@ -17,6 +17,12 @@ import {
   MetricCard,
   SummaryTable,
 } from './narrativeSurfaceSections';
+import { LiveCaptureView } from './LiveCaptureView';
+import { SessionsView } from './SessionsView';
+import { StoryMapView } from './StoryMapView';
+import { TranscriptLensView } from './TranscriptLensView';
+import { TrustCenterView } from './TrustCenterView';
+import { CausalTimelineView } from './CausalTimelineView';
 
 interface NarrativeSurfaceViewProps {
   mode: SurfaceMode;
@@ -39,6 +45,90 @@ export function NarrativeSurfaceView({
   onImportSession,
   onAction,
 }: NarrativeSurfaceViewProps) {
+  if (mode === 'work-graph') {
+    return (
+      <StoryMapView
+        repoState={repoState}
+        captureReliabilityStatus={captureReliabilityStatus}
+        autoIngestEnabled={autoIngestEnabled}
+        onModeChange={onModeChange}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+        onAction={onAction}
+      />
+    );
+  }
+
+  if (mode === 'live') {
+    return (
+      <LiveCaptureView
+        repoState={repoState}
+        captureReliabilityStatus={captureReliabilityStatus}
+        autoIngestEnabled={autoIngestEnabled}
+        onModeChange={onModeChange}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+        onAction={onAction}
+      />
+    );
+  }
+
+  if (mode === 'sessions') {
+    return (
+      <SessionsView
+        repoState={repoState}
+        captureReliabilityStatus={captureReliabilityStatus}
+        autoIngestEnabled={autoIngestEnabled}
+        onModeChange={onModeChange}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+        onAction={onAction}
+      />
+    );
+  }
+
+  if (mode === 'transcripts') {
+    return (
+      <TranscriptLensView
+        repoState={repoState}
+        captureReliabilityStatus={captureReliabilityStatus}
+        autoIngestEnabled={autoIngestEnabled}
+        onModeChange={onModeChange}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+        onAction={onAction}
+      />
+    );
+  }
+
+  if (mode === 'status') {
+    return (
+      <TrustCenterView
+        repoState={repoState}
+        captureReliabilityStatus={captureReliabilityStatus}
+        autoIngestEnabled={autoIngestEnabled}
+        onModeChange={onModeChange}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+        onAction={onAction}
+      />
+    );
+  }
+
+  if (mode === 'timeline') {
+    return (
+      <CausalTimelineView
+        repoState={repoState}
+        captureReliabilityStatus={captureReliabilityStatus}
+        autoIngestEnabled={autoIngestEnabled}
+        onModeChange={onModeChange}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+        onAction={onAction}
+      />
+    );
+  }
+
   const viewModel = buildNarrativeSurfaceViewModel(mode, repoState, captureReliabilityStatus, autoIngestEnabled);
   const repoPath = repoState.status === 'ready' ? repoState.repo.root : repoState.status !== 'idle' ? repoState.path ?? '~/dev/trace-narrative' : '~/dev/trace-narrative';
 
