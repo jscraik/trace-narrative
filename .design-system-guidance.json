@@ -13,8 +13,7 @@
     "src/main.tsx",
     "src/styles.css",
     "src/styles/trace-signal.css",
-    "src/assets/icons/ollama.svg",
-    "src/assets/icons/openai.svg"
+    "src/assets/icons"
   ],
   "ignore": [
     "node_modules",
@@ -23,6 +22,9 @@
     "coverage",
     ".next",
     "build",
-    "__tests__"
+    "__tests__",
+    "src/assets/icons/claude-color.svg",
+    "src/assets/icons/gemini-color.svg",
+    "src/assets/icons/kimi-color.svg"
   ]
 }

@@ -53,10 +53,12 @@ Phase 1 is intentionally narrow so the package is useful immediately instead of 
   - `src/main.tsx`
   - `src/styles.css`
   - `src/styles/trace-signal.css`
-  - `src/assets/icons/ollama.svg`
-  - `src/assets/icons/openai.svg`
+  - `src/assets/icons` except:
+    - `src/assets/icons/claude-color.svg`
+    - `src/assets/icons/gemini-color.svg`
+    - `src/assets/icons/kimi-color.svg`
 
-This scope protects the narrative-facing shell copy, screen composition work, the full `src/ui/components` surface, the app-shell entrypoints that mount and route the live experience, the shared stylesheet layer that supports the shell identity, and the monochrome SVG icon lane that already follows `currentColor`-based theming. That includes the dashboard evidence widgets, story anchors, right-panel workflows, session excerpt support components, auto-ingest setup, repo evidence panels, docs overview rendering, Atlas search inspection, attribution badges, transcript rendering, trust-state recovery affordances, the live motion, pill, glass, and trace-signal treatments, plus the token-friendly OpenAI and Ollama icon assets without needing a brittle file-by-file allowlist.
+This scope protects the narrative-facing shell copy, screen composition work, the full `src/ui/components` surface, the app-shell entrypoints that mount and route the live experience, the shared stylesheet layer that supports the shell identity, and the token-friendly SVG icon lane under `src/assets/icons`. That includes the dashboard evidence widgets, story anchors, right-panel workflows, session excerpt support components, auto-ingest setup, repo evidence panels, docs overview rendering, Atlas search inspection, attribution badges, transcript rendering, trust-state recovery affordances, the live motion, pill, glass, and trace-signal treatments, plus monochrome icons that already follow `currentColor`-based theming without needing a brittle file-by-file allowlist.
 
 The remaining provider brand marks in `src/assets/icons` are intentionally out of scope for now. `claude-color.svg`, `gemini-color.svg`, and `kimi-color.svg` carry vendor-owned fills, gradients, and brand-color decisions, so we treat them as a brand-governance lane rather than forcing them through the generic raw-literal checker. By contrast, `ollama.svg` and `openai.svg` inherit `currentColor`, which matches current CSS theming guidance and makes them safe to enforce as part of the shared UI surface.
 
