@@ -7,7 +7,10 @@
   ],
   "include": [
     "src/ui/views",
-    "src/ui/components"
+    "src/ui/components",
+    "src/App.tsx",
+    "src/AppContent.tsx",
+    "src/main.tsx"
   ],
   "ignore": [
     "node_modules",

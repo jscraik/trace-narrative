@@ -48,8 +48,13 @@ Phase 1 is intentionally narrow so the package is useful immediately instead of 
 - Source scan:
   - `src/ui/views`
   - `src/ui/components`
+  - `src/App.tsx`
+  - `src/AppContent.tsx`
+  - `src/main.tsx`
 
-This scope protects the narrative-facing shell copy, screen composition work, and the full `src/ui/components` surface in one consistent pass. That includes the dashboard evidence widgets, story anchors, right-panel workflows, session excerpt support components, auto-ingest setup, repo evidence panels, docs overview rendering, Atlas search inspection, attribution badges, transcript rendering, trust-state recovery affordances, and the rest of the live shell components without needing a brittle file-by-file allowlist.
+This scope protects the narrative-facing shell copy, screen composition work, the full `src/ui/components` surface, and the app-shell entrypoints that mount and route the live experience. That includes the dashboard evidence widgets, story anchors, right-panel workflows, session excerpt support components, auto-ingest setup, repo evidence panels, docs overview rendering, Atlas search inspection, attribution badges, transcript rendering, trust-state recovery affordances, and the rest of the live shell components without needing a brittle file-by-file allowlist.
+
+The next nearest presentation-oriented surfaces outside this scope are `src/styles` and `src/assets`. We audited them before this expansion and intentionally deferred them because they are a separate, noisier design-system debt lane than the app shell entrypoints.
 
 ## Expansion Rules
 
