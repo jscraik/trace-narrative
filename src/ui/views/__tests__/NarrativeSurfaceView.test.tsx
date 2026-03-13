@@ -1,6 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('@design-studio/tokens', () => ({
+  useTheme: () => ({ colorScheme: 'dark', theme: 'system' })
+}));
+
 import type { BranchViewModel } from '../../../core/types';
 import type { CaptureReliabilityStatus } from '../../../core/tauri/ingestConfig';
 import type { RepoState } from '../../../hooks/useRepoLoader';
@@ -134,7 +138,7 @@ describe('NarrativeSurfaceView', () => {
       />,
     );
 
-    expect(screen.getByText('Story Map should act like topology, not a renamed summary. Use the lane map to see pressure, joins, and the next routing move in one scan.')).toBeInTheDocument();
+    expect(screen.getByText('Topology and prioritization view for pressure points, weak joins, and next inspection.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Narrative pressure map' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'What should move first' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Trace provenance lane' })).toBeInTheDocument();
@@ -156,10 +160,8 @@ describe('NarrativeSurfaceView', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Sessions' })).toBeInTheDocument();
-    expect(screen.getByText('Treat sessions like an indexed ledger. The first frame should tell us which traces are joined, which are still floating, and which one deserves repo follow-through now.')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Indexed sessions with join confidence' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'What makes a session usable' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Session queues' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Recent Sessions' })).toBeInTheDocument();
+    expect(screen.getByText('Review Window')).toBeInTheDocument();
   });
 
   it('renders Transcript Lens as a dedicated search-and-verification surface', () => {
@@ -247,7 +249,7 @@ describe('NarrativeSurfaceView', () => {
       throw new Error('Expected capture mode metric container to be an HTMLElement');
     }
     expect(captureModeCard).toHaveAttribute('data-authority-tier', 'derived_summary');
-    expect(captureModeCard).toHaveAttribute('data-authority-label', 'Derived from baseline OTEL-only telemetry');
+    expect(captureModeCard).toHaveAttribute('data-authority-label', 'OTEL');
 
     const derivedLabelElements = captureModeCard.querySelectorAll('[data-authority-short-label="Derived"]');
     expect(derivedLabelElements.length).toBeGreaterThan(0);

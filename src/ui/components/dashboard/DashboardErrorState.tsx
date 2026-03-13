@@ -68,7 +68,7 @@ export function DashboardErrorState({
             <button
               type="button"
               onClick={onBackToRepo}
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-text-secondary transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-95 hover:bg-bg-hover hover:text-text-primary hover:scale-105"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-text-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:bg-bg-hover hover:text-text-primary hover:scale-105"
             >
               <span>{copy.actionLabel}</span>
             </button>
@@ -77,7 +77,7 @@ export function DashboardErrorState({
               type="button"
               onClick={onRetry}
               disabled={!canRetry}
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-text-secondary transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-95 hover:bg-bg-hover hover:text-text-primary hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-text-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:bg-bg-hover hover:text-text-primary hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
               <RefreshCw className="w-4 h-4" />
               <span>{copy.actionLabel}</span>

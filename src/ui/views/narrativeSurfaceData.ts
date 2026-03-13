@@ -143,22 +143,22 @@ interface SurfaceContext {
 
 const FALLBACK_AUTHORITY: SurfaceAuthorityCue = {
   authorityTier: 'static_scaffold',
-  authorityLabel: 'Surface scaffold',
+  authorityLabel: 'Preview',
 };
 
 const LOCAL_REPO_AUTHORITY: SurfaceAuthorityCue = {
   authorityTier: 'derived_summary',
-  authorityLabel: 'Derived from local repo state',
+  authorityLabel: 'Derived',
 };
 
 const LIVE_CAPTURE_AUTHORITY: SurfaceAuthorityCue = {
   authorityTier: 'live_capture',
-  authorityLabel: 'Live capture reliability diagnostics',
+  authorityLabel: 'Live',
 };
 
 const OTEL_ONLY_AUTHORITY: SurfaceAuthorityCue = {
   authorityTier: 'derived_summary',
-  authorityLabel: 'Derived from baseline OTEL-only telemetry',
+  authorityLabel: 'OTEL',
 };
 
 
@@ -173,16 +173,13 @@ function inferCaptureAuthority(
     const trustState = deriveSurfaceTrustState(captureReliabilityStatus);
     return {
       ...OTEL_ONLY_AUTHORITY,
-      authorityLabel:
-        trustState === 'healthy'
-          ? OTEL_ONLY_AUTHORITY.authorityLabel
-          : 'Derived from degraded OTEL-only baseline',
+      authorityLabel: trustState === 'healthy' ? 'OTEL' : 'OTEL · degraded',
     };
   }
 
   return {
     ...LIVE_CAPTURE_AUTHORITY,
-    authorityLabel: `Captured from ${captureReliabilityStatus.mode.toLowerCase()}`,
+    authorityLabel: 'Live',
   };
 }
 
@@ -225,7 +222,7 @@ function inferAuthorityFromText(
   ) {
     return {
       authorityTier: context.hasLiveRepoData ? 'live_repo' : 'derived_summary',
-      authorityLabel: context.hasLiveRepoData ? 'Derived from selected repo state' : 'Derived summary context',
+      authorityLabel: context.hasLiveRepoData ? 'Repo' : 'Derived',
     };
   }
 
@@ -372,8 +369,8 @@ function buildContext(
   const commitCount = repoState.status === 'ready' ? Math.max(repoState.model.timeline.length, 1) : 47;
   const sessionExcerpts = repoState.status === 'ready' ? (repoState.model.sessionExcerpts ?? []) : [];
   const sessionCount = repoState.status === 'ready'
-    ? Math.max(sessionExcerpts.length, 3)
-    : 12;
+    ? Math.max(sessionExcerpts.length, 0)
+    : 0;
   const trust = describeSurfaceTrust(captureReliabilityStatus);
   const hasLiveRepoData = repoState.status === 'ready';
 
@@ -433,7 +430,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
               ? 'amber'
               : 'red',
         authorityTier: 'system_signal',
-        authorityLabel: 'Signal from drift guardrail evaluation',
+        authorityLabel: 'Drift signal',
       },
       { label: 'Trust posture', value: context.trustState === 'healthy' ? 'Stable' : 'Review', detail: context.trustLabel, tone: context.trustState === 'healthy' ? 'green' : 'amber' },
     ],
@@ -516,8 +513,8 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
           authorityTier: context.trustState === 'healthy' ? 'live_repo' : 'system_signal',
           authorityLabel:
             context.trustState === 'healthy'
-              ? 'Repo evidence is ready for inspection'
-              : 'Verification gate still active',
+              ? 'Repo ready'
+              : 'Gate active',
           action: { type: 'navigate', mode: context.trustState === 'healthy' ? 'repo' : 'status' },
         },
       ],
@@ -895,7 +892,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
           state: 'observed',
           tone: 'blue',
           authorityTier: context.hasLiveRepoData ? 'live_repo' : 'derived_summary',
-          authorityLabel: context.hasLiveRepoData ? 'Derived from selected repo state' : 'Derived summary context',
+          authorityLabel: context.hasLiveRepoData ? 'Repo' : 'Derived',
         },
         {
           eyebrow: 'Joined',
@@ -931,8 +928,8 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
           authorityTier: context.trustState === 'healthy' ? 'derived_summary' : 'system_signal',
           authorityLabel:
             context.trustState === 'healthy'
-              ? 'Derived claim with supporting evidence'
-              : 'Claim held behind trust warning',
+              ? 'Derived'
+              : 'Trust warning',
           action: { type: 'navigate', mode: context.trustState === 'healthy' ? 'repo' : 'status' },
         },
       ],
@@ -941,7 +938,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
   },
   'repo-pulse': {
     section: 'Workspace',
-    title: 'Repo Pulse',
+    title: 'Workspace Pulse',
     subtitle: (context) => context.narrative?.summary || 'Repo cleanliness, freshness, and things that quietly need attention.',
     heroTitle: (context) => `${context.repoName} is only one pulse in the workspace.`,
     heroBody: () =>
@@ -1604,7 +1601,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
           tone: 'violet',
           edgeLabel: 'bounded by',
           authorityTier: 'derived_summary',
-          authorityLabel: 'Explained by the shared shell contract',
+          authorityLabel: 'Shell contract',
         },
         {
           eyebrow: 'Review',
@@ -1619,8 +1616,8 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
           authorityTier: context.trustState === 'healthy' ? 'live_repo' : 'system_signal',
           authorityLabel:
             context.trustState === 'healthy'
-              ? 'Evidence inspection is currently safe'
-              : 'Verification gate still active',
+              ? 'Evidence ready'
+              : 'Gate active',
           action: { type: 'navigate', mode: context.trustState === 'healthy' ? 'repo' : 'live' },
         },
       ],

@@ -50,7 +50,7 @@ export function MetricCard({
   return (
     <section
       className={`metric-card group relative p-5 
-        transition-all duration-300 ease-out 
+        transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
         hover:scale-[1.02] active:scale-[0.98]
         focus-within:ring-2 focus-within:ring-accent-blue focus-within:ring-offset-2 
         animate-fade-in-up`}

@@ -278,7 +278,7 @@ export function DocsOverviewPanel({ repoRoot, onClose }: DocsOverviewPanelProps)
               <div className="flex flex-wrap gap-3 justify-center">
                 <button
                   type="button"
-                  className="btn-secondary-soft inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:scale-105 active:scale-95 transition-all"
+                  className="btn-secondary-soft inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:scale-105 active:scale-[0.98] transition"
                   onClick={async () => {
                     try {
                       await ensureNarrativeDirs(repoRoot);

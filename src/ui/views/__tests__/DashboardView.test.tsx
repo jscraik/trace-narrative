@@ -15,6 +15,10 @@ vi.mock('../../../core/attribution-api', async () => {
   };
 });
 
+vi.mock('@design-studio/tokens', () => ({
+  useTheme: () => ({ colorScheme: 'dark', theme: 'system' })
+}));
+
 vi.mock('../../components/dashboard/DashboardLoadingState', () => ({
   DashboardLoadingState: () => <div data-testid="dashboard-loading">loading</div>,
 }));

@@ -49,7 +49,7 @@ export function DecisionArchaeologyPanel({ entries, onOpenEvidence }: DecisionAr
                         key={link.id}
                         type="button"
                         onClick={() => onOpenEvidence(link)}
-                        className="rounded-md border border-border-light bg-bg-secondary px-2 py-1 text-[0.6875rem] text-text-secondary transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-95 hover:scale-105 hover:bg-bg-primary"
+                        className="rounded-md border border-border-light bg-bg-secondary px-2 py-1 text-[0.6875rem] text-text-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105 hover:bg-bg-primary"
                       >
                         {link.label}
                       </button>

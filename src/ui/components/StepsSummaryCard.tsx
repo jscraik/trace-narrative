@@ -127,8 +127,8 @@ export function StepsSummaryCard(props: {
                     {s.needsReview ? ' · Needs review' : ''}
                   </div>
                   <div className="mt-2 flex flex-col gap-1">
-                    {(s.messages ?? []).slice(0, 12).map((m, idx) => (
-                      <div key={`${s.sessionId}-${idx}`} className="text-[0.6875rem] text-text-tertiary">
+                    {(s.messages ?? []).slice(0, 12).map((m, _idx) => (
+                      <div key={`${s.sessionId}-${m.role}-${m.text.slice(0, 10)}`} className="text-[0.6875rem] text-text-tertiary">
                         <span className="font-medium text-text-muted">{m.role}</span>
                         {m.toolName ? <span className="text-text-muted"> · {m.toolName}</span> : null}
                         <span className="text-text-tertiary"> · {m.text}</span>

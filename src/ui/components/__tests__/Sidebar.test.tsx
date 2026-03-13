@@ -16,6 +16,10 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Mode } from '../../../core/types';
 import { Sidebar } from '../Sidebar';
 
+vi.mock('@design-studio/tokens', () => ({
+  useTheme: () => ({ colorScheme: 'dark', theme: 'system' })
+}));
+
 // ---------------------------------------------------------------------------
 // Human-visible labels for each mode (as rendered in the Sidebar nav)
 // ---------------------------------------------------------------------------

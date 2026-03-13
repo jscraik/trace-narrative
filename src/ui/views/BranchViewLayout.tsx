@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { ComponentProps } from 'react';
 import type { BranchHeaderViewModel, BranchViewModel, FileChange } from '../../core/types';
 import { BranchNarrativePanel } from '../components/BranchNarrativePanel';
@@ -68,6 +68,10 @@ export function BranchViewLayout({
   captureReliabilityStatus,
   onModeChange,
 }: BranchViewLayoutProps) {
+  const shouldReduceMotion = useReducedMotion();
+  const initialY = shouldReduceMotion ? 0 : PANEL.initialY;
+  const finalY = shouldReduceMotion ? 0 : PANEL.finalY;
+
   return (
     <div className={`flex h-full flex-col motion-page-enter ${isExitingFilteredView ? 'animate-out fade-out slide-out-to-top-2 motion-page-exit fill-mode-forwards' : ''}`}>
       <IngestToast toast={ingestToast ?? null} />
@@ -84,24 +88,26 @@ export function BranchViewLayout({
               {/* Left column */}
               <div className="flex flex-col gap-5 lg:col-span-7 lg:overflow-y-auto lg:pr-1">
                 <motion.div
-                  initial={{ opacity: 0, y: PANEL.initialY }}
-                  animate={{ opacity: stage >= 1 ? 1 : 0, y: stage >= 1 ? PANEL.finalY : PANEL.initialY }}
+                  initial={{ opacity: 0, y: initialY }}
+                  animate={{ opacity: stage >= 1 ? 1 : 0, y: stage >= 1 ? finalY : initialY }}
                   transition={PANEL.spring}
                 >
                   <BranchSummaryBar model={model} />
                 </motion.div>
 
                 <motion.div
-                  initial={{ opacity: 0, y: PANEL.initialY }}
-                  animate={{ opacity: stage >= 2 ? 1 : 0, y: stage >= 2 ? PANEL.finalY : PANEL.initialY }}
+                  layout
+                  layoutId="branch-header"
+                  initial={{ opacity: 0, y: initialY }}
+                  animate={{ opacity: stage >= 2 ? 1 : 0, y: stage >= 2 ? finalY : initialY }}
                   transition={PANEL.spring}
                 >
                   <BranchHeader viewModel={headerViewModel} onClearFilter={onClearFilter} />
                 </motion.div>
 
                 <motion.div
-                  initial={{ opacity: 0, y: PANEL.initialY }}
-                  animate={{ opacity: stage >= 3 ? 1 : 0, y: stage >= 3 ? PANEL.finalY : PANEL.initialY }}
+                  initial={{ opacity: 0, y: initialY }}
+                  animate={{ opacity: stage >= 3 ? 1 : 0, y: stage >= 3 ? finalY : initialY }}
                   transition={PANEL.spring}
                 >
                   <BranchNarrativePanel {...narrativePanelProps} />
@@ -109,8 +115,8 @@ export function BranchViewLayout({
 
                 <motion.details
                   className="group"
-                  initial={{ opacity: 0, y: PANEL.initialY }}
-                  animate={{ opacity: stage >= 4 ? 1 : 0, y: stage >= 4 ? PANEL.finalY : PANEL.initialY }}
+                  initial={{ opacity: 0, y: initialY }}
+                  animate={{ opacity: stage >= 4 ? 1 : 0, y: stage >= 4 ? finalY : initialY }}
                   transition={PANEL.spring}
                 >
                   <summary className="cursor-pointer list-none select-none py-2 text-sm font-medium text-text-tertiary transition-colors hover:text-text-primary">
@@ -134,8 +140,8 @@ export function BranchViewLayout({
                 {ingestIssuesProps ? <NeedsAttentionList {...ingestIssuesProps} /> : null}
 
                 <motion.div
-                  initial={{ opacity: 0, y: PANEL.initialY }}
-                  animate={{ opacity: stage >= 5 ? 1 : 0, y: stage >= 5 ? PANEL.finalY : PANEL.initialY }}
+                  initial={{ opacity: 0, y: initialY }}
+                  animate={{ opacity: stage >= 5 ? 1 : 0, y: stage >= 5 ? finalY : initialY }}
                   transition={PANEL.spring}
                 >
                   <IntentList items={model.intent} />
@@ -154,8 +160,8 @@ export function BranchViewLayout({
                 )}
 
                 <motion.div
-                  initial={{ opacity: 0, y: PANEL.initialY }}
-                  animate={{ opacity: stage >= 6 ? 1 : 0, y: stage >= 6 ? PANEL.finalY : PANEL.initialY }}
+                  initial={{ opacity: 0, y: initialY }}
+                  animate={{ opacity: stage >= 6 ? 1 : 0, y: stage >= 6 ? finalY : initialY }}
                   transition={PANEL.spring}
                 >
                   {loadingFiles ? (
@@ -186,8 +192,8 @@ export function BranchViewLayout({
               {/* Right column - Tabbed interface */}
               <motion.div
                 className="flex flex-col min-w-0 lg:col-span-5 lg:overflow-hidden"
-                initial={{ opacity: 0, y: PANEL.initialY }}
-                animate={{ opacity: stage >= 7 ? 1 : 0, y: stage >= 7 ? PANEL.finalY : PANEL.initialY }}
+                initial={{ opacity: 0, y: initialY }}
+                animate={{ opacity: stage >= 7 ? 1 : 0, y: stage >= 7 ? finalY : initialY }}
                 transition={PANEL.spring}
               >
                 <RightPanelTabs {...rightPanelProps} />
@@ -198,8 +204,10 @@ export function BranchViewLayout({
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: PANEL.initialY }}
-        animate={{ opacity: stage >= 8 ? 1 : 0, y: stage >= 8 ? PANEL.finalY : PANEL.initialY }}
+        layout
+        layoutId="timeline-view"
+        initial={{ opacity: 0, y: initialY }}
+        animate={{ opacity: stage >= 8 ? 1 : 0, y: stage >= 8 ? finalY : initialY }}
         transition={PANEL.spring}
       >
         <Timeline {...timelineProps} />

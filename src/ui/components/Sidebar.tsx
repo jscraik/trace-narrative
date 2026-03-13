@@ -32,6 +32,7 @@ import { useMemo, useState } from 'react';
 import type {
     Mode
 } from '../../core/types';
+import { SparklineChart } from './charts';
 import clsx from 'clsx';
 
 interface SidebarProps {
@@ -49,6 +50,7 @@ interface NavEntry {
     status?: string;
     primary?: boolean;
     showInFullMap?: boolean;
+    sparkline?: number[];
 }
 
 interface NavSection {
@@ -71,7 +73,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
             {
                 label: 'Evidence',
                 items: [
-                    { id: 'live', label: 'Live Capture', icon: Zap, primary: true },
+                    { id: 'live', label: 'Live Capture', icon: Zap, primary: true, sparkline: [2, 4, 3, 8, 5, 9, 12, 10, 8, 4] },
                     { id: 'timeline', label: 'Causal Timeline', icon: History },
                     { id: 'sessions', label: 'Sessions', icon: Clock, badge: 12 },
                     { id: 'transcripts', label: 'Transcript Lens', icon: FileSearch },
@@ -83,7 +85,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                 label: 'Workspace',
                 items: [
                     { id: 'repo', label: 'Repo Evidence', icon: GitBranch, badge: 4, primary: true },
-                    { id: 'repo-pulse', label: 'Workspace Pulse', icon: FolderGit2 },
+                    { id: 'repo-pulse', label: 'Workspace Pulse', icon: FolderGit2, primary: true, sparkline: [1, 1, 2, 1, 3, 2, 4, 3, 5, 2] },
                     { id: 'diffs', label: 'Diff Review', icon: FileCode },
                     { id: 'snapshots', label: 'Checkpoints', icon: Layers3 },
                     { id: 'worktrees', label: 'Worktrees', icon: Workflow },
@@ -121,13 +123,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
         [],
     );
 
-    const NavItem = ({ id, label, icon: Icon, badge, status }: {
-        id: Mode;
-        label: string;
-        icon: ComponentType<{ className?: string }>;
-        badge?: ReactNode;
-        status?: string
-    }) => {
+    const NavItem = ({ id, label, icon: Icon, badge, status, sparkline }: NavEntry) => {
         const isActive = mode === id;
 
         return (
@@ -137,24 +133,29 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                 aria-selected={isActive}
                 onClick={() => onModeChange(id)}
                 className={clsx(
-                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200",
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition duration-150 active:scale-[0.98]",
                     isActive
                         ? "nav-item-active shadow-sm"
                         : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
                 )}
             >
-                <Icon className="w-4 h-4" />
-                <span className="flex-1 text-left">{label}</span>
+                <Icon className="w-4 h-4 shrink-0" />
+                <span className="flex-1 text-left truncate">{label}</span>
+                {sparkline && (
+                    <div className="w-8 flex items-center opacity-50 shrink-0 mix-blend-plus-lighter pointer-events-none">
+                        <SparklineChart data={sparkline} width={32} height={14} tone="violet" />
+                    </div>
+                )}
                 {badge !== undefined && (
                     <span className={clsx(
-                        "text-[0.625rem] rounded px-1.5 py-0.5 font-medium",
+                        "text-[0.625rem] rounded px-1.5 py-0.5 font-medium shrink-0",
                         typeof badge === 'number' ? "text-accent-blue" : "bg-bg-tertiary text-text-muted"
                     )}>
                         {badge}
                     </span>
                 )}
                 {status && (
-                    <span className="text-[0.625rem] rounded bg-accent-green-bg px-1.5 py-0.5 font-medium text-accent-green">
+                    <span className="text-[0.625rem] rounded bg-accent-green-bg px-1.5 py-0.5 font-medium text-accent-green shrink-0">
                         {status}
                     </span>
                 )}
@@ -200,6 +201,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                                         icon={item.icon}
                                         badge={item.badge}
                                         status={item.status}
+                                        sparkline={item.sparkline}
                                     />
                                 ))}
                             </div>
@@ -212,7 +214,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                     <button
                         type="button"
                         onClick={() => setShowFullMap((value) => !value)}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all duration-200"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary transition duration-150 active:scale-[0.98]"
                     >
                         <Layers3 className="w-4 h-4" />
                         <span className="flex-1 text-left">{showFullMap ? 'Show Primary Views' : 'Show Full Map'}</span>
@@ -225,7 +227,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                         <button
                             type="button"
                             onClick={onOpenRepo}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all duration-200"
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary transition duration-150 active:scale-[0.98]"
                         >
                             <GitBranch className="w-4 h-4" />
                             <span className="flex-1 text-left">Open Repo</span>
@@ -233,7 +235,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                         <button
                             type="button"
                             onClick={onImportSession}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all duration-200"
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary transition duration-150 active:scale-[0.98]"
                         >
                             <Database className="w-4 h-4" />
                             <span className="flex-1 text-left">Import Session</span>

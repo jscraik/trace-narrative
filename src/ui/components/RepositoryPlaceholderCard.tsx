@@ -167,7 +167,7 @@ export function RepositoryPlaceholderCard({
           <button
             type="button"
             onClick={onOpenRepo}
-            className="inline-flex items-center gap-2 rounded-xl border border-accent-amber-light bg-accent-amber-bg px-5 py-2.5 text-sm font-semibold text-accent-amber transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] hover:bg-accent-amber-light hover:scale-105 active:scale-95 active:duration-75"
+            className="inline-flex items-center gap-2 rounded-lg bg-surface-strong px-6 py-2.5 font-medium text-text-inverted shadow-lg shadow-bg-page/10 transition duration-150 ease-out active:scale-[0.98] hover:bg-surface-strong-hover hover:scale-105"
           >
             Open Repo Evidence
             <ArrowRight className="h-4 w-4" />

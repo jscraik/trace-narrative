@@ -206,9 +206,6 @@
   --outline-default: oklch(0.32 0.04 260);
   --outline-strong: oklch(0.42 0.05 260);
   --border: var(--foundation-border-dark-default);
-  --outline-subtle: color-mix(in oklab, var(--border-subtle) 42%, transparent);
-  --outline-default: color-mix(in oklab, var(--border-subtle) 78%, transparent);
-  --outline-strong: var(--border);
 
   /* Accents - Boosted for Dark Mode visibility */
   --accent-blue: oklch(0.72 0.12 250);

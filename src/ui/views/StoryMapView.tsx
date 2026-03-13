@@ -119,7 +119,7 @@ export function StoryMapView({
             </div>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
-              Story Map should act like topology, not a renamed summary. Use the lane map to see pressure, joins, and the next routing move in one scan.
+              Topology and prioritization view for pressure points, weak joins, and next inspection.
             </p>
           </div>
 
@@ -173,10 +173,11 @@ export function StoryMapView({
                     </span>
                   </div>
                   <div className="mt-4 space-y-3">
-                    {lane.items.map((item, index) => (
+                    {lane.items.map((item, _index) => (
                       <div
-                        key={`${lane.label}-${index}`}
-                        className="rounded-[1rem] border border-border-light bg-bg-secondary/80 p-3"
+                        key={`${lane.label}-${item.title}`}
+                        className="group rounded-[1rem] border border-border-light bg-bg-secondary/80 p-3 transition-colors hover:border-accent-[var(--base-accent)]/50 hover:bg-bg-primary"
+                        style={{ '--base-accent': `var(--color-accent-${lane.tone})` } as React.CSSProperties}
                         data-authority-tier={item.authorityTier}
                         data-authority-label={item.authorityLabel}
                       >
@@ -238,10 +239,10 @@ export function StoryMapView({
                 <Network className="h-4 w-4 text-text-muted" />
               </div>
               <div className="mt-4 space-y-3">
-                {viewModel.activity.map((item, index) => (
+                {viewModel.activity.map((item, _index) => (
                   <article
-                    key={`${item.title}-${index}`}
-                    className="rounded-[1.25rem] border border-border-light bg-bg-primary/80 p-4"
+                    key={`${item.title}-${item.meta}`}
+                    className="group rounded-[1.25rem] border border-border-light bg-bg-primary/80 p-4 transition-colors hover:border-accent-blue-light/50 hover:bg-bg-primary/90"
                     data-authority-tier={item.authorityTier}
                     data-authority-label={item.authorityLabel}
                   >

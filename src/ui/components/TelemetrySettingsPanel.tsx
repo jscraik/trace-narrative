@@ -174,7 +174,7 @@ export function TelemetrySettingsPanel({
                                 />
                                 <button
                                     type="button"
-                                    className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${otelPath.trim() && otelPath !== (traceConfig?.codexOtelLogPath ?? '/tmp/codex-otel.json')
+                                    className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${otelPath.trim() && otelPath !== (traceConfig?.codexOtelLogPath ?? '/tmp/codex-otel.json')
                                             ? 'border-accent-blue-light bg-accent-blue-bg text-accent-blue hover:bg-accent-blue-light'
                                             : 'border-border-light bg-bg-secondary text-text-secondary hover:bg-bg-hover'
                                         }`}

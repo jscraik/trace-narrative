@@ -20,7 +20,7 @@ export function Breadcrumb({ segments }: BreadcrumbProps) {
         const Icon = segment.icon === 'branch' ? GitBranch : segment.icon === 'commit' ? GitCommit : null;
 
         return (
-          <div key={`${segment.label}-${index}`} className="flex items-center">
+          <div key={`${segment.label}-${segment.icon}`} className="flex items-center">
             {index > 0 && (
               <ChevronRight className="w-3 h-3 text-text-muted mx-1" aria-hidden="true" />
             )}

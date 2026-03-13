@@ -123,7 +123,7 @@ export function SessionExcerpts(props: SessionExcerptsProps) {
                   type="button"
                   onClick={() => onSelectSession?.(item.id)}
                   className={[
-                    'rounded-lg border px-3 py-1.5 text-[0.6875rem] font-medium transition-all duration-150',
+                    'rounded-lg border px-3 py-1.5 text-[0.6875rem] font-medium transition duration-150',
                     isActive
                       ? 'bg-accent-blue-light border-accent-blue text-accent-blue shadow-sm ring-1 ring-accent-blue/20'
                       : 'bg-bg-secondary border-border-light text-text-secondary hover:bg-bg-hover hover:border-border-medium',

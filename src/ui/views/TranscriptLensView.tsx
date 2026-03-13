@@ -61,10 +61,10 @@ export function TranscriptLensView({
   const sessionExcerpts = repoState.status === 'ready' ? repoState.model.sessionExcerpts ?? [] : [];
   const suggestedQueries = viewModel.highlights.slice(0, 4);
   const queryChips = [
-    'intent phrase',
-    'commit mention',
-    'tool handoff',
-    'rollback hint',
+    '> "update db"',
+    '@a1b2c3d',
+    'tool: execute',
+    'revert "..."',
   ];
   const transcriptMessages: TranscriptResult[] = repoState.status === 'ready'
     ? sessionExcerpts.flatMap((session) =>
@@ -256,8 +256,8 @@ export function TranscriptLensView({
                   </div>
 
                   <div className="mt-3 space-y-2.5">
-                    {group.items.map((result, index) => (
-                      <article key={`${result.sessionId}-${index}`} className="rounded-[1rem] border border-border-light bg-bg-primary/90 p-3.5">
+                    {group.items.map((result) => (
+                      <article key={crypto.randomUUID()} className="group rounded-[1rem] border border-border-light bg-bg-primary/90 p-3.5 transition-colors hover:border-accent-blue-light/50 hover:bg-bg-primary">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
                             <p className="text-sm font-semibold text-text-primary">{result.tool} · {result.role}</p>
@@ -267,11 +267,11 @@ export function TranscriptLensView({
                                 : 'Recent import'}
                             </p>
                           </div>
-                          <span className="rounded-full border border-border-light bg-bg-secondary px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-text-secondary">
+                          <span className="rounded-full border border-border-light bg-bg-secondary px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-text-secondary transition-colors group-hover:border-accent-blue-light/30">
                             {result.linkedCommitSha ? result.linkedCommitSha.slice(0, 7) : 'Unlinked'}
                           </span>
                         </div>
-                        <blockquote className="mt-2.5 rounded-[0.95rem] border border-border-light bg-bg-secondary/80 px-3.5 py-2.5 text-sm leading-6 text-text-secondary">
+                        <blockquote className="mt-2.5 rounded-[0.95rem] border border-border-light bg-bg-secondary/80 px-3.5 py-2.5 text-sm leading-6 text-text-secondary transition-colors group-hover:border-accent-blue-light/30 group-hover:text-text-primary">
                           “{result.text}”
                         </blockquote>
                         <div className="mt-2.5 flex flex-wrap gap-2">

@@ -204,9 +204,9 @@ export function LiveCaptureView({
               </div>
 
               <div className="mt-5 space-y-3">
-                {viewModel.activity.map((item, index) => (
+                {viewModel.activity.map((item, _index) => (
                   <article
-                    key={`${item.title}-${index}`}
+                    key={`${item.title}-${item.meta}`}
                     className="rounded-2xl border border-border-light bg-bg-primary/80 p-4"
                     data-authority-tier={item.authorityTier}
                     data-authority-label={item.authorityLabel}

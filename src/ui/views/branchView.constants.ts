@@ -14,14 +14,14 @@
  *  660ms   timeline appears
  * ───────────────────────────────────────────────────────── */
 export const TIMING = {
-  summary: 100,
-  header: 180,
-  narrative: 260,
-  details: 340,
-  intents: 420,
-  files: 500,
-  rightPanel: 580,
-  timeline: 660,
+  summary: 150,
+  header: 200,
+  narrative: 250,
+  details: 300,
+  intents: 350,
+  files: 400,
+  rightPanel: 450,
+  timeline: 500,
 };
 
 export const PANEL = {

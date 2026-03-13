@@ -144,12 +144,12 @@ describe('buildNarrativeSurfaceViewModel', () => {
 
     expect(model.trustState).toBe('healthy');
     expect(model.heroAuthorityTier).toBe('derived_summary');
-    expect(model.heroAuthorityLabel).toBe('Derived from baseline OTEL-only telemetry');
+    expect(model.heroAuthorityLabel).toBe('OTEL');
 
     const captureModeMetric = model.metrics.find((metric) => metric.label === 'Capture mode');
     expect(captureModeMetric).toBeDefined();
     expect(captureModeMetric?.authorityTier).toBe('derived_summary');
-    expect(captureModeMetric?.authorityLabel).toBe('Derived from baseline OTEL-only telemetry');
+    expect(captureModeMetric?.authorityLabel).toBe('OTEL');
   });
 
   it('marks unknown modes as degraded trust with captured-source authority', () => {
@@ -160,7 +160,7 @@ describe('buildNarrativeSurfaceViewModel', () => {
 
     expect(model.trustState).toBe('degraded');
     expect(model.heroAuthorityTier).toBe('live_capture');
-    expect(model.heroAuthorityLabel).toBe('Captured from nonsense_mode');
+    expect(model.heroAuthorityLabel).toBe('Live');
   });
 
   // ---------------------------------------------------------------------------

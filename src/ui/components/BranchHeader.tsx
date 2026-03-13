@@ -82,7 +82,7 @@ export function BranchHeader({
               <button
                 type="button"
                 onClick={onClearFilter}
-                className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-95 hover:scale-105"
+                className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
               >
                 <ArrowLeft className="w-4 h-4" aria-hidden="true" />
                 <span>Back to narrative brief</span>

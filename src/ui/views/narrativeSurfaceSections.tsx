@@ -138,6 +138,46 @@ export function MetricCard({ metric }: { metric: SurfaceMetric & SurfaceAuthorit
   );
 }
 
+// ─── CompactKpiStrip ─────────────────────────────────────────────────────────
+// A single-row strip of KPI tiles, ~h-12 tall — replaces the 4-column card
+// grid to reclaim vertical space while keeping all metric values visible.
+
+export function CompactKpiStrip({
+  metrics,
+}: {
+  metrics: Array<SurfaceMetric & SurfaceAuthorityCue>;
+}) {
+  if (metrics.length === 0) return null;
+  return (
+    <ul
+      className="glass-panel flex flex-wrap divide-x divide-border-subtle rounded-2xl overflow-hidden"
+      aria-label="Key metrics"
+    >
+      {metrics.map((metric, _i) => {
+        const tone = toneClasses[metric.tone];
+        return (
+          <li
+            key={metric.label}
+            className="flex min-w-32 flex-1 items-center gap-3 px-4 py-3"
+            data-authority-tier={metric.authorityTier}
+          >
+            <span className={clsx('h-2 w-2 shrink-0 rounded-full', tone.dot)} aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <div className={clsx('text-base font-semibold leading-tight tracking-tight', tone.text)}>
+                {metric.value}
+              </div>
+              <div className="truncate text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                {metric.label}
+              </div>
+            </div>
+            <AuthorityCue authorityTier={metric.authorityTier} authorityLabel={metric.authorityLabel} />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function HighlightsSection({
   title,
   highlights,
@@ -168,10 +208,10 @@ export function HighlightsSection({
               role={highlight.action ? 'button' : undefined}
               tabIndex={highlight.action ? 0 : undefined}
               className={clsx(
-                'group rounded-2xl border p-4 transition-all duration-200',
+                'group rounded-2xl border p-4 transition duration-200',
                 tone.border,
                 tone.bg,
-                highlight.action && 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md',
+                highlight.action && 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]',
               )}
               data-authority-tier={highlight.authorityTier}
               data-authority-label={highlight.authorityLabel}
@@ -210,16 +250,16 @@ export function ActivitySection({
     <div className="glass-panel rounded-3xl p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">{title}</p>
       <div className="mt-4 space-y-3">
-        {activity.map((item, index) => (
+        {activity.map((item, _index) => (
           <article
-            key={`${item.title}-${index}`}
+            key={`${item.title}-${item.meta}`}
             onClick={() => item.action && onAction?.(item.action)}
             onKeyDown={(event) => handleActionKeyDown(event, item.action, onAction)}
             role={item.action ? 'button' : undefined}
             tabIndex={item.action ? 0 : undefined}
             className={clsx(
-              'group rounded-2xl border border-border-subtle bg-bg-primary/80 p-4 transition-all duration-200',
-              item.action && 'cursor-pointer hover:translate-x-1 hover:bg-bg-secondary hover:shadow-sm',
+              'group rounded-2xl border border-border-subtle bg-bg-primary/80 p-4 transition duration-200',
+              item.action && 'cursor-pointer hover:translate-x-1 hover:bg-bg-secondary hover:shadow-sm active:scale-[0.99]',
             )}
             data-authority-tier={item.authorityTier}
             data-authority-label={item.authorityLabel}
@@ -310,8 +350,8 @@ export function SummaryTable({
                 role={row.action ? 'button' : undefined}
                 tabIndex={row.action ? 0 : undefined}
                 className={clsx(
-                  'group rounded-2xl bg-bg-primary transition-all duration-200',
-                  row.action && 'cursor-pointer hover:translate-x-1 hover:bg-bg-secondary hover:shadow-sm',
+                  'group rounded-2xl bg-bg-primary transition duration-200',
+                  row.action && 'cursor-pointer hover:translate-x-1 hover:bg-bg-secondary hover:shadow-sm active:scale-[0.99]',
                 )}
                 data-authority-tier={row.authorityTier}
                 data-authority-label={row.authorityLabel}

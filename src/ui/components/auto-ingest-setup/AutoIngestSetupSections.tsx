@@ -311,7 +311,7 @@ export function WatchPathsCard(props: {
       <div className="mt-3 flex items-center gap-2">
         <button
           type="button"
-          className="inline-flex items-center rounded-md border border-accent-blue-light bg-accent-blue-bg px-2 py-1 text-[0.6875rem] font-semibold text-accent-blue hover:bg-accent-blue-light transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-95 hover:scale-105"
+          className="inline-flex items-center rounded-md border border-accent-blue-light bg-accent-blue-bg px-2 py-1 text-[0.6875rem] font-semibold text-accent-blue hover:bg-accent-blue-light transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
           onClick={onSaveWatchPaths}
         >
           Save watch paths
@@ -338,7 +338,7 @@ function ActionButton(props: { children: ReactNode; disabled?: boolean; onClick:
   return (
     <button
       type="button"
-      className="btn-secondary-soft inline-flex items-center rounded-md px-2 py-1 text-[0.6875rem] font-semibold transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-95 hover:scale-105 disabled:opacity-50"
+      className="btn-secondary-soft inline-flex items-center rounded-md px-2 py-1 text-[0.6875rem] font-semibold transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105 disabled:opacity-50"
       disabled={disabled}
       onClick={() => void onClick()}
     >

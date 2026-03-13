@@ -118,7 +118,7 @@ export function ProvenanceSection({
                   role={node.action ? 'button' : undefined}
                   tabIndex={node.action ? 0 : undefined}
                   className={clsx(
-                    'h-full rounded-2xl border p-4 transition-all duration-200',
+                    'h-full rounded-2xl border p-4 transition duration-200',
                     tone.border,
                     tone.bg,
                     node.action && 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md',

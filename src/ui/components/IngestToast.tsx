@@ -34,7 +34,7 @@ export function IngestToast(props: IngestToastProps) {
       onTransitionEnd={handleTransitionEnd}
       className={[
         'fixed top-4 right-4 z-50 rounded-lg border border-border-light bg-bg-secondary px-4 py-2 shadow-sm text-xs text-text-secondary',
-        'transition-all duration-200 ease-out',
+        'transition duration-200 ease-out',
         isExiting
           ? 'opacity-0 translate-x-4'
           : 'opacity-100 translate-x-0 animate-in slide-in-from-right fade-in',

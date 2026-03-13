@@ -53,7 +53,7 @@ export function FilesChanged({
               }}
               type="button"
               aria-pressed={selectedFile === f.path}
-              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition-all duration-150 ${selectedFile === f.path
+              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition duration-150 ${selectedFile === f.path
                 ? 'bg-accent-blue-bg border-l-[0.1875rem] border-l-accent-blue -ml-[0.1875rem] pl-[1.125rem] shadow-sm'
                 : 'hover:bg-bg-tertiary border-l-[0.1875rem] border-l-transparent'
                 }`}

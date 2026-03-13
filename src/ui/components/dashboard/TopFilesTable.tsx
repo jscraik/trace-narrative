@@ -171,7 +171,7 @@ function LoadMoreButton({ onClick, isLoading }: LoadMoreButtonProps) {
       disabled={isLoading}
       className={`
         btn-secondary-soft inline-flex items-center gap-2 px-4 py-2 rounded-lg
-        text-sm font-medium transition-all duration-150 ease-out
+        text-sm font-medium transition duration-150 ease-out
         ${isLoading
           ? 'text-text-muted cursor-not-allowed opacity-50'
           : 'text-text-secondary'
