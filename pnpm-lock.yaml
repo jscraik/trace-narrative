@@ -15,6 +15,8 @@ overrides:
   rollup: ^4.59.0
   lodash: ^4.17.23
   tmp: ^0.2.4
+  undici: '>=7.24.0'
+  yauzl: '>=3.2.1'
 
 importers:
 
@@ -417,19 +419,19 @@ packages:
     resolution: {integrity: sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA==}
 
   '@design-studio/runtime@file:vendor/design-studio/design-studio-runtime-2.0.0.tgz':
-    resolution: {integrity: sha512-f+2R/LH5bLDlBj8U9beBZxeitekzot1AtMZrHBdMzp7R8uAKmSSLjMHdLgs9iA/CooljRF5x3e38fdEntKzClg==}
+    resolution: {integrity: sha512-f+2R/LH5bLDlBj8U9beBZxeitekzot1AtMZrHBdMzp7R8uAKmSSLjMHdLgs9iA/CooljRF5x3e38fdEntKzClg==, tarball: file:vendor/design-studio/design-studio-runtime-2.0.0.tgz}
     version: 2.0.0
     peerDependencies:
       react: ^19.0.0
 
   '@design-studio/tokens@file:vendor/design-studio/design-studio-tokens-2.0.0.tgz':
-    resolution: {integrity: sha512-tAvVVP2gVXD+AN2oLEUXIAzUU4lGSWqgtQWrjqXpr+PjJDQKMSypgYA4AzvA+IODYRI+mA7IBZvvFWWPQbm2zQ==}
+    resolution: {integrity: sha512-tAvVVP2gVXD+AN2oLEUXIAzUU4lGSWqgtQWrjqXpr+PjJDQKMSypgYA4AzvA+IODYRI+mA7IBZvvFWWPQbm2zQ==, tarball: file:vendor/design-studio/design-studio-tokens-2.0.0.tgz}
     version: 2.0.0
     peerDependencies:
       react: ^19.2.4
 
   '@design-studio/ui@file:vendor/design-studio/design-studio-ui-0.0.1.tgz':
-    resolution: {integrity: sha512-JsbvgYguQ9DMn2FkXQ6dHIHr+j2hyxnvpWlXWNdNVX2GfOWicYWMGFpRlN8Nn38OqY288lbbb1iw7KoazX4gCw==}
+    resolution: {integrity: sha512-JsbvgYguQ9DMn2FkXQ6dHIHr+j2hyxnvpWlXWNdNVX2GfOWicYWMGFpRlN8Nn38OqY288lbbb1iw7KoazX4gCw==, tarball: file:vendor/design-studio/design-studio-ui-0.0.1.tgz}
     version: 0.0.1
     peerDependencies:
       react: ^19.0.0
@@ -3124,9 +3126,6 @@ packages:
   fault@1.0.4:
     resolution: {integrity: sha512-CJ0HCB5tL5fYTEA7ToAq5+kTwd++Borf1/bifxd9iT70QcXr4MRrO3Llf8Ifs70q+SJcGHFtnIE/Nw6giCtECA==}
 
-  fd-slicer@1.1.0:
-    resolution: {integrity: sha512-cE1qsB/VwyQozZ+q1dGxR8LBYNZeofhEdUNGSMbQD3Gw2lAzX9Zb3uIU6Ebc/Fmyjo9AWWfnn0AUCHqtevs/8g==}
-
   fdir@6.5.0:
     resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
     engines: {node: '>=12.0.0'}
@@ -4807,8 +4806,8 @@ packages:
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
-  undici@7.22.0:
-    resolution: {integrity: sha512-RqslV2Us5BrllB+JeiZnK4peryVTndy9Dnqq62S3yYRRTj0tFQCwEniUy2167skdGOy3vqRzEvl1Dm4sV2ReDg==}
+  undici@7.24.1:
+    resolution: {integrity: sha512-5xoBibbmnjlcR3jdqtY2Lnx7WbrD/tHlT01TmvqZUFVc9Q1w4+j5hbnapTqbcXITMH1ovjq/W7BkqBilHiVAaA==}
     engines: {node: '>=20.18.1'}
 
   unified@11.0.5:
@@ -5121,8 +5120,9 @@ packages:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
 
-  yauzl@2.10.0:
-    resolution: {integrity: sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g==}
+  yauzl@3.2.1:
+    resolution: {integrity: sha512-k1isifdbpNSFEHFJ1ZY4YDewv0IH9FR61lDetaRMD3j2ae3bIXGV+7c+LHCqtQGofSd8PIyV4X6+dHMAnSr60A==}
+    engines: {node: '>=12'}
 
   zod-to-json-schema@3.25.1:
     resolution: {integrity: sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==}
@@ -8091,7 +8091,7 @@ snapshots:
     dependencies:
       debug: 4.4.3
       get-stream: 5.2.0
-      yauzl: 2.10.0
+      yauzl: 3.2.1
     optionalDependencies:
       '@types/yauzl': 2.10.3
     transitivePeerDependencies:
@@ -8120,10 +8120,6 @@ snapshots:
   fault@1.0.4:
     dependencies:
       format: 0.2.2
-
-  fd-slicer@1.1.0:
-    dependencies:
-      pend: 1.2.0
 
   fdir@6.5.0(picomatch@4.0.3):
     optionalDependencies:
@@ -8374,9 +8370,7 @@ snapshots:
 
   highlightjs-vue@1.0.0: {}
 
-  hono@4.12.7:
-    resolution: {integrity: sha512-jq9l1DM0zVIvsm3lv9Nw9nlJnMNPOcAtsbsgiUhWcFzPE99Gvo6yRTlszSLLYacMeQ6quHD6hMfId8crVHvexw==}
-    engines: {node: '>=16.9.0'}
+  hono@4.12.7: {}
 
   html-encoding-sniffer@6.0.0:
     dependencies:
@@ -8568,7 +8562,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.0
-      undici: 7.22.0
+      undici: 7.24.1
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -10270,7 +10264,7 @@ snapshots:
 
   undici-types@7.16.0: {}
 
-  undici@7.22.0: {}
+  undici@7.24.1: {}
 
   unified@11.0.5:
     dependencies:
@@ -10572,10 +10566,10 @@ snapshots:
       y18n: 5.0.8
       yargs-parser: 21.1.1
 
-  yauzl@2.10.0:
+  yauzl@3.2.1:
     dependencies:
       buffer-crc32: 0.2.13
-      fd-slicer: 1.1.0
+      pend: 1.2.0
 
   zod-to-json-schema@3.25.1(zod@3.25.76):
     dependencies:
