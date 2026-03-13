@@ -1,7 +1,4 @@
 import {
-  ArrowRight,
-  ArrowUpRight,
-  Clock3,
   Command,
   Hash,
   ScanSearch,
@@ -11,9 +8,9 @@ import {
 } from 'lucide-react';
 
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
+import { SurfaceHeader } from '../components/SurfaceHeader';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
-import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import { buildNarrativeSurfaceViewModel, type SurfaceAction } from './narrativeSurfaceData';
 import { describeSurfaceTrust } from './dashboardState';
 import { AuthorityCue } from './narrativeSurfaceSections';
@@ -55,9 +52,9 @@ export function TranscriptLensView({
   const viewModel = buildNarrativeSurfaceViewModel('transcripts', repoState, captureReliabilityStatus, autoIngestEnabled);
   const repoPath = getRepoPath(repoState);
   const trustDescriptor = describeSurfaceTrust(captureReliabilityStatus);
-  const nextMode = trustDescriptor.trustState === 'healthy' ? 'repo' : 'status';
-  const nextLabel = trustDescriptor.trustState === 'healthy' ? 'Verify in repo evidence' : 'Resolve trust first';
-  const NextIcon = trustDescriptor.trustState === 'healthy' ? ShieldCheck : ShieldAlert;
+  const _nextMode = trustDescriptor.trustState === 'healthy' ? 'repo' : 'status';
+  const _nextLabel = trustDescriptor.trustState === 'healthy' ? 'Verify in repo evidence' : 'Resolve trust first';
+  const _NextIcon = trustDescriptor.trustState === 'healthy' ? ShieldCheck : ShieldAlert;
   const sessionExcerpts = repoState.status === 'ready' ? repoState.model.sessionExcerpts ?? [] : [];
   const suggestedQueries = viewModel.highlights.slice(0, 4);
   const queryChips = [
@@ -106,53 +103,14 @@ export function TranscriptLensView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <header className="border-b border-border-subtle bg-bg-secondary/90 px-6 py-4 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-[100rem] flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-border-light bg-bg-primary px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-                Evidence
-              </span>
-              <DashboardTrustBadge trustState={viewModel.trustState} />
-              <span className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-primary px-3 py-1 text-xs text-text-secondary">
-                <Clock3 className="h-3.5 w-3.5" />
-                {repoPath}
-              </span>
-            </div>
-            <h1 className="mt-2.5 text-[2rem] font-semibold tracking-tight text-text-primary">{viewModel.title}</h1>
-            <p className="mt-1.5 max-w-3xl text-sm leading-6 text-text-secondary">
-              This view should behave like a query surface: suggested asks on the left, quoted snippets in the middle, coverage and follow-through on the right.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={onImportSession}
-              className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-accent-blue-light hover:text-text-primary"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              Import session
-            </button>
-            <button
-              type="button"
-              onClick={() => onModeChange(nextMode)}
-              className="inline-flex items-center gap-2 rounded-xl bg-accent-blue px-4 py-2 text-sm font-medium text-accent-foreground transition hover:brightness-110"
-            >
-              <NextIcon className="h-4 w-4" />
-              {nextLabel}
-            </button>
-            <button
-              type="button"
-              onClick={onOpenRepo}
-              className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-accent-violet-light hover:text-text-primary"
-            >
-              Open repo
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <SurfaceHeader
+        title={viewModel.title}
+        category='Evidence'
+        repoPath={repoPath}
+        trustState={viewModel.trustState}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+      />
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto grid max-w-[100rem] gap-5 xl:grid-cols-[0.8fr_1.22fr_0.72fr]">

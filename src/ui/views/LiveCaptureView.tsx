@@ -2,7 +2,6 @@ import clsx from 'clsx';
 import {
   ArrowRight,
   ArrowUpRight,
-  Clock3,
   RadioTower,
   ShieldAlert,
   ShieldCheck,
@@ -12,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
-import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
+import { SurfaceHeader } from '../components/SurfaceHeader';
 import {
   buildNarrativeSurfaceViewModel,
   type SurfaceAction,
@@ -72,58 +71,35 @@ export function LiveCaptureView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <header className="border-b border-border-subtle bg-bg-secondary/90 px-6 py-5 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-border-light bg-bg-primary px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-                  Evidence
-                </span>
-                <DashboardTrustBadge trustState={viewModel.trustState} />
-                <span className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-primary px-3 py-1 text-xs text-text-secondary">
-                  <Clock3 className="h-3.5 w-3.5" />
-                  {repoPath}
-                </span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h1>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">{viewModel.subtitle}</p>
-              </div>
-            </div>
+      <SurfaceHeader
+        title={viewModel.title}
+        category="Evidence"
+        repoPath={repoPath}
+        trustState={viewModel.trustState}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+      >
+        <button
+          type="button"
+          onClick={() => onModeChange(nextMode)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition hover:brightness-110 active:scale-[0.98]"
+        >
+          <NextIcon className="h-3.5 w-3.5" />
+          {nextLabel}
+        </button>
+      </SurfaceHeader>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={onImportSession}
-                className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-accent-blue-light hover:text-text-primary"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                Import session
-              </button>
-              <button
-                type="button"
-                onClick={() => onModeChange(nextMode)}
-                className="inline-flex items-center gap-2 rounded-xl bg-accent-blue px-4 py-2 text-sm font-medium text-accent-foreground transition hover:brightness-110"
-              >
-                <NextIcon className="h-4 w-4" />
-                {nextLabel}
-              </button>
-              <button
-                type="button"
-                onClick={onOpenRepo}
-                className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-accent-violet-light hover:text-text-primary"
-              >
-                Open repo
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
+      <main className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <div className="mb-2">
+            <h2 className="text-2xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-text-secondary max-w-3xl">{viewModel.subtitle}</p>
           </div>
 
-          <div className="rounded-3xl border border-border-subtle bg-bg-primary/70 px-5 py-5">
+          <div className="rounded-[1.6rem] border border-border-subtle bg-bg-primary/70 p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-3xl space-y-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-secondary px-3 py-1 text-xs font-medium text-text-secondary">
+                <span className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-secondary px-3 py-1 text-[0.6875rem] font-semibold tracking-[0.05em] text-text-secondary">
                   <RadioTower className="h-3.5 w-3.5 text-accent-green" />
                   Live capture surface
                 </span>
@@ -147,7 +123,7 @@ export function LiveCaptureView({
                 data-authority-tier={captureModeMetric.authorityTier}
                 data-authority-label={captureModeMetric.authorityLabel}
               >
-                <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                <p className="text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
                   Operator rule
                 </p>
                 <div className="mt-2 flex items-center gap-2">
@@ -157,25 +133,19 @@ export function LiveCaptureView({
                   />
                   <span
                     className={clsx(
-                      'inline-flex rounded-full border px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em]',
+                      'inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.14em]',
                       toneClasses[captureModeMetric.tone],
                     )}
                   >
                     {captureModeMetric.value}
                   </span>
                 </div>
-                <p className="mt-3 max-w-[20rem] leading-6">
-                  This screen should help us notice stream drift while work is still in motion, then route into Trust
-                  Center or Repo Evidence before assumptions harden into false certainty.
+                <p className="mt-3 max-w-[20rem] text-xs leading-5">
+                  This screen should help us notice stream drift while work is still in motion, then route into Trust Center or Repo Evidence before assumptions harden into false certainty.
                 </p>
               </div>
             </div>
           </div>
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-y-auto px-6 py-6">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6">
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {viewModel.metrics.map((metric) => (
               <MetricCard key={metric.label} metric={metric} />

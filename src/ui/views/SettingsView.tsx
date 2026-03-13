@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import { Settings, FolderGit2, Key, Monitor, Cpu } from 'lucide-react';
+import { SurfaceHeader } from '../components/SurfaceHeader';
+import { FolderGit2, Key, Monitor, Cpu } from 'lucide-react';
 import type { Mode } from '../../core/types';
 
 interface SettingsViewProps {
@@ -70,19 +71,10 @@ function InputRow({ label, value, type = 'text', masked = false }: { label: stri
 export function SettingsView(_props: SettingsViewProps) {
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-secondary/20">
-      <header className="border-b border-border-subtle bg-bg-primary/80 px-8 py-8 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-2">
-          <div className="flex items-center gap-3 text-accent-violet mb-2">
-             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-violet-bg text-accent-violet">
-                <Settings className="h-5 w-5" />
-             </div>
-          </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">Settings</h1>
-          <p className="max-w-xl text-sm leading-relaxed text-text-secondary">
-            Manage your application preferences, AI integrations, and global workspace behaviors.
-          </p>
-        </div>
-      </header>
+      <SurfaceHeader
+        title="Settings"
+        category='Configure'
+      />
 
       <main className="flex-1 overflow-y-auto px-6 py-10 shadow-inner">
         <div className="mx-auto flex max-w-4xl flex-col gap-8">

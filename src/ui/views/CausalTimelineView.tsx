@@ -1,8 +1,5 @@
 import clsx from 'clsx';
 import {
-  ArrowRight,
-  ArrowUpRight,
-  Clock3,
   GitCommitHorizontal,
   Milestone,
   ShieldAlert,
@@ -13,7 +10,7 @@ import {
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
-import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
+import { SurfaceHeader } from '../components/SurfaceHeader';
 import { buildNarrativeSurfaceViewModel, type SurfaceAction } from './narrativeSurfaceData';
 import { describeSurfaceTrust } from './dashboardState';
 import { ProvenanceSection } from './narrativeSurfaceProvenance';
@@ -56,56 +53,32 @@ export function CausalTimelineView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <header className="border-b border-border-subtle bg-bg-secondary/90 px-6 py-4 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-[100rem] flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-border-light bg-bg-primary px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-                Evidence
-              </span>
-              <DashboardTrustBadge trustState={viewModel.trustState} />
-              <span className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-primary px-3 py-1 text-xs text-text-secondary">
-                <Clock3 className="h-3.5 w-3.5" />
-                {repoPath}
-              </span>
-            </div>
-            <h1 className="mt-2.5 text-[2rem] font-semibold tracking-tight text-text-primary">{viewModel.title}</h1>
-            <p className="mt-1.5 max-w-3xl text-sm leading-6 text-text-secondary">
-              Causal Timeline earns its place when the chronology dominates the page and the review gates sit alongside it instead of competing with it.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={onImportSession}
-              className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-accent-blue-light hover:text-text-primary"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              Import session
-            </button>
-            <button
-              type="button"
-              onClick={() => onModeChange(nextMode)}
-              className="inline-flex items-center gap-2 rounded-xl bg-accent-blue px-4 py-2 text-sm font-medium text-accent-foreground transition hover:brightness-110"
-            >
-              <NextIcon className="h-4 w-4" />
-              {nextLabel}
-            </button>
-            <button
-              type="button"
-              onClick={onOpenRepo}
-              className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-accent-violet-light hover:text-text-primary"
-            >
-              Open repo
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <SurfaceHeader
+        title={viewModel.title}
+        category="Evidence"
+        repoPath={repoPath}
+        trustState={viewModel.trustState}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+      >
+        <button
+          type="button"
+          onClick={() => onModeChange(nextMode)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition hover:brightness-110 active:scale-[0.98]"
+        >
+          <NextIcon className="h-3.5 w-3.5" />
+          {nextLabel}
+        </button>
+      </SurfaceHeader>
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-[100rem] flex-col gap-5">
+          <div className="mb-1">
+            <h2 className="text-2xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-text-secondary max-w-3xl">
+              Causal Timeline earns its place when the chronology dominates the page and the review gates sit alongside it instead of competing with it.
+            </p>
+          </div>
           <section className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
             <article
               className="rounded-[1.6rem] border border-border-subtle bg-bg-secondary/80 p-4"

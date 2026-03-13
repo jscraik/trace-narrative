@@ -1,11 +1,11 @@
 import clsx from 'clsx';
-import { ArrowRight, ArrowUpRight, Clock3, AlertTriangle, ShieldAlert, FileKey2, EyeOff, Eye, ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { SurfaceHeader } from '../components/SurfaceHeader';
+import { AlertTriangle, ShieldAlert, FileKey2, EyeOff, Eye, ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
-import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import {
   buildNarrativeSurfaceViewModel,
   type SurfaceAction,
@@ -165,47 +165,14 @@ export function EnvHygieneView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <header className="border-b border-border-subtle bg-bg-secondary/90 px-6 py-5 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-border-light bg-bg-primary px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-                  Workspace
-                </span>
-                <DashboardTrustBadge trustState={viewModel.trustState} />
-                <span className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-primary px-3 py-1 text-xs text-text-secondary">
-                  <Clock3 className="h-3.5 w-3.5" />
-                  {repoPath}
-                </span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h1>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">{viewModel.subtitle}</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={onImportSession}
-                className="inline-flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition hover:border-accent-blue-light hover:text-text-primary"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                Import session
-              </button>
-              <button
-                type="button"
-                onClick={onOpenRepo}
-                className="inline-flex items-center gap-2 rounded-xl bg-accent-blue px-4 py-2 text-sm font-medium text-accent-foreground transition hover:brightness-110"
-              >
-                Open repo
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <SurfaceHeader
+        title={viewModel.title}
+        category='Health'
+        repoPath={repoPath}
+        trustState={viewModel.trustState}
+        onOpenRepo={onOpenRepo}
+        onImportSession={onImportSession}
+      />
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">

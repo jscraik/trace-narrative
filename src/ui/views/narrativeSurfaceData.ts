@@ -1039,7 +1039,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
   },
   snapshots: {
     section: 'Workspace',
-    title: 'Snapshots',
+    title: 'Checkpoints',
     subtitle: () => 'Saved workspace states, branch checkpoints, and recovery moments.',
     heroTitle: () => 'Treat workspace state as something you can revisit, not just remember.',
     heroBody: () =>

@@ -99,7 +99,7 @@ describe('NarrativeSurfaceView', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'Live' })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { name: 'Live' }).length).toBeGreaterThan(0);
     expect(screen.getByText('Live capture surface')).toBeInTheDocument();
     expect(screen.getByText('Active sessions')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Live monitors' })).toBeInTheDocument();
@@ -159,7 +159,7 @@ describe('NarrativeSurfaceView', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'Sessions' })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { name: 'Sessions' }).length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Recent Sessions' })).toBeInTheDocument();
     expect(screen.getByText('Review Window')).toBeInTheDocument();
   });
@@ -176,7 +176,7 @@ describe('NarrativeSurfaceView', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'Transcripts' })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { name: 'Transcripts' }).length).toBeGreaterThan(0);
     expect(screen.getByText('Transcript query surface')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ask transcript-first questions' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Quoted snippets and source joins' })).toBeInTheDocument();
@@ -195,7 +195,7 @@ describe('NarrativeSurfaceView', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'Timeline' })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { name: 'Timeline' }).length).toBeGreaterThan(0);
     expect(screen.getByText('Causal Timeline earns its place when the chronology dominates the page and the review gates sit alongside it instead of competing with it.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ordered commit and milestone sequence' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'What makes the sequence safe to repeat' })).toBeInTheDocument();
