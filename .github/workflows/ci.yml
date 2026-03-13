@@ -106,6 +106,7 @@ jobs:
   e2e-tests:
     runs-on: ubuntu-latest
     needs: quality-gates
+    if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v6
 

@@ -8374,7 +8374,9 @@ snapshots:
 
   highlightjs-vue@1.0.0: {}
 
-  hono@4.12.7: {}
+  hono@4.12.7:
+    resolution: {integrity: sha512-jq9l1DM0zVIvsm3lv9Nw9nlJnMNPOcAtsbsgiUhWcFzPE99Gvo6yRTlszSLLYacMeQ6quHD6hMfId8crVHvexw==}
+    engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@6.0.0:
     dependencies:

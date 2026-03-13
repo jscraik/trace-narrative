@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.18.1](https://github.com/jscraik/trace-narrative/compare/firefly-narrative-v0.18.0...firefly-narrative-v0.18.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* **ci:** skip bot-only gates for dependabot PRs ([#79](https://github.com/jscraik/trace-narrative/issues/79)) ([fa6b1c1](https://github.com/jscraik/trace-narrative/commit/fa6b1c1d0ce915eca313b1effc6b485edb348c5a))
+
+## [0.18.0](https://github.com/jscraik/trace-narrative/compare/firefly-narrative-v0.17.1...firefly-narrative-v0.18.0) (2026-03-08)
+
+
+### Features
+
+* **trust:** Phase 4 trust-state UX integration with P1/P2 fixes ([#72](https://github.com/jscraik/trace-narrative/issues/72)) ([89e6e1a](https://github.com/jscraik/trace-narrative/commit/89e6e1acf92d8fcab9e372f6d25f0b9570975345))
+
+
+### Bug Fixes
+
+* **docs:** unblock lint baseline and audit gate ([#70](https://github.com/jscraik/trace-narrative/issues/70)) ([2071ccc](https://github.com/jscraik/trace-narrative/commit/2071ccc5a82877aa0d5424821cc6ab4a0d9d20b9))
+* **ui:** wire trust-state props to BranchNarrativePanel ([89e6e1a](https://github.com/jscraik/trace-narrative/commit/89e6e1acf92d8fcab9e372f6d25f0b9570975345))
+
 ## [0.17.1](https://github.com/jscraik/firefly-narrative/compare/firefly-narrative-v0.17.0...firefly-narrative-v0.17.1) (2026-03-02)
 
 

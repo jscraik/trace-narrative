@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Trace Narrative",
-  "version": "0.17.1",
-  "identifier": "com.jamie.trace-narrative",
+  "productName": "Firefly Narrative",
+  "version": "0.18.1",
+  "identifier": "com.jamie.firefly-narrative",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build && pnpm tauri:prepare-cli && pnpm tauri:verify-sidecar-manifest",
