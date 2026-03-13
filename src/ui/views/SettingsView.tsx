@@ -1,5 +1,5 @@
+import { SectionHeader } from '../components/SectionHeader';
 import clsx from 'clsx';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import { FolderGit2, Key, Monitor, Cpu } from 'lucide-react';
 import type { Mode } from '../../core/types';
 
@@ -11,7 +11,7 @@ interface SettingsViewProps {
 
 function SettingsSection({ title, icon: Icon, children, description }: { title: string; icon?: React.ElementType; children: React.ReactNode; description?: string }) {
   return (
-    <section className="flex flex-col gap-5 rounded-3xl border border-border-subtle bg-bg-primary/50 p-6 shadow-sm">
+    <section className="flex flex-col gap-5 rounded-3xl border border-border-subtle bg-bg-primary p-6 shadow-sm">
       <div className="flex items-center gap-3">
         {Icon && <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-bg-secondary text-text-secondary"><Icon className="h-4 w-4" /></div>}
         <div className="flex flex-col">
@@ -28,7 +28,7 @@ function SettingsSection({ title, icon: Icon, children, description }: { title: 
 
 function ToggleRow({ label, description, checked }: { label: string; description?: string; checked: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-transparent hover:border-border-subtle bg-transparent hover:bg-bg-secondary/50 p-3 transition-colors">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-transparent hover:border-border-subtle bg-transparent hover:bg-bg-subtle p-3 transition-colors">
       <div className="flex flex-col gap-0.5">
         <span className="text-sm font-medium text-text-primary">{label}</span>
         {description && <span className="text-xs text-text-muted">{description}</span>}
@@ -56,7 +56,7 @@ function ToggleRow({ label, description, checked }: { label: string; description
 
 function InputRow({ label, value, type = 'text', masked = false }: { label: string; value: string; type?: string; masked?: boolean }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 rounded-xl border border-transparent hover:border-border-subtle bg-transparent hover:bg-bg-secondary/50 p-3 transition-colors">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 rounded-xl border border-transparent hover:border-border-subtle bg-transparent hover:bg-bg-subtle p-3 transition-colors">
       <span className="text-sm font-medium text-text-primary whitespace-nowrap">{label}</span>
       <input
         type={masked ? 'password' : type}
@@ -70,14 +70,16 @@ function InputRow({ label, value, type = 'text', masked = false }: { label: stri
 
 export function SettingsView(_props: SettingsViewProps) {
   return (
-    <div className="flex h-full min-h-0 flex-col bg-bg-secondary/20">
-      <SurfaceHeader
-        title="Settings"
-        category='Configure'
-      />
+    <div className="flex h-full min-h-0 flex-col bg-bg-secondary">
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-10 shadow-inner">
         <div className="mx-auto flex max-w-4xl flex-col gap-8">
+          <SectionHeader
+  title={<>Settings</>}
+  description="Configure how Trace captures and indexes context."
+/>
+
 
           <SettingsSection icon={FolderGit2} title="Scan Roots" description="Directories where Trace attempts to automatically discover and index repositories. Search depth is limited to 3 levels.">
             <div className="flex flex-col gap-2">
@@ -89,7 +91,7 @@ export function SettingsView(_props: SettingsViewProps) {
                 <span className="text-sm font-mono text-text-secondary">~/Documents/Projects/</span>
                 <span className="rounded-md bg-accent-amber-bg/50 px-2 py-0.5 text-[0.6875rem] font-medium text-accent-amber border border-accent-amber/20">SCANNING</span>
               </div>
-              <button type="button" className="mt-4 self-start rounded-lg border border-border-strong bg-bg-secondary px-4 py-2 text-sm font-medium text-text-primary shadow-xs transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:bg-bg-tertiary">
+              <button type="button" className="mt-4 self-start rounded-lg border border-border-strong bg-bg-secondary px-4 py-2 text-sm font-medium text-text-primary shadow-xs transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:bg-bg-tertiary">
                 Add Directory...
               </button>
             </div>
@@ -97,26 +99,26 @@ export function SettingsView(_props: SettingsViewProps) {
 
           <SettingsSection icon={Key} title="AI Providers" description="Configure generative models and private API keys.">
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-              <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary/50 p-2">
+              <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary p-2">
                 <ToggleRow label="OpenAI (Codex)" checked={true} />
                 <InputRow label="API Key" value="sk-proj-**********************" masked={true} />
               </div>
-              <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary/50 p-2">
+              <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary p-2">
                 <ToggleRow label="Anthropic (Claude)" checked={true} />
                 <InputRow label="API Key" value="sk-ant-api03-*****************" masked={true} />
               </div>
-              <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary/50 p-2 md:col-span-2">
+              <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary p-2 md:col-span-2">
                 <ToggleRow label="Google (Gemini)" checked={false} description="Gemini 1.5 Pro support is currently in beta." />
               </div>
             </div>
           </SettingsSection>
 
           <SettingsSection icon={Monitor} title="General" description="Global application preferences and lifecycle management.">
-            <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary/50 p-2">
+            <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary p-2">
               <ToggleRow label="Launch at login" checked={true} description="Start Trace silently in the menu bar." />
               <ToggleRow label="Check for updates automatically" checked={true} />
               <div className="mt-2 p-3 border-t border-border-subtle/50">
-                <button type="button" className="rounded-lg border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:bg-bg-secondary hover:text-text-primary">
+                <button type="button" className="rounded-lg border border-border-light bg-bg-primary px-4 py-2 text-sm font-medium text-text-secondary transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:bg-bg-secondary hover:text-text-primary">
                   Export Debug Logs
                 </button>
               </div>
@@ -124,7 +126,7 @@ export function SettingsView(_props: SettingsViewProps) {
           </SettingsSection>
 
           <SettingsSection icon={Cpu} title="Agents" description="Manage access and awareness of local agent frameworks.">
-             <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary/50 p-2">
+             <div className="flex flex-col gap-1 rounded-2xl border border-border-subtle bg-bg-primary p-2">
               <ToggleRow label="Claude Code integrations" description="Allow Trace to index and learn from Claude Code sessions." checked={true} />
               <ToggleRow label="Codex local automation" description="Enable deep context-sharing with the Codex workstation." checked={true} />
             </div>

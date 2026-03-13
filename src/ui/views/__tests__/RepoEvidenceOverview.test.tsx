@@ -81,7 +81,7 @@ describe('RepoEvidenceOverview', () => {
   it('renders evidence-first summary metrics', () => {
     render(<RepoEvidenceOverview model={createModel()} />);
 
-    expect(screen.getByText('Verify feature/evidence-shell through commits, files, sessions, and checkpoints.')).toBeInTheDocument();
+    expect(screen.getByText('Verify feature/evidence-shell through commits, files, sessions, and snapshots.')).toBeInTheDocument();
     expect(screen.getByText('Workspace continues below')).toBeInTheDocument();
     expect(screen.getByText('Claim support')).toBeInTheDocument();
     expect(screen.getByText('2 links')).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe('RepoEvidenceOverview', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /review trust posture/i }));
     fireEvent.click(screen.getByRole('button', { name: /resolve session joins/i }));
-    fireEvent.click(screen.getByRole('button', { name: /compare checkpoints/i }));
+    fireEvent.click(screen.getByRole('button', { name: /compare snapshots/i }));
 
     expect(onModeChange).toHaveBeenNthCalledWith(1, 'status');
     expect(onModeChange).toHaveBeenNthCalledWith(2, 'sessions');

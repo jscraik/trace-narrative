@@ -8,7 +8,9 @@ import type { RepoState } from '../../hooks/useRepoLoader';
 import { ActivityBarChart, MiniBarChart, type ChartTone } from '../components/charts';
 import { BottomStats } from '../components/dashboard/BottomStats';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { SignalStrip, type BriefSignal, TONE_BADGE, compactNumber, buildTrendLabel } from '../components/dashboard/SignalStrip';
 import { TopFilesTable } from '../components/dashboard/TopFilesTable';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -28,96 +30,6 @@ interface DashboardMainContentProps {
   onModeChange: (mode: 'repo' | 'hygiene' | 'status' | 'sessions') => void;
   onFileClick: (filter: DashboardFilter) => void;
   onLoadMore: () => void;
-}
-
-type BriefTone = 'blue' | 'green' | 'amber' | 'violet';
-
-type BriefSignal = {
-  label: string;
-  value: string;
-  tone: BriefTone;
-  detail: string;
-};
-
-// ─── Tone maps ───────────────────────────────────────────────────────────────
-
-const TONE_DOT: Record<BriefTone, string> = {
-  blue:   'bg-accent-blue',
-  green:  'bg-accent-green',
-  amber:  'bg-accent-amber',
-  violet: 'bg-accent-violet',
-};
-
-const TONE_VALUE: Record<BriefTone, string> = {
-  blue:   'text-accent-blue',
-  green:  'text-accent-green',
-  amber:  'text-accent-amber',
-  violet: 'text-accent-violet',
-};
-
-const TONE_BADGE: Record<BriefTone, string> = {
-  blue:   'border-accent-blue-light bg-accent-blue/10 text-accent-blue',
-  green:  'border-accent-green-light bg-accent-green-bg text-accent-green',
-  amber:  'border-accent-amber-light bg-accent-amber-bg text-accent-amber',
-  violet: 'border-accent-violet-light bg-accent-violet/10 text-accent-violet',
-};
-
-// Map BriefTone to ChartTone for MiniBarChart
-const _TONE_TO_CHART: Record<BriefTone, ChartTone> = {
-  blue:   'blue',
-  green:  'green',
-  amber:  'amber',
-  violet: 'violet',
-};
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function compactNumber(value: number): string {
-  return new Intl.NumberFormat('en-GB', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
-}
-
-function buildTrendLabel(value: number, previous?: number): string {
-  if (previous === undefined) return 'No prior window';
-  const delta = value - previous;
-  if (delta === 0) return 'Flat vs previous window';
-  return `${delta > 0 ? '+' : ''}${delta.toLocaleString()} vs previous window`;
-}
-
-// ─── SignalStrip (local compact KPI row) ──────────────────────────────────────
-// Replaces the 4-column large-value card grid.
-// Renders each signal as a h-12 horizontal tile with coloured value + dot.
-
-function SignalStrip({ signals }: { signals: BriefSignal[] }) {
-  return (
-    <ul
-      className="glass-panel flex flex-wrap divide-x divide-border-subtle overflow-hidden rounded-2xl"
-      aria-label="Dashboard key metrics"
-    >
-      {signals.map((s) => (
-        <li
-          key={s.label}
-          title={s.detail}
-          className="flex min-w-32 flex-1 items-center gap-3 px-4 py-3"
-        >
-          <span className={`h-2 w-2 shrink-0 rounded-full ${TONE_DOT[s.tone]}`} aria-hidden="true" />
-          <div className="min-w-0 flex-1">
-            <div className={`text-base font-semibold leading-tight tracking-tight ${TONE_VALUE[s.tone]}`}>
-              {s.value}
-            </div>
-            <div className="truncate text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-text-muted">
-              {s.label}
-            </div>
-          </div>
-          {/* Tone badge — carries the amber/watch signal visually */}
-          {s.tone === 'amber' && (
-            <span className={`inline-flex rounded-full border px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-[0.14em] ${TONE_BADGE.amber}`}>
-              watch
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -261,7 +173,7 @@ export function DashboardMainContent({
           <section className="grid gap-4 xl:grid-cols-[0.75fr_1.25fr]">
 
             {/* Brief — tight header only, no large prose block */}
-            <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary/90 p-4 shadow-card">
+            <article className="rounded-3xl border border-border-subtle bg-bg-subtle p-4 shadow-card">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-border-light bg-bg-primary px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
                   Narrative Brief
@@ -284,7 +196,7 @@ export function DashboardMainContent({
 
               {/* Tight pressure summary — replaces the separate pressure-watch section on small screens */}
               <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary/80 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-3 py-2 text-sm">
                   <CircleDot className="h-3.5 w-3.5 shrink-0 text-accent-blue" />
                   <span className="truncate font-medium text-text-primary">
                     {linkedFile ? linkedFile.filePath : 'No evidence file yet'}
@@ -295,7 +207,7 @@ export function DashboardMainContent({
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary/80 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-3 py-2 text-sm">
                   <AlertTriangle className={`h-3.5 w-3.5 shrink-0 ${trustIsHealthy ? 'text-accent-green' : 'text-accent-amber'}`} />
                   <span className="truncate text-text-secondary">
                     {trustIsHealthy ? 'Trust is healthy — proceed to repo' : 'Trust gate active — resolve before handoff'}
@@ -306,14 +218,14 @@ export function DashboardMainContent({
 
             {/* Activity chart — replaces the hand-rolled SparkStrip */}
             <article
-              className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-4"
+              className="rounded-3xl border border-border-subtle bg-bg-subtle p-4"
               data-panel-status={panelStatusMap.metrics}
             >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <Eyebrow>
                     Change pulse
-                  </p>
+                  </Eyebrow>
                   <h3 className="mt-0.5 text-sm font-semibold text-text-primary">
                     Commits per day · last {activityData.length} days
                   </h3>
@@ -341,12 +253,12 @@ export function DashboardMainContent({
 
             {/* Tool distribution — new MiniBarChart */}
             {toolChartData.length > 0 ? (
-              <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-4">
+              <article className="rounded-3xl border border-border-subtle bg-bg-subtle p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                    <Eyebrow>
                       Tool distribution
-                    </p>
+                    </Eyebrow>
                     <h3 className="mt-0.5 text-sm font-semibold text-text-primary">
                       Line attribution by tool · top {toolChartData.length}
                     </h3>
@@ -364,18 +276,18 @@ export function DashboardMainContent({
               </article>
             ) : (
               /* Empty tool state — shown when no tool breakdown data */
-              <article className="flex items-center justify-center rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-4">
+              <article className="flex items-center justify-center rounded-3xl border border-border-subtle bg-bg-subtle p-4">
                 <p className="text-sm text-text-muted">No tool data in this window</p>
               </article>
             )}
 
             {/* Next lanes */}
-            <article className="rounded-[1.5rem] border border-border-subtle bg-bg-secondary/80 p-4">
+            <article className="rounded-2xl border border-border-subtle bg-bg-subtle p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <Eyebrow>
                     Next lanes
-                  </p>
+                  </Eyebrow>
                   <h3 className="mt-1 text-base font-semibold text-text-primary">Keep Codex asks inside proof</h3>
                 </div>
                 <button
@@ -394,7 +306,7 @@ export function DashboardMainContent({
                     type="button"
                     onClick={lane.action}
                     whileTap={shouldReduceMotion ? { opacity: 0.8 } : { scale: 0.98 }}
-                    className="flex w-full items-start gap-3 rounded-[1.1rem] border border-border-light bg-bg-primary/80 p-3 text-left transition hover:-translate-y-0.5 hover:border-accent-blue-light hover:bg-bg-primary"
+                    className="flex w-full items-start gap-3 rounded-xl border border-border-light bg-bg-primary p-3 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.98] active:duration-75 hover:border-accent-blue-light hover:bg-bg-primary"
                   >
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-bg-secondary text-accent-blue">
                       <lane.icon className="h-3.5 w-3.5" />
@@ -416,12 +328,12 @@ export function DashboardMainContent({
           <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
 
             {/* Pressure watch */}
-            <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+            <article className="rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <Eyebrow>
                     Pressure watch
-                  </p>
+                  </Eyebrow>
                   <h3 className="mt-1 text-base font-semibold text-text-primary">
                     Lanes that need operator attention
                   </h3>
@@ -432,7 +344,7 @@ export function DashboardMainContent({
               </div>
 
               <div className="mt-4 grid gap-3">
-                <article className="group rounded-[1.25rem] border border-border-light bg-bg-primary/80 p-4 transition-colors hover:border-accent-blue-light/50 hover:bg-bg-primary">
+                <article className="group rounded-xl border border-border-light bg-bg-primary p-4 transition-all duration-200 ease-out active:scale-[0.98] active:duration-75 hover:border-accent-blue-light/50 hover:bg-bg-primary">
                   <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
                     <CircleDot className="h-4 w-4 text-accent-blue" />
                     Evidence concentration
@@ -444,7 +356,7 @@ export function DashboardMainContent({
                   </p>
                 </article>
 
-                <article className="group rounded-[1.25rem] border border-border-light bg-bg-primary/80 p-4 transition-colors hover:border-accent-blue-light/50 hover:bg-bg-primary">
+                <article className="group rounded-xl border border-border-light bg-bg-primary p-4 transition-all duration-200 ease-out active:scale-[0.98] active:duration-75 hover:border-accent-blue-light/50 hover:bg-bg-primary">
                   <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
                     <AlertTriangle className={`h-4 w-4 ${trustIsHealthy ? 'text-accent-green' : 'text-accent-amber'}`} />
                     Trust posture
@@ -456,7 +368,7 @@ export function DashboardMainContent({
                   </p>
                 </article>
 
-                <article className="group rounded-[1.25rem] border border-border-light bg-bg-primary/80 p-4 transition-colors hover:border-accent-blue-light/50 hover:bg-bg-primary">
+                <article className="group rounded-xl border border-border-light bg-bg-primary p-4 transition-all duration-200 ease-out active:scale-[0.98] active:duration-75 hover:border-accent-blue-light/50 hover:bg-bg-primary">
                   <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
                     <FileCode2 className="h-4 w-4 text-accent-violet" />
                     Second file to inspect

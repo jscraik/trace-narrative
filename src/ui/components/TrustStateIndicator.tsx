@@ -11,7 +11,7 @@
  * - trust_paused: Trust paused due to divergence, auth drift, or error
  *
  * Recovery affordances for trust_paused:
- * - Retry hydrate from fresh checkpoint
+ * - Retry hydrate from fresh snapshot
  * - Clear stale state (requires privileged authorization)
  * - View blocking reason detail
  */

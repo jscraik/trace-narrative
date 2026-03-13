@@ -81,7 +81,7 @@ export function UpdatePrompt({ status, onUpdate, onClose, onDismiss, onCheckAgai
                   <button
                     type="button"
                     onClick={onCheckAgain}
-                    className="inline-flex items-center gap-1 rounded-md border border-border-light bg-bg-tertiary px-2 py-1 text-xs font-medium text-text-secondary hover:bg-bg-hover transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
+                    className="inline-flex items-center gap-1 rounded-md border border-border-light bg-bg-tertiary px-2 py-1 text-xs font-medium text-text-secondary hover:bg-bg-hover transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Try Again
@@ -197,7 +197,7 @@ export function UpdatePrompt({ status, onUpdate, onClose, onDismiss, onCheckAgai
                 <button
                   type="button"
                   onClick={onUpdate}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-blue text-text-inverted text-xs font-medium hover:opacity-90 transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-1"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-blue text-text-inverted text-xs font-medium hover:opacity-90 transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-1"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Download & Install
@@ -206,7 +206,7 @@ export function UpdatePrompt({ status, onUpdate, onClose, onDismiss, onCheckAgai
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="px-3 py-1.5 rounded-lg border border-border-light text-text-secondary text-xs font-medium hover:bg-bg-tertiary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
+                    className="px-3 py-1.5 rounded-lg border border-border-light text-text-secondary text-xs font-medium hover:bg-bg-tertiary transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105"
                   >
                     Later
                   </button>

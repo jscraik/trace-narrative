@@ -1,5 +1,6 @@
+import { SectionHeader } from '../components/SectionHeader';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import clsx from 'clsx';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
@@ -35,7 +36,7 @@ export function RepoPulseView({
   onImportSession,
 }: RepoPulseViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('repo-pulse', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
 
   const mockCommitsByRepo = [
     { label: 'trace-narrative', value: 124, tone: 'amber' as const },
@@ -57,38 +58,37 @@ export function RepoPulseView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Workspace'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+            <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <h2 className="text-sm font-semibold text-text-primary">Commit Activity (30d)</h2>
               <div className="flex-1 mt-2 min-h-40">
                  <ActivityBarChart data={mockWeeklyActivity} />
               </div>
             </article>
 
-            <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+            <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <h2 className="text-sm font-semibold text-text-primary">Commits by Repo</h2>
               <MiniBarChart data={mockCommitsByRepo} />
             </article>
           </div>
 
-          <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+          <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
             <h2 className="text-sm font-semibold text-text-primary">Pull Requests</h2>
              <div className="flex flex-col divide-y divide-border-subtle border border-border-light rounded-xl bg-bg-primary">
                {mockPrList.map(pr => (
-                 <div key={pr.id} className="flex justify-between p-3 text-sm hover:bg-bg-secondary/50">
+                 <div key={pr.id} className="flex justify-between p-3 text-sm hover:bg-bg-subtle">
                    <div className="flex flex-col gap-1">
                      <span className="text-text-primary font-medium">{pr.title}</span>
                      <span className="text-text-muted text-xs">{pr.repo}</span>

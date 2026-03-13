@@ -1,6 +1,7 @@
+import { SectionHeader } from '../components/SectionHeader';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 
 
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
@@ -35,7 +36,7 @@ export function CostsView({
   onImportSession,
 }: CostsViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('costs', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
 
   const mockCostByModel = [
     { label: 'Claude 3.5 Sonnet', value: 45.30, tone: 'violet' as const },
@@ -51,26 +52,25 @@ export function CostsView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Evidence'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+            <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <h2 className="text-sm font-semibold text-text-primary">Spend by Model</h2>
               <MiniBarChart data={mockCostByModel} />
             </article>
 
-            <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5 min-h-52">
+            <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5 min-h-52">
               <h2 className="text-sm font-semibold text-text-primary">Daily API Cost</h2>
               <div className="flex-1 mt-2">
                  <ActivityBarChart data={mockDailyCost} />

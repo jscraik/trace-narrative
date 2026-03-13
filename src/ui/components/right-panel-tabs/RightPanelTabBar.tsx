@@ -88,7 +88,7 @@ export function RightPanelTabBar({
                 className={`
                   min-w-0 flex-1 inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 border
                   text-[0.625rem] leading-4 font-medium whitespace-nowrap
-                  transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105
+                  transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105
                   ${isActive
                     ? TAB_ACTIVE_STYLES[tab.id]
                     : 'border-border-subtle bg-bg-primary text-text-secondary hover:bg-bg-secondary hover:border-border-light'}

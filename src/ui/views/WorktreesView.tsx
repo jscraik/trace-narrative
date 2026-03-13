@@ -1,5 +1,5 @@
+import { SectionHeader } from '../components/SectionHeader';
 import clsx from 'clsx';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import { GitBranch, FolderGit2, AlertCircle, CheckCircle2, GitCommit } from 'lucide-react';
 
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
@@ -10,6 +10,8 @@ import {
   type SurfaceAction,
 } from './narrativeSurfaceData';
 import { CompactKpiStrip } from './narrativeSurfaceSections';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 interface WorktreesViewProps {
   repoState: RepoState;
@@ -49,7 +51,7 @@ function WorktreeRow({ worktree }: { worktree: Worktree }) {
 
   return (
     <div className={clsx(
-      "flex items-center justify-between rounded-xl border border-transparent p-3 transition hover:border-border-subtle hover:bg-bg-primary/50",
+      "flex items-center justify-between rounded-xl border border-transparent p-3 transition hover:border-border-subtle hover:bg-bg-subtle",
       worktree.isDetachedHead && "opacity-75"
     )}>
       <div className="flex items-center gap-3">
@@ -111,23 +113,22 @@ export function WorktreesView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Workspace'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
-          <section className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+          <section className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Active Worktrees</p>
+                <Eyebrow>Active Worktrees</Eyebrow>
                 <h2 className="mt-1 text-xl font-semibold text-text-primary">{repoName}</h2>
               </div>
               <button 

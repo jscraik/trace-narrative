@@ -1,6 +1,7 @@
+import { SectionHeader } from '../components/SectionHeader';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 
 
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
@@ -35,7 +36,7 @@ export function ToolsView({
   onImportSession,
 }: ToolsViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('tools', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
 
   const mockToolData = [
     { label: 'Claude', value: 850, tone: 'violet' as const },
@@ -51,30 +52,29 @@ export function ToolsView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Evidence'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
           <div className="grid gap-6 md:grid-cols-2">
-            <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+            <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <h2 className="text-sm font-semibold text-text-primary">Tool Distribution</h2>
               <MiniBarChart data={mockToolData} />
             </article>
 
-            <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+            <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <h2 className="text-sm font-semibold text-text-primary">Error Prone Tools</h2>
                <div className="flex flex-col divide-y divide-border-subtle border border-border-light rounded-xl bg-bg-primary">
                  {errorProneTools.map(t => (
-                   <div key={t.name} className="flex justify-between p-3 text-sm hover:bg-bg-secondary/50">
+                   <div key={t.name} className="flex justify-between p-3 text-sm hover:bg-bg-subtle">
                      <span className="text-text-primary font-medium">{t.name}</span>
                      <div className="flex items-center gap-3">
                         <span className="text-text-muted">{t.count} errors</span>

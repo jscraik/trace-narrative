@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { ArrowUpRight } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 import type {
   NarrativeSurfaceViewModel,
@@ -127,9 +128,7 @@ export function MetricCard({ metric }: { metric: SurfaceMetric & SurfaceAuthorit
     >
       <div className="mb-3 flex items-center gap-2">
         <span className={clsx('h-2 w-2 rounded-full', tone.dot)} />
-        <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-          {metric.label}
-        </span>
+        <Eyebrow>{metric.label}</Eyebrow>
         <AuthorityCue authorityTier={metric.authorityTier} authorityLabel={metric.authorityLabel} />
       </div>
       <div className={clsx('text-3xl font-semibold tracking-tight', tone.text)}>{metric.value}</div>
@@ -258,7 +257,7 @@ export function ActivitySection({
             role={item.action ? 'button' : undefined}
             tabIndex={item.action ? 0 : undefined}
             className={clsx(
-              'group rounded-2xl border border-border-subtle bg-bg-primary/80 p-4 transition duration-200',
+              'group rounded-2xl border border-border-subtle bg-bg-primary p-4 transition duration-200',
               item.action && 'cursor-pointer hover:translate-x-1 hover:bg-bg-secondary hover:shadow-sm active:scale-[0.99]',
             )}
             data-authority-tier={item.authorityTier}

@@ -49,7 +49,7 @@ const SURFACE_MODES_TO_LABELS: Array<[Mode, string]> = [
   ['repo-pulse', 'Workspace Pulse'],
   ['work-graph', 'Story Map'],
   ['diffs', 'Diff Review'],
-  ['snapshots', 'Checkpoints'],
+  ['snapshots', 'Snapshots'],
   ['worktrees', 'Worktrees'],
   ['attribution', 'Attribution Lens'],
   ['skills', 'Codex Skills'],

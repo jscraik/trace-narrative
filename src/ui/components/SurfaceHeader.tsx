@@ -23,7 +23,7 @@ export function SurfaceHeader({
   children,
 }: SurfaceHeaderProps) {
   return (
-    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between border-b border-border-subtle bg-bg-secondary/80 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between border-b border-border-subtle bg-bg-subtle px-6 ">
       <div className="flex items-center gap-3">
         {/* Category badge */}
         <span className="rounded-full border border-border-light bg-bg-primary px-2.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-text-muted">

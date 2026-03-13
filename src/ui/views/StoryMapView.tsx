@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import { SurfaceHeader } from '../components/SurfaceHeader';
+import { Eyebrow } from '../components/typography/Eyebrow';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import {
   Network,
   Radar,
@@ -50,7 +51,7 @@ export function StoryMapView({
   onAction,
 }: StoryMapViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('work-graph', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
   const trustDescriptor = describeSurfaceTrust(captureReliabilityStatus);
   const nextMode = trustDescriptor.trustState === 'healthy' ? 'repo' : 'status';
   const nextLabel = trustDescriptor.trustState === 'healthy' ? 'Inspect repo evidence' : 'Inspect trust gate';
@@ -101,36 +102,35 @@ export function StoryMapView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category="Narrative"
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      >
-        <button
-          type="button"
-          onClick={() => onModeChange(nextMode)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition hover:brightness-110 active:scale-[0.98]"
-        >
-          <NextIcon className="h-3.5 w-3.5" />
-          {nextLabel}
-        </button>
-      </SurfaceHeader>
-
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-[100rem] flex-col gap-6">
-          <div className="mb-2">
-            <h2 className="text-xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h2>
-            <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-              Topology and prioritization view for pressure points, weak joins, and next inspection.
-            </p>
-          </div>
+          <header className="mb-8 flex flex-col gap-4 border-b border-border-subtle pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-semibold tracking-tight text-text-primary">
+                  {viewModel.title}
+                </h1>
+                <DashboardTrustBadge trustState={viewModel.trustState} />
+              </div>
+              <p className="max-w-xl text-sm leading-6 text-text-secondary">
+                Topology and prioritization view for pressure points, weak joins, and next inspection.
+              </p>
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => onModeChange(nextMode)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition-all duration-200 ease-out hover:brightness-110 active:scale-[0.98] active:duration-75"
+              >
+                <NextIcon className="h-3.5 w-3.5" />
+                {nextLabel}
+              </button>
+            </div>
+          </header>
           <section className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Topology lanes</p>
+                <Eyebrow>Topology lanes</Eyebrow>
                 <h2 className="mt-1 text-xl font-semibold text-text-primary">Narrative pressure map</h2>
               </div>
               <AuthorityCue authorityTier={viewModel.heroAuthorityTier} authorityLabel={viewModel.heroAuthorityLabel} />
@@ -140,7 +140,7 @@ export function StoryMapView({
               {topologyLanes.map((lane) => (
                 <article key={lane.label} className="rounded-[1.25rem] border border-border-light bg-bg-primary/80 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">{lane.label}</p>
+                    <Eyebrow>{lane.label}</Eyebrow>
                     <span className={`inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.14em] ${toneClasses[lane.tone]}`}>
                       lane
                     </span>
@@ -175,7 +175,7 @@ export function StoryMapView({
             <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Priority queue</p>
+                  <Eyebrow>Priority queue</Eyebrow>
                   <h2 className="mt-1 text-xl font-semibold text-text-primary">What should move first</h2>
                 </div>
                 <Radar className="h-4 w-4 text-text-muted" />
@@ -206,7 +206,7 @@ export function StoryMapView({
             <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Movement log</p>
+                  <Eyebrow>Movement log</Eyebrow>
                   <h2 className="mt-1 text-xl font-semibold text-text-primary">Recent shifts across the map</h2>
                 </div>
                 <Network className="h-4 w-4 text-text-muted" />
@@ -233,7 +233,7 @@ export function StoryMapView({
             </article>
           </section>
 
-          {viewModel.provenance ? <ProvenanceSection provenance={viewModel.provenance} onAction={onAction} /> : null}
+          {viewModel.provenance ? <ProvenanceSection provenance={viewModel.provenance!} onAction={onAction} /> : null}
         </div>
       </main>
     </div>

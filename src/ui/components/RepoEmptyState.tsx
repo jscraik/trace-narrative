@@ -34,7 +34,7 @@ export function RepoEmptyState({
         <button
           type="button"
           onClick={handleLoadMock}
-          className="absolute bottom-4 right-4 text-xs text-text-muted hover:text-text-primary opacity-0 group-hover:opacity-100 transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
+          className="absolute bottom-4 right-4 text-xs text-text-muted hover:text-text-primary opacity-0 group-hover:opacity-100 transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105"
         >
           [dev] Load Mock Data
         </button>

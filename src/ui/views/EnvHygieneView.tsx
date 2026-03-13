@@ -1,5 +1,5 @@
+import { SectionHeader } from '../components/SectionHeader';
 import clsx from 'clsx';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import { AlertTriangle, ShieldAlert, FileKey2, EyeOff, Eye, ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -11,6 +11,8 @@ import {
   type SurfaceAction,
 } from './narrativeSurfaceData';
 import { CompactKpiStrip } from './narrativeSurfaceSections';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 interface EnvHygieneViewProps {
   repoState: RepoState;
@@ -47,7 +49,7 @@ function HygieneIssueRow({ issue }: { issue: HygieneIssue }) {
     : 'bg-accent-amber-bg text-accent-amber border-accent-amber-light';
   
   return (
-    <div className="flex items-center justify-between rounded-xl border border-transparent p-3 transition hover:border-border-subtle hover:bg-bg-primary/50 text-left w-full group">
+    <div className="flex items-center justify-between rounded-xl border border-transparent p-3 transition hover:border-border-subtle hover:bg-bg-subtle text-left w-full group">
       <div className="flex items-center gap-3 w-full">
         <div className={clsx("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border", colors)}>
           <Icon className="h-4 w-4" />
@@ -63,7 +65,7 @@ function HygieneIssueRow({ issue }: { issue: HygieneIssue }) {
             </span>
           </div>
         </div>
-        <button type="button" className="shrink-0 text-xs px-2 py-1 bg-bg-primary rounded border border-border-light hover:border-border-strong text-text-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98]">
+        <button type="button" className="shrink-0 text-xs px-2 py-1 bg-bg-primary rounded border border-border-light hover:border-border-strong text-text-secondary transition duration-200 ease-out active:duration-75 active:scale-[0.98]">
           Review
         </button>
       </div>
@@ -79,11 +81,11 @@ interface EnvRepo {
 
 function EnvRepoGroup({ repo, onToggle }: { repo: EnvRepo, onToggle: () => void }) {
   return (
-    <div className="flex flex-col border border-border-light rounded-2xl overflow-hidden bg-bg-primary/40">
+    <div className="flex flex-col border border-border-light rounded-2xl overflow-hidden bg-bg-primary">
       <button 
         type="button"
         onClick={onToggle}
-        className="flex items-center justify-between p-3 bg-bg-secondary/40 hover:bg-bg-secondary/80 transition"
+        className="flex items-center justify-between p-3 bg-bg-secondary hover:bg-bg-subtle transition"
       >
         <div className="flex items-center gap-2">
           {repo.expanded ? <ChevronDown className="h-4 w-4 text-text-muted" /> : <ChevronRight className="h-4 w-4 text-text-muted" />}
@@ -95,7 +97,7 @@ function EnvRepoGroup({ repo, onToggle }: { repo: EnvRepo, onToggle: () => void 
       {repo.expanded && (
         <div className="flex flex-col p-2 border-t border-border-light divide-y divide-border-subtle">
           {repo.files.map((file) => (
-             <div key={file.name} className="flex items-center justify-between p-2 pl-8 hover:bg-bg-secondary/40 rounded-lg">
+             <div key={file.name} className="flex items-center justify-between p-2 pl-8 hover:bg-bg-subtle rounded-lg">
                 <div className="flex items-center gap-3">
                   <FileKey2 className="h-4 w-4 text-text-secondary" />
                   <span className="text-sm font-mono text-text-secondary">{file.name}</span>
@@ -165,24 +167,23 @@ export function EnvHygieneView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Health'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
           <div className="grid gap-6 xl:grid-cols-2">
-             <section className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+             <section className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <div className="flex items-start justify-between gap-4 border-b border-border-light pb-4">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Security & Standards</p>
+                  <Eyebrow>Security & Standards</Eyebrow>
                   <h2 className="mt-1 text-xl font-semibold text-text-primary flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-accent-amber" />
                     Issues
@@ -203,10 +204,10 @@ export function EnvHygieneView({
               </div>
             </section>
 
-             <section className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+             <section className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <div className="flex items-start justify-between gap-4 border-b border-border-light pb-4">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Secret Management</p>
+                  <Eyebrow>Secret Management</Eyebrow>
                   <h2 className="mt-1 text-xl font-semibold text-text-primary flex items-center gap-2">
                     <FileKey2 className="h-5 w-5 text-text-secondary" />
                     Env Files

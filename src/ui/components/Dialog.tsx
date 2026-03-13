@@ -74,7 +74,7 @@ export function Dialog({
               <button
                 type="button"
                 className={clsx(
-                  'rounded-md px-3 py-1.5 text-sm transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98]',
+                  'rounded-md px-3 py-1.5 text-sm transition duration-200 ease-out active:duration-75 active:scale-[0.98]',
                   'bg-bg-tertiary text-text-secondary hover:bg-bg-hover border border-border-light'
                 )}
               >
@@ -85,7 +85,7 @@ export function Dialog({
               <button
                 type="button"
                 className={clsx(
-                  'rounded-md px-3 py-1.5 text-sm transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98]',
+                  'rounded-md px-3 py-1.5 text-sm transition duration-200 ease-out active:duration-75 active:scale-[0.98]',
                   isDestructive
                     ? 'bg-accent-red-bg text-accent-red hover:bg-accent-red-light border border-accent-red-light'
                     : 'bg-surface-strong text-text-inverted hover:bg-surface-strong-hover'

@@ -1,5 +1,5 @@
+import { SectionHeader } from '../components/SectionHeader';
 import clsx from 'clsx';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import {
   Bot,
   MessageSquare,
@@ -13,6 +13,8 @@ import type { Mode, SessionExcerpt } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
 import { buildNarrativeSurfaceViewModel, type SurfaceAction } from './narrativeSurfaceData';
 import { CompactKpiStrip } from './narrativeSurfaceSections';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 interface SessionsViewProps {
   repoState: RepoState;
@@ -60,7 +62,7 @@ function WhenYouWorkChart() {
   const hours = Array.from({length: 12}, (_, i) => i * 2); // 0, 2, 4 ... 22
   
   return (
-    <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+    <div className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-text-secondary" />
@@ -121,7 +123,7 @@ export function SessionsView({
   onImportSession,
 }: SessionsViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('sessions', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
 
   const sessionsToUse = repoState.status === 'ready' && repoState.model.sessionExcerpts && repoState.model.sessionExcerpts.length > 0
     ? repoState.model.sessionExcerpts.slice(0, 5) as unknown as (SessionExcerpt & { linkConfidence: number })[]
@@ -129,17 +131,16 @@ export function SessionsView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Evidence'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
           <section className="grid gap-6 xl:grid-cols-2">
@@ -155,15 +156,15 @@ export function SessionsView({
               </div>
               <div className="flex flex-col gap-2 mt-4 text-sm text-text-secondary pr-4 pb-2">
                 <p>Confidence is high due to reliable commit attribution matching agent trace messages.</p>
-                <button type="button" className="text-accent-blue hover:underline self-start font-medium mt-1 transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98]">Review weak joins →</button>
+                <button type="button" className="text-accent-blue hover:underline self-start font-medium mt-1 transition duration-200 ease-out active:duration-75 active:scale-[0.98]">Review weak joins →</button>
               </div>
             </ArticleSection>
           </section>
 
-          <section className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+          <section className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
             <div className="flex items-start justify-between gap-4 border-b border-border-light pb-4">
               <div>
-                <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Review Window</p>
+                <Eyebrow>Review Window</Eyebrow>
                 <h2 className="mt-1 text-xl font-semibold text-text-primary">Recent Sessions</h2>
               </div>
               {repoState.status !== 'ready' && (
@@ -177,7 +178,7 @@ export function SessionsView({
               {sessionsToUse.map((session, i) => {
                 const conf = formatLinkConfidence(session.linkConfidence ?? (Math.random() * 0.5 + 0.5));
                 return (
-                  <div key={session.id || i} className="flex items-center justify-between rounded-xl border border-transparent p-3 hover:border-border-subtle hover:bg-bg-primary/50 transition cursor-pointer group">
+                  <div key={session.id || i} className="flex items-center justify-between rounded-xl border border-transparent p-3 hover:border-border-subtle hover:bg-bg-subtle transition cursor-pointer group">
                     <div className="flex items-center gap-3 truncate min-w-0 pr-4">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border-light bg-bg-primary text-text-secondary">
                         <Bot className="h-4 w-4" />
@@ -201,7 +202,7 @@ export function SessionsView({
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
                       <span className="text-xs text-text-muted whitespace-nowrap">{formatTimeAgo(session.importedAtISO)}</span>
-                      <button type="button" className="text-sm border border-border-light rounded-lg px-3 py-1 bg-bg-primary text-text-secondary hover:text-text-primary hover:border-border-strong group-hover:bg-bg-secondary hidden sm:block transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98]">
+                      <button type="button" className="text-sm border border-border-light rounded-lg px-3 py-1 bg-bg-primary text-text-secondary hover:text-text-primary hover:border-border-strong group-hover:bg-bg-secondary hidden sm:block transition duration-200 ease-out active:duration-75 active:scale-[0.98]">
                         Inspect
                       </button>
                     </div>
@@ -222,7 +223,7 @@ export function SessionsView({
 
 function ArticleSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+    <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
       <h2 className="text-sm font-semibold text-text-primary">{title}</h2>
       {children}
     </article>

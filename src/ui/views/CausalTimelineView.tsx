@@ -1,4 +1,7 @@
+import { SectionHeader } from '../components/SectionHeader';
 import clsx from 'clsx';
+import { Eyebrow } from '../components/typography/Eyebrow';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import {
   GitCommitHorizontal,
   Milestone,
@@ -8,9 +11,10 @@ import {
 } from 'lucide-react';
 
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
-import type { Mode } from '../../core/types';
+import type {
+  Mode,
+} from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import { buildNarrativeSurfaceViewModel, type SurfaceAction } from './narrativeSurfaceData';
 import { describeSurfaceTrust } from './dashboardState';
 import { ProvenanceSection } from './narrativeSurfaceProvenance';
@@ -42,7 +46,7 @@ export function CausalTimelineView({
   onAction,
 }: CausalTimelineViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('timeline', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
   const trustDescriptor = describeSurfaceTrust(captureReliabilityStatus);
   const nextMode = trustDescriptor.trustState === 'healthy' ? 'repo' : 'status';
   const nextLabel = trustDescriptor.trustState === 'healthy' ? 'Inspect repo evidence' : 'Inspect trust center';
@@ -53,32 +57,21 @@ export function CausalTimelineView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category="Evidence"
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      >
-        <button
-          type="button"
-          onClick={() => onModeChange(nextMode)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition hover:brightness-110 active:scale-[0.98]"
-        >
-          <NextIcon className="h-3.5 w-3.5" />
-          {nextLabel}
-        </button>
-      </SurfaceHeader>
-
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-[100rem] flex-col gap-5">
-          <div className="mb-1">
-            <h2 className="text-2xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h2>
-            <p className="mt-2 text-sm leading-6 text-text-secondary max-w-3xl">
-              Causal Timeline earns its place when the chronology dominates the page and the review gates sit alongside it instead of competing with it.
-            </p>
-          </div>
+          <SectionHeader
+  title={viewModel.title}
+  description="Causal Timeline earns its place when the chronology dominates the page and the review gates sit alongside it instead of competing with it."
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+  action={<button
+                type="button"
+                onClick={() => onModeChange(nextMode)}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition-all duration-200 ease-out hover:brightness-110 active:scale-[0.98] active:duration-75"
+              >
+                <NextIcon className="h-3.5 w-3.5" />
+                {nextLabel}
+              </button>}
+/>
           <section className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
             <article
               className="rounded-[1.6rem] border border-border-subtle bg-bg-secondary/80 p-4"
@@ -87,7 +80,7 @@ export function CausalTimelineView({
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Timeline spine</p>
+                  <Eyebrow>Timeline spine</Eyebrow>
                   <h2 className="mt-1 text-lg font-semibold text-text-primary">Ordered commit and milestone sequence</h2>
                 </div>
                 <AuthorityCue authorityTier={viewModel.heroAuthorityTier} authorityLabel={viewModel.heroAuthorityLabel} />
@@ -119,7 +112,7 @@ export function CausalTimelineView({
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                               <div className="flex items-center gap-2">
-                                <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Step {index + 1}</p>
+                                <Eyebrow>Step {index + 1}</Eyebrow>
                                 <span className={clsx('inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.14em]', {
                                   'border-accent-green-light bg-accent-green-bg text-accent-green': stateTone === 'green',
                                   'border-accent-blue-light bg-accent-blue/10 text-accent-blue': stateTone === 'blue',
@@ -155,7 +148,7 @@ export function CausalTimelineView({
               <article className="rounded-[1.6rem] border border-border-subtle bg-bg-secondary/80 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Review gates</p>
+                    <Eyebrow>Review gates</Eyebrow>
                     <h2 className="mt-1 text-lg font-semibold text-text-primary">What makes the sequence safe to repeat</h2>
                   </div>
                   <Waypoints className="h-4 w-4 text-text-muted" />
@@ -172,7 +165,7 @@ export function CausalTimelineView({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">{highlight.eyebrow}</p>
+                          <Eyebrow>{highlight.eyebrow}</Eyebrow>
                           <p className="mt-2 text-sm font-semibold text-text-primary">{highlight.title}</p>
                         </div>
                         <AuthorityCue authorityTier={highlight.authorityTier} authorityLabel={highlight.authorityLabel} />
@@ -186,7 +179,7 @@ export function CausalTimelineView({
               <article className="rounded-[1.6rem] border border-border-subtle bg-bg-secondary/80 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Confidence ledger</p>
+                    <Eyebrow>Confidence ledger</Eyebrow>
                     <h2 className="mt-1 text-lg font-semibold text-text-primary">Session joins and trust posture</h2>
                   </div>
                   <AuthorityCue authorityTier={viewModel.metrics[0]?.authorityTier ?? viewModel.heroAuthorityTier} authorityLabel={viewModel.metrics[0]?.authorityLabel ?? viewModel.heroAuthorityLabel} />
@@ -201,7 +194,7 @@ export function CausalTimelineView({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">{metric.label}</p>
+                          <Eyebrow>{metric.label}</Eyebrow>
                           <p className="mt-1.5 text-base font-semibold text-text-primary">{metric.value}</p>
                         </div>
                         <AuthorityCue authorityTier={metric.authorityTier} authorityLabel={metric.authorityLabel} />

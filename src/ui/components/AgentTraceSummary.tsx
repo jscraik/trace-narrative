@@ -145,7 +145,7 @@ export function AgentTraceSummary(props: AgentTraceSummaryProps) {
       ) : null}
 
       {!summary ? (
-        <div className="mt-5 rounded-xl border border-dashed border-border-light bg-bg-tertiary/50 px-5 py-6">
+        <div className="mt-5 rounded-xl border border-dashed border-border-light bg-bg-tertiary px-5 py-6">
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 rounded-full bg-bg-primary flex items-center justify-center mb-3">
               <Activity className="w-5 h-5 text-text-muted" />

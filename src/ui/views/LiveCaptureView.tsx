@@ -1,4 +1,7 @@
+import { SectionHeader } from '../components/SectionHeader';
 import clsx from 'clsx';
+import { Eyebrow } from '../components/typography/Eyebrow';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -11,7 +14,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import {
   buildNarrativeSurfaceViewModel,
   type SurfaceAction,
@@ -61,7 +63,7 @@ export function LiveCaptureView({
   onAction,
 }: LiveCaptureViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('live', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
   const trustDescriptor = describeSurfaceTrust(captureReliabilityStatus);
   const captureModeMetric = viewModel.metrics.find((metric) => metric.label === 'Capture mode') ?? viewModel.metrics[0];
   const activeSessionsMetric = viewModel.metrics.find((metric) => metric.label === 'Active sessions') ?? viewModel.metrics[0];
@@ -71,30 +73,21 @@ export function LiveCaptureView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category="Evidence"
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      >
-        <button
-          type="button"
-          onClick={() => onModeChange(nextMode)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition hover:brightness-110 active:scale-[0.98]"
-        >
-          <NextIcon className="h-3.5 w-3.5" />
-          {nextLabel}
-        </button>
-      </SurfaceHeader>
-
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
-          <div className="mb-2">
-            <h2 className="text-2xl font-semibold tracking-tight text-text-primary">{viewModel.title}</h2>
-            <p className="mt-2 text-sm leading-6 text-text-secondary max-w-3xl">{viewModel.subtitle}</p>
-          </div>
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={trustDescriptor.trustState} />}
+  action={<button
+                type="button"
+                onClick={() => onModeChange(nextMode)}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition-all duration-200 ease-out hover:brightness-110 active:scale-[0.98] active:duration-75"
+              >
+                <NextIcon className="h-3.5 w-3.5" />
+                {nextLabel}
+              </button>}
+/>
 
           <div className="rounded-[1.6rem] border border-border-subtle bg-bg-primary/70 p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -316,9 +309,9 @@ export function LiveCaptureView({
 
               <div className="mt-5 space-y-4">
                 <div className="rounded-2xl border border-border-light bg-bg-primary/80 p-4">
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <Eyebrow>
                     Reliability state
-                  </p>
+                  </Eyebrow>
                   <p className="mt-2 text-lg font-semibold text-text-primary">{trustDescriptor.trustLabel}</p>
                   <p className="mt-2 text-sm leading-6 text-text-secondary">
                     Mode: {trustDescriptor.reliabilityMode}. Treat live output as guidance until the supporting lane is
@@ -327,9 +320,9 @@ export function LiveCaptureView({
                 </div>
 
                 <div className="rounded-2xl border border-border-light bg-bg-primary/80 p-4">
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <Eyebrow>
                     Import lane
-                  </p>
+                  </Eyebrow>
                   <p className="mt-2 text-lg font-semibold text-text-primary">
                     {autoIngestEnabled ? 'Auto-ingest active' : 'Manual import only'}
                   </p>
@@ -341,9 +334,9 @@ export function LiveCaptureView({
                 </div>
 
                 <div className="rounded-2xl border border-border-light bg-bg-primary/80 p-4">
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <Eyebrow>
                     Recommended next lane
-                  </p>
+                  </Eyebrow>
                   <p className="mt-2 text-lg font-semibold text-text-primary">
                     {trustDescriptor.trustState === 'healthy' ? 'Repo Evidence' : 'Trust Center'}
                   </p>

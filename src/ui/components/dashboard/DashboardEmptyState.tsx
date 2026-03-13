@@ -107,7 +107,7 @@ export function DashboardEmptyState({ reason, onOpenRepo }: DashboardEmptyStateP
           <div className="mx-auto flex h-full max-w-[100rem] flex-col gap-5 overflow-hidden px-6 py-5">
             {/* Row 1 */}
             <section className="grid gap-4 xl:grid-cols-[0.75fr_1.25fr]">
-              <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary p-4">
+              <article className="rounded-3xl border border-border-subtle bg-bg-secondary p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-border-light bg-bg-primary px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em]">
                     Narrative Brief
@@ -134,7 +134,7 @@ export function DashboardEmptyState({ reason, onOpenRepo }: DashboardEmptyStateP
                 </div>
               </article>
 
-              <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary p-4">
+              <article className="rounded-3xl border border-border-subtle bg-bg-secondary p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
                     <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em]">Change pulse</p>
@@ -164,7 +164,7 @@ export function DashboardEmptyState({ reason, onOpenRepo }: DashboardEmptyStateP
 
             {/* Row 3 */}
             <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">
-              <article className="rounded-[1.75rem] border border-border-subtle bg-bg-secondary p-4">
+              <article className="rounded-3xl border border-border-subtle bg-bg-secondary p-4">
                 <div className="mb-3">
                   <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em]">Tool distribution</p>
                   <h3 className="mt-0.5 text-sm font-semibold">Line attribution by tool · top 3</h3>
@@ -172,20 +172,20 @@ export function DashboardEmptyState({ reason, onOpenRepo }: DashboardEmptyStateP
                 <MiniBarChart data={MOCK_TOOLS} height={78} unit=" lines" label="Mock Tool Distribution" />
               </article>
 
-              <article className="rounded-[1.5rem] border border-border-subtle bg-bg-secondary p-4">
+              <article className="rounded-2xl border border-border-subtle bg-bg-secondary p-4">
                 <div className="mb-3">
                   <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em]">Next lanes</p>
                   <h3 className="mt-1 text-base font-semibold">Keep Codex asks inside proof</h3>
                 </div>
                 <div className="mt-3 grid gap-2.5">
-                  <div className="flex w-full items-start gap-3 rounded-[1.1rem] border border-border-light bg-bg-primary p-3">
+                  <div className="flex w-full items-start gap-3 rounded-xl border border-border-light bg-bg-primary p-3">
                     <FolderGit2 className="h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-sm font-semibold">Open repo evidence</p>
                       <p className="mt-0.5 text-xs text-text-secondary">Start with the highest-signal file.</p>
                     </div>
                   </div>
-                  <div className="flex w-full items-start gap-3 rounded-[1.1rem] border border-border-light bg-bg-primary p-3">
+                  <div className="flex w-full items-start gap-3 rounded-xl border border-border-light bg-bg-primary p-3">
                     <ShieldCheck className="h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-sm font-semibold">Resolve trust posture</p>
@@ -199,7 +199,7 @@ export function DashboardEmptyState({ reason, onOpenRepo }: DashboardEmptyStateP
         </div>
 
         {/* Foreground Overlay — center the CTA */}
-        <div className="relative z-10 flex flex-1 items-center justify-center bg-bg-page/40 p-6 backdrop-blur-sm">
+        <div className="relative z-10 flex flex-1 items-center justify-center bg-bg-page p-6 ">
           <RepositoryPlaceholderCard variant="dashboard" onOpenRepo={onOpenRepo} />
         </div>
       </div>

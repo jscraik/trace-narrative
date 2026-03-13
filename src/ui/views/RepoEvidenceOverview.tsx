@@ -11,6 +11,7 @@ import {
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { BranchViewModel, DashboardTrustState, Mode } from '../../core/types';
 import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 interface RepoEvidenceOverviewProps {
   model: BranchViewModel;
@@ -87,9 +88,9 @@ export function RepoEvidenceOverview({
       icon: Waypoints,
     },
     {
-      label: 'Checkpoints',
+      label: 'Snapshots',
       value: snapshotCount > 0 ? `${snapshotCount}` : 'None',
-      detail: snapshotCount > 0 ? 'Checkpoint review is ready when rollback needs proof.' : 'No saved state to compare against yet.',
+      detail: snapshotCount > 0 ? 'Snapshot review is ready when rollback needs proof.' : 'No saved state to compare against yet.',
       tone: snapshotCount > 0 ? 'green' : 'amber',
       icon: Clock3,
     },
@@ -111,14 +112,14 @@ export function RepoEvidenceOverview({
       mode: 'sessions',
     },
     {
-      title: 'Compare checkpoints',
+      title: 'Compare snapshots',
       body: 'Check whether the current branch story still matches the latest saved state and rollback markers.',
       mode: 'snapshots',
     },
   ];
 
   return (
-    <section className="rounded-[1.6rem] border border-border-subtle bg-bg-secondary/90 p-4 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.8)]">
+    <section className="rounded-2xl border border-border-subtle bg-bg-subtle p-4 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.8)]">
       <div className="grid gap-4 xl:grid-cols-[1.08fr_0.92fr] xl:items-start">
         <div className="max-w-4xl">
           <div className="flex flex-wrap items-center gap-3">
@@ -134,7 +135,7 @@ export function RepoEvidenceOverview({
 
           <div className="mt-3">
             <h1 className="text-[1.75rem] font-semibold tracking-tight text-text-primary">
-              Verify {branchLabel} through commits, files, sessions, and checkpoints.
+              Verify {branchLabel} through commits, files, sessions, and snapshots.
             </h1>
             <p className="mt-1.5 max-w-3xl text-sm leading-6 text-text-secondary">
               Read the signal strip, then move straight into the branch workspace below.
@@ -143,8 +144,8 @@ export function RepoEvidenceOverview({
         </div>
 
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-1">
-          <div className="rounded-[1.1rem] border border-border-light bg-bg-primary/80 px-3.5 py-3 text-sm text-text-secondary">
-            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Operator rule</p>
+          <div className="rounded-xl border border-border-light bg-bg-primary px-3.5 py-3 text-sm text-text-secondary">
+            <Eyebrow>Operator rule</Eyebrow>
             <p className="mt-1.5 leading-6">
               If a branch conclusion cannot be walked back to a file, diff, commit, or session, keep it provisional.
             </p>
@@ -157,7 +158,7 @@ export function RepoEvidenceOverview({
                 type="button"
                 disabled={!onModeChange}
                 onClick={() => onModeChange?.(action.mode)}
-                className="group rounded-[1rem] border border-border-light bg-bg-primary/80 p-3 text-left transition hover:-translate-y-0.5 hover:border-accent-blue-light hover:bg-bg-primary disabled:cursor-default disabled:hover:translate-y-0"
+                className="group rounded-xl border border-border-light bg-bg-primary p-3 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.98] active:duration-75 hover:border-accent-blue-light hover:bg-bg-primary disabled:cursor-default disabled:hover:translate-y-0"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -174,13 +175,13 @@ export function RepoEvidenceOverview({
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {evidenceMetrics.map((metric) => (
-          <article key={metric.label} className="rounded-[1.1rem] border border-border-subtle bg-bg-primary/80 p-3.5">
+          <article key={metric.label} className="rounded-xl border border-border-subtle bg-bg-primary p-3.5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <metric.icon className="h-4 w-4 text-text-muted" />
-                <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                <Eyebrow>
                   {metric.label}
-                </p>
+                </Eyebrow>
               </div>
               <span className={`inline-flex rounded-full border px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.14em] ${toneClasses[metric.tone]}`}>
                 {metric.tone === 'amber' ? 'watch' : metric.tone === 'green' ? 'ready' : 'signal'}
@@ -192,7 +193,7 @@ export function RepoEvidenceOverview({
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[1.1rem] border border-border-light bg-bg-primary/70 px-3.5 py-2.5 text-sm text-text-secondary">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-light bg-bg-primary px-3.5 py-2.5 text-sm text-text-secondary">
         <div className="flex items-center gap-2">
           {trustState === 'healthy' ? (
             <ShieldCheck className="h-4 w-4 text-accent-green" aria-hidden="true" />

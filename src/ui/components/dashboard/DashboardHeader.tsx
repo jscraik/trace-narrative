@@ -27,7 +27,7 @@ export function DashboardHeader({
   return (
     <header
       data-dashboard-header
-      className="sticky top-0 z-10 h-14 bg-bg-secondary/80 backdrop-blur-md border-b border-border-subtle px-6"
+      className="sticky top-0 z-10 h-14 bg-bg-subtle  border-b border-border-subtle px-6"
     >
       <div className="flex items-center justify-between h-full">
         {/* Left: Repo info */}

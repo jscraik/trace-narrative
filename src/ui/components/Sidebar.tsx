@@ -87,7 +87,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
                     { id: 'repo', label: 'Repo Evidence', icon: GitBranch, badge: 4, primary: true },
                     { id: 'repo-pulse', label: 'Workspace Pulse', icon: FolderGit2, primary: true, sparkline: [1, 1, 2, 1, 3, 2, 4, 3, 5, 2] },
                     { id: 'diffs', label: 'Diff Review', icon: FileCode },
-                    { id: 'snapshots', label: 'Checkpoints', icon: Layers3 },
+                    { id: 'snapshots', label: 'Snapshots', icon: Layers3 },
                     { id: 'worktrees', label: 'Worktrees', icon: Workflow },
                     { id: 'attribution', label: 'Attribution Lens', icon: ShieldCheck },
                 ],
@@ -170,7 +170,7 @@ export function Sidebar({ mode, onModeChange, onOpenRepo, onImportSession }: Sid
     );
 
     return (
-        <aside className="w-56 flex-shrink-0 flex flex-col border-r border-border-subtle bg-bg-secondary/90 h-screen sticky top-0 backdrop-blur-md">
+        <aside className="w-56 flex-shrink-0 flex flex-col border-r border-border-subtle bg-bg-subtle h-screen sticky top-0 ">
             {/* Brand */}
             <div className="h-14 flex items-center gap-3 px-4 border-b border-border-subtle relative cursor-default">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent-violet-bg/70 border border-border-subtle">

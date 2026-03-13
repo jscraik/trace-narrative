@@ -13,7 +13,7 @@ export function TimelineNavButtons({ hasPrev, hasNext, onPrev, onNext }: Timelin
       <button
         type="button"
         disabled={!hasPrev}
-        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border-light bg-bg-tertiary text-text-tertiary hover:bg-bg-hover hover:text-text-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:bg-border-light active:scale-[0.98] hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-bg-tertiary disabled:hover:text-text-tertiary disabled:hover:scale-100"
+        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border-light bg-bg-tertiary text-text-tertiary hover:bg-bg-hover hover:text-text-secondary transition duration-200 ease-out active:duration-75 active:bg-border-light active:scale-[0.98] hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-bg-tertiary disabled:hover:text-text-tertiary disabled:hover:scale-100"
         onClick={onPrev}
         aria-label="Previous commit"
         title="Previous commit (Left Arrow)"
@@ -24,7 +24,7 @@ export function TimelineNavButtons({ hasPrev, hasNext, onPrev, onNext }: Timelin
       <button
         type="button"
         disabled={!hasNext}
-        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border-light bg-bg-tertiary text-text-tertiary hover:bg-bg-hover hover:text-text-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:bg-border-light active:scale-[0.98] hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-bg-tertiary disabled:hover:text-text-tertiary disabled:hover:scale-100"
+        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border-light bg-bg-tertiary text-text-tertiary hover:bg-bg-hover hover:text-text-secondary transition duration-200 ease-out active:duration-75 active:bg-border-light active:scale-[0.98] hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-bg-tertiary disabled:hover:text-text-tertiary disabled:hover:scale-100"
         onClick={onNext}
         aria-label="Next commit"
         title="Next commit (Right Arrow)"

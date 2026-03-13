@@ -123,7 +123,7 @@ describe('NarrativeSurfaceView', () => {
     expect(screen.getByLabelText('Capture reliability degraded')).toBeInTheDocument();
     expect(screen.getByText('Trust Center')).toBeInTheDocument();
     expect(screen.getByText('Recent trust events')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Trust decision rail' })).toBeInTheDocument();
+    expect(screen.getByText('Trust decision surface')).toBeInTheDocument();
   });
 
   it('renders the provenance lane on Story Map surfaces', () => {

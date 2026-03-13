@@ -27,7 +27,7 @@ const MODE_LABELS: Record<Mode, ModeMeta> = {
   },
   repo: {
     label: 'Repo Evidence',
-    note: 'Commit-linked files, diffs, sessions, and checkpoints for branch verification.',
+    note: 'Commit-linked files, diffs, sessions, and snapshots for branch verification.',
     section: 'Workspace',
   },
   docs: {
@@ -91,8 +91,8 @@ const MODE_LABELS: Record<Mode, ModeMeta> = {
     section: 'Workspace',
   },
   snapshots: {
-    label: 'Checkpoints',
-    note: 'Compare branch state against saved checkpoints and rollback markers.',
+    label: 'Snapshots',
+    note: 'Compare branch state against saved snapshots and rollback markers.',
     section: 'Workspace',
   },
   skills: {
@@ -197,7 +197,7 @@ export function TopNav(props: {
         .filter((route) => route.mode !== mode);
 
   return (
-    <header className="grid h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border-light bg-bg-secondary/95 px-4 backdrop-blur-md">
+    <header className="grid h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border-light bg-bg-secondary px-4 ">
       <div className="flex min-w-0 items-center gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[0.625rem] font-medium uppercase tracking-[0.15em] text-text-muted">

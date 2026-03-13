@@ -1039,25 +1039,25 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
   },
   snapshots: {
     section: 'Workspace',
-    title: 'Checkpoints',
-    subtitle: () => 'Saved workspace states, branch checkpoints, and recovery moments.',
+    title: 'Snapshots',
+    subtitle: () => 'Saved workspace states, branch snapshots, and recovery moments.',
     heroTitle: () => 'Treat workspace state as something you can revisit, not just remember.',
     heroBody: () =>
-      'This view keeps snapshot thinking simple: save meaningful checkpoints, then compare or recover from them later.',
+      'This view keeps snapshot thinking simple: save meaningful snapshots, then compare or recover from them later.',
     metrics: (context) => [
-      { label: 'Saved snapshots', value: String(context.snapshots.length), detail: `${context.snapshots.length} checkpoints in local storage`, tone: 'blue' },
+      { label: 'Saved snapshots', value: String(context.snapshots.length), detail: `${context.snapshots.length} snapshots in local storage`, tone: 'blue' },
       { label: 'Repo state', value: context.hasLiveRepoData ? 'Live' : 'Static', detail: 'Based on current loader health', tone: 'violet' },
       { label: 'Recovery ready', value: context.snapshots.length > 0 ? 'Yes' : 'No', detail: context.snapshots.length > 0 ? 'Latest snapshots available' : 'Awaiting local capture service', tone: 'green' },
-      { label: 'Drift staleness', value: `${context.driftReport?.metrics.find(m => m.id === 'snapshot_staleness')?.value || 0}h`, detail: 'Time since last checkpoint', tone: context.driftReport?.status === 'healthy' ? 'green' : 'amber' },
+      { label: 'Drift staleness', value: `${context.driftReport?.metrics.find(m => m.id === 'snapshot_staleness')?.value || 0}h`, detail: 'Time since last snapshot', tone: context.driftReport?.status === 'healthy' ? 'green' : 'amber' },
       { label: 'Files in dirty state', value: String(context.changedFiles.length), detail: 'Uncommitted changes in workspace', tone: 'amber' },
     ],
     highlightsTitle: 'Snapshot roles',
     highlights: () => [
-      { eyebrow: 'Checkpoint', title: 'Freeze an operator moment', body: 'Capture repo state, session context, and intended next move together.', tone: 'blue' },
+      { eyebrow: 'Snapshot', title: 'Freeze an operator moment', body: 'Capture repo state, session context, and intended next move together.', tone: 'blue' },
       { eyebrow: 'Compare', title: 'Detect drift from plan', body: 'Use snapshots to spot how far the live workspace has moved from the last verified baseline.', tone: 'amber' },
       { eyebrow: 'Recover', title: 'Support rollback reasoning', body: 'Keep enough metadata that a snapshot can justify a revert or a retry, not just exist as a timestamp.', tone: 'violet' },
     ],
-    activityTitle: 'Recent checkpoints',
+    activityTitle: 'Recent snapshots',
     activity: (context) => (context.snapshots.slice(0, 4).map(snap => ({
       title: snap.message || `Snapshot ${snap.id.slice(5, 12)}`,
       meta: new Date(snap.atISO).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -1067,7 +1067,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
       { title: 'No snapshots captured', meta: 'Idle', detail: 'Snapshot engine is active but awaiting trigger', status: 'info' }
     ] : []),
     tableTitle: 'Snapshot inventory',
-    tableColumns: ['Checkpoint', 'Type', 'Change count'],
+    tableColumns: ['Snapshot', 'Type', 'Change count'],
     tableRows: (context) => context.snapshots.map(snap => ({
       primary: snap.id,
       secondary: snap.type.charAt(0).toUpperCase() + snap.type.slice(1),
@@ -1100,7 +1100,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
     activity: () => [
       { title: 'feature/narrative-surfaces', meta: 'dirty', detail: 'Active UI pass across shell and view routing', status: 'warn' },
       { title: 'main', meta: 'clean', detail: 'Safe fallback for verification and comparison', status: 'ok' },
-      { title: 'release/checkpoint', meta: 'detached', detail: 'Needs review before any cleanup action', status: 'critical' },
+      { title: 'release/snapshot', meta: 'detached', detail: 'Needs review before any cleanup action', status: 'critical' },
       { title: 'telemetry-lane', meta: 'clean', detail: 'Useful for isolated reliability experiments', status: 'info' },
     ],
     tableTitle: 'Worktree inventory',
@@ -1108,7 +1108,7 @@ const surfaceDefinitions: Record<SurfaceMode, SurfaceDefinition> = {
     tableRows: () => [
       { primary: 'feature/narrative-surfaces', secondary: 'Dirty', tertiary: 'Continue implementation and validate before prune' },
       { primary: 'main', secondary: 'Clean', tertiary: 'Use as stable comparison point' },
-      { primary: 'release/checkpoint', secondary: 'Detached', tertiary: 'Do not delete until intent is confirmed' },
+      { primary: 'release/snapshot', secondary: 'Detached', tertiary: 'Do not delete until intent is confirmed' },
       { primary: 'telemetry-lane', secondary: 'Clean', tertiary: 'Keep for reliability verification' },
     ],
     footerNote: () => 'Worktrees page should be operationally conservative: more guardrails, fewer tempting destructive actions.',

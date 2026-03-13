@@ -1,7 +1,8 @@
+import { SectionHeader } from '../components/SectionHeader';
 import clsx from 'clsx';
 import { ShieldCheck, ShieldX } from 'lucide-react';
-import { SurfaceHeader } from '../components/SurfaceHeader';
-
+import { Eyebrow } from '../components/typography/Eyebrow';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
@@ -55,7 +56,7 @@ export function TrustCenterView({
   onAction,
 }: TrustCenterViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('status', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
   const nextMode = viewModel.trustState === 'healthy' ? 'repo' : 'live';
   const nextLabel = viewModel.trustState === 'healthy' ? 'Inspect repo evidence' : 'Review live capture';
   const nextIcon = viewModel.trustState === 'healthy' ? ShieldCheck : ShieldX;
@@ -63,30 +64,26 @@ export function TrustCenterView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Health'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      >
-        <button
-          type="button"
-          onClick={() => onModeChange(nextMode)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition hover:brightness-110 active:scale-[0.98]"
-        >
-          <NextIcon className="h-3.5 w-3.5" />
-          {nextLabel}
-        </button>
-      </SurfaceHeader>
-
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-[100rem] flex-col gap-5">
-          <div className="grid gap-3 xl:grid-cols-[1.08fr_0.92fr]">
-            <div className="rounded-[1.5rem] border border-border-subtle bg-bg-primary/70 px-4 py-4">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="max-w-3xl space-y-2.5">
+          <SectionHeader
+  title={viewModel.title}
+  description="Review automated trust decisions and component health before trusting AI outputs."
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+  action={<button
+                type="button"
+                onClick={() => onModeChange(nextMode)}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary inline-flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-medium text-accent-foreground transition-all duration-200 ease-out hover:brightness-110 active:scale-[0.98] active:duration-75"
+              >
+                <NextIcon className="h-3.5 w-3.5" />
+                {nextLabel}
+              </button>}
+/>
+
+          <div className="grid gap-5 xl:grid-cols-[1.5fr_1fr]">
+            <div className="flex flex-col rounded-[1.75rem] border border-border-subtle bg-bg-secondary/40 p-4">
+              <div className="mb-4 flex items-start justify-between gap-4 pl-1 pt-1">
+                <div className="flex flex-col items-start gap-4">
                   <span className="inline-flex items-center gap-2 rounded-full border border-border-light bg-bg-secondary px-3 py-1 text-xs font-medium text-text-secondary">
                     Trust decision surface
                   </span>
@@ -96,9 +93,7 @@ export function TrustCenterView({
                   </div>
                 </div>
                 <div className="rounded-[1.1rem] border border-border-light bg-bg-secondary/80 px-3.5 py-3 text-sm text-text-secondary">
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-                    Operator rule
-                  </p>
+                  <Eyebrow>Operator rule</Eyebrow>
                   <p className="mt-1.5 max-w-xs leading-6">
                     Decide what is safe to believe now, what still needs verification, and which lane opens next.
                   </p>
@@ -116,9 +111,7 @@ export function TrustCenterView({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-                        {metric.label}
-                      </p>
+                      <Eyebrow>{metric.label}</Eyebrow>
                       <p className="mt-2 text-[1.6rem] font-semibold text-text-primary">{metric.value}</p>
                     </div>
                     <AuthorityCue authorityTier={metric.authorityTier} authorityLabel={metric.authorityLabel} />
@@ -146,9 +139,7 @@ export function TrustCenterView({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
-                      {metric.label}
-                    </p>
+                    <Eyebrow>{metric.label}</Eyebrow>
                     <p className="mt-2 text-[1.8rem] font-semibold text-text-primary">{metric.value}</p>
                   </div>
                   <AuthorityCue authorityTier={metric.authorityTier} authorityLabel={metric.authorityLabel} />
@@ -210,9 +201,9 @@ export function TrustCenterView({
                     </div>
                     <p className="mt-1.5 text-sm leading-6 text-text-secondary">{node.detail}</p>
                     {node.edgeLabel ? (
-                      <p className="mt-2 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+                      <Eyebrow className="mt-2">
                         {node.edgeLabel}
-                      </p>
+                      </Eyebrow>
                     ) : null}
                   </button>
                 ))}

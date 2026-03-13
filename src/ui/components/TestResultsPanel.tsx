@@ -91,7 +91,7 @@ export function TestResultsPanel({
               type="button"
               onClick={onImportJUnit}
               disabled={loading}
-              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-primary text-text-secondary hover:bg-border-light transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100"
+              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-primary text-text-secondary hover:bg-border-light transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100"
             >
               Import JUnit XML…
             </button>
@@ -109,7 +109,7 @@ export function TestResultsPanel({
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between gap-3 p-5 hover:bg-bg-tertiary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.99]"
+        className="flex w-full items-center justify-between gap-3 p-5 hover:bg-bg-tertiary transition duration-200 ease-out active:duration-75 active:scale-[0.99]"
         aria-expanded={expanded}
         aria-controls={panelId}
       >

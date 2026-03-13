@@ -153,7 +153,7 @@ export function Timeline({
 
   return (
     <div
-      className="bg-bg-secondary/80 backdrop-blur-lg border-t border-border-subtle"
+      className="bg-bg-subtle  border-t border-border-subtle"
       style={{ padding: `${layout.padding}px` }}
     >
       <div className="flex items-center gap-3">

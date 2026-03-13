@@ -85,7 +85,7 @@ export function ImportErrorBanner({ error, onDismiss }: ImportErrorBannerProps) 
                           href={action.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-secondary border border-accent-red-light text-accent-red text-xs font-medium hover:bg-accent-red-light transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-secondary border border-accent-red-light text-accent-red text-xs font-medium hover:bg-accent-red-light transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105"
                         >
                           <HelpCircle className="w-3.5 h-3.5" />
                           {action.label}
@@ -95,7 +95,7 @@ export function ImportErrorBanner({ error, onDismiss }: ImportErrorBannerProps) 
                           key={actionKey}
                           type="button"
                           onClick={action.action}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-secondary border border-accent-red-light text-accent-red text-xs font-medium hover:bg-accent-red-light transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-secondary border border-accent-red-light text-accent-red text-xs font-medium hover:bg-accent-red-light transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105"
                         >
                           <FileJson className="w-3.5 h-3.5" />
                           {action.label}
@@ -114,7 +114,7 @@ export function ImportErrorBanner({ error, onDismiss }: ImportErrorBannerProps) 
           <button
             type="button"
             onClick={onDismiss}
-            className="shrink-0 text-accent-red/70 transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:text-accent-red hover:scale-110"
+            className="shrink-0 text-accent-red/70 transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:text-accent-red hover:scale-110"
             aria-label="Dismiss error"
           >
             <X className="w-4 h-4" />

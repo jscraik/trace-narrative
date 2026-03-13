@@ -1,5 +1,6 @@
+import { SectionHeader } from '../components/SectionHeader';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
 import clsx from 'clsx';
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import { FileCode, CheckCircle2, AlertCircle, ShieldAlert, ScrollText, DatabaseZap, ShieldCheck } from 'lucide-react';
 
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
@@ -29,7 +30,7 @@ function getRepoPath(repoState: RepoState): string {
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+    <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
       <div className="flex items-center gap-3 border-b border-border-light pb-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-bg-primary border border-border-light text-text-primary">
           <Icon className="h-4 w-4" />
@@ -45,7 +46,7 @@ function Section({ title, icon: Icon, children }: { title: string; icon: React.E
 
 function ConfigFileRow({ name, path, lines, type }: { name: string; path: string; lines: number; type: string }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-transparent p-3 hover:border-border-subtle hover:bg-bg-primary/50 transition">
+    <div className="flex items-center justify-between rounded-xl border border-transparent p-3 hover:border-border-subtle hover:bg-bg-subtle transition">
       <div className="flex items-center gap-3">
         <FileCode className="h-5 w-5 text-text-muted" />
         <div className="flex flex-col">
@@ -73,7 +74,7 @@ function McpServerRow({ name, status, version, uptime }: { name: string; status:
   const StatusIcon = status === 'green' ? CheckCircle2 : AlertCircle;
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-transparent p-3 hover:border-border-subtle hover:bg-bg-primary/50 transition">
+    <div className="flex items-center justify-between rounded-xl border border-transparent p-3 hover:border-border-subtle hover:bg-bg-subtle transition">
       <div className="flex items-center gap-3">
         <div className={clsx("flex h-6 w-6 items-center justify-center rounded-full border", statusColors[status])}>
           <StatusIcon className="h-3 w-3" />
@@ -109,7 +110,7 @@ function PermissionsBadge({ count, label, severity }: { count: number; label: st
       <div className="flex items-center gap-3">
         <span className="text-lg font-semibold">{count}</span>
         {severity !== 'info' && (
-          <button type="button" className="rounded-lg bg-bg-primary border border-border-light px-3 py-1.5 text-xs font-medium hover:bg-bg-secondary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98]">
+          <button type="button" className="rounded-lg bg-bg-primary border border-border-light px-3 py-1.5 text-xs font-medium hover:bg-bg-secondary transition duration-200 ease-out active:duration-75 active:scale-[0.98]">
             Review
           </button>
         )}
@@ -126,21 +127,20 @@ export function SetupView({
   onImportSession,
 }: SetupViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('setup', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Integrations'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

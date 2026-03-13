@@ -156,7 +156,7 @@ export function SessionImportPanel({ repoId }: SessionImportPanelProps) {
           type="button"
           onClick={handleScan}
           disabled={scanning}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-text-secondary bg-bg-tertiary border border-border-light rounded-md hover:bg-bg-hover disabled:opacity-50 transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-text-secondary bg-bg-tertiary border border-border-light rounded-md hover:bg-bg-hover disabled:opacity-50 transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105"
         >
           <RefreshCw className={`w-4 h-4 ${scanning ? 'motion-safe:animate-spin' : ''}`} />
           {scanning ? 'Scanning...' : 'Scan for Sessions'}
@@ -181,7 +181,7 @@ export function SessionImportPanel({ repoId }: SessionImportPanelProps) {
                 type="button"
                 onClick={handleImportSelected}
                 disabled={importing}
-                className="flex items-center gap-2 rounded-md bg-accent-blue px-3 py-1.5 text-sm font-medium text-text-inverted transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105 hover:brightness-95 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-md bg-accent-blue px-3 py-1.5 text-sm font-medium text-text-inverted transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105 hover:brightness-95 disabled:opacity-50"
               >
                 <Upload className="w-4 h-4" />
                 {importing ? 'Importing...' : `Import ${selectedPaths.size} Selected`}
@@ -224,7 +224,7 @@ export function SessionImportPanel({ repoId }: SessionImportPanelProps) {
                     type="button"
                     onClick={() => handleImportSingle(session.path)}
                     disabled={importing}
-                    className="text-xs font-medium text-accent-blue hover:text-accent-blue/80 disabled:opacity-50 transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-110"
+                    className="text-xs font-medium text-accent-blue hover:text-accent-blue/80 disabled:opacity-50 transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-110"
                   >
                     Import
                   </button>

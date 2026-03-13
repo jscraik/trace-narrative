@@ -9,6 +9,7 @@ import type {
   SurfaceTone,
 } from './narrativeSurfaceData';
 import { AuthorityCue } from './narrativeSurfaceSections';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 const toneClasses: Record<SurfaceTone, { border: string; bg: string; text: string }> = {
   blue: {
@@ -78,10 +79,10 @@ export function ProvenanceSection({
             <p className="mt-2 text-sm leading-6 text-text-secondary">{provenance.summary}</p>
           </div>
 
-          <div className="rounded-2xl border border-border-subtle bg-bg-primary/70 p-4">
-            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">
+          <div className="rounded-2xl border border-border-subtle bg-bg-primary p-4">
+            <Eyebrow>
               How to read it
-            </p>
+            </Eyebrow>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
               Observed facts land first, evidence joins come next, derived claims stay explicit, and the final node tells the operator whether to inspect or pause.
             </p>

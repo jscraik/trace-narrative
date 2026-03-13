@@ -790,7 +790,7 @@ export function useBranchViewController(props: BranchViewProps): ComponentProps<
         ? deriveTrustStateFromCaptureStatus(captureReliabilityStatus)
         : 'none',
       activeThreadId: captureReliabilityStatus?.appServer?.lastTransitionAtIso
-        ? `checkpoint:${captureReliabilityStatus.appServer.lastTransitionAtIso}`
+        ? `snapshot:${captureReliabilityStatus.appServer.lastTransitionAtIso}`
         : null,
       captureReliabilityStatus,
       codexAppServerStatus: captureReliabilityStatus?.appServer ?? null,

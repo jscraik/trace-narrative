@@ -1,6 +1,6 @@
+import { SectionHeader } from '../components/SectionHeader';
 import { ArrowRight, Bot, Code2, GitMerge } from 'lucide-react';
 
-import { SurfaceHeader } from '../components/SurfaceHeader';
 import type { CaptureReliabilityStatus } from '../../core/tauri/ingestConfig';
 import type { Mode, SessionExcerpt } from '../../core/types';
 import type { RepoState } from '../../hooks/useRepoLoader';
@@ -13,6 +13,8 @@ import {
   CompactKpiStrip,
   SummaryTable,
 } from './narrativeSurfaceSections';
+import { DashboardTrustBadge } from '../components/dashboard/DashboardTrustBadge';
+import { Eyebrow } from '../components/typography/Eyebrow';
 
 interface DiffReviewViewProps {
   repoState: RepoState;
@@ -84,7 +86,7 @@ function SessionRow({ session, branchName, onAction }: { session: SessionExcerpt
     <button
       type="button"
       onClick={() => onAction?.({ type: 'open_evidence', evidenceId: `session:${session.id}` })}
-      className="group flex w-full items-center justify-between gap-4 rounded-xl border border-transparent p-3 transition hover:border-border-subtle hover:bg-bg-secondary/40 text-left"
+      className="group flex w-full items-center justify-between gap-4 rounded-xl border border-transparent p-3 transition hover:border-border-subtle hover:bg-bg-subtle text-left"
     >
       <div className="flex items-center gap-3 overflow-hidden">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border-light bg-bg-primary text-text-secondary">
@@ -124,7 +126,7 @@ export function DiffReviewView({
   onAction,
 }: DiffReviewViewProps) {
   const viewModel = buildNarrativeSurfaceViewModel('diffs', repoState, captureReliabilityStatus, autoIngestEnabled);
-  const repoPath = getRepoPath(repoState);
+  const _repoPath = getRepoPath(repoState);
   const branchName = getBranchName(repoState);
   
   const sessions = repoState.status === 'ready' && repoState.model.sessionExcerpts 
@@ -140,24 +142,23 @@ export function DiffReviewView({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-bg-primary">
-      <SurfaceHeader
-        title={viewModel.title}
-        category='Workspace'
-        repoPath={repoPath}
-        trustState={viewModel.trustState}
-        onOpenRepo={onOpenRepo}
-        onImportSession={onImportSession}
-      />
+      
 
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <SectionHeader
+  title={viewModel.title}
+  description="{viewModel.subtitle}"
+  badge={<DashboardTrustBadge trustState={viewModel.trustState} />}
+/>
+
           <CompactKpiStrip metrics={viewModel.metrics} />
 
           <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-            <article className="flex flex-col gap-4 rounded-[1.75rem] border border-border-subtle bg-bg-secondary/80 p-5">
+            <article className="flex flex-col gap-4 rounded-3xl border border-border-subtle bg-bg-subtle p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-text-muted">Review Window</p>
+                  <Eyebrow>Review Window</Eyebrow>
                   <h2 className="mt-1 text-xl font-semibold text-text-primary">Recent Sessions</h2>
                 </div>
               </div>

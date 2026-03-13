@@ -75,7 +75,7 @@ function CaptureLifecycleRail({
             key={item.key}
             type="button"
             onClick={() => onSelectFilter?.(item.key)}
-            className={`rounded-md border px-2 py-0.5 text-[0.625rem] transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105 ${activeFilter === item.key
+            className={`rounded-md border px-2 py-0.5 text-[0.625rem] transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105 ${activeFilter === item.key
               ? 'border-accent-blue-light bg-accent-blue-bg text-accent-blue'
               : 'btn-tertiary-soft'
               }`}
@@ -215,7 +215,7 @@ export function CaptureActivityStrip(props: {
             <div className="text-[0.6875rem] font-semibold text-text-secondary">Recent</div>
             <button
               type="button"
-              className="text-[0.6875rem] text-text-tertiary transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:text-text-secondary hover:scale-105"
+              className="text-[0.6875rem] text-text-tertiary transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:text-text-secondary hover:scale-105"
               onClick={openDrawer}
               disabled={!onRequestAll}
             >
@@ -255,7 +255,7 @@ export function CaptureActivityStrip(props: {
               </div>
               <button
                 type="button"
-                className="btn-secondary-soft text-xs px-3 py-1.5 rounded-md transition duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:duration-75 active:scale-[0.98] hover:scale-105"
+                className="btn-secondary-soft text-xs px-3 py-1.5 rounded-md transition duration-200 ease-out active:duration-75 active:scale-[0.98] hover:scale-105"
                 onClick={closeDrawer}
               >
                 Close
