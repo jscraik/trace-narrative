@@ -16,48 +16,50 @@
 const fs = require('fs');
 const path = require('path');
 
-const BASELINE_FILE = path.join(__dirname, '..', '..', 'artifacts',runtime', 'first-win-baseline.json');
+const BASELINE_FILE = path.join(__dirname, '..', '..', 'artifacts', 'runtime', 'first-win-baseline.json');
 const REPORT = {
   generatedAt: new Date().toISOString(),
   metrics: {
     funnelMetrics: {
-    // Overall
-    p95_completion_latency_ms: number | null;
-    p95_what_to_why_latency_ms: number | null;
-    p95_why_to_evidence_latency_ms: number | null
-    // Per step
-    what_ready_count: number = 0;
-    why_ready_count: number = 0;
-    why_requested_count: number = 0;
-    evidence_ready_count: number = 0;
-    evidence_requested_count: number = 0;
-    // Outcomes
-    success_count: number = 0;
-    fallback_count: number = 0;
-    failed_count: number = 0;
-    stale_ignored_count: number = 0;
-  // Branch-specific metrics (aggregated)
-    branches: {}
-  },
-  staleIgnoreRates: {
-    // Time-based windows for latency calculations (ms)
-    latencyWindows: {
-    p50: 30000,  // 5 minutes
-    p95: 30000,  // 5 minutes
-    p99: 60000  // 10 minutes
-  },
-  // Fallback rate tracking
-  fallbackRates: {
-    overall: 0,
-    per_branch: {}
-  },
-  // KPI targets (for post-implementation comparison)
-  targets: {
-    p95_completion_ms: 30000,  // 30 seconds
-    p95_what_to_why_ms: 10000,  // 10 seconds
-    p95_why_to_evidence_ms: 8000,  // 8 seconds
-    stale_ignore_rate: 0.01,  // < 1%
-    fallback_rate: 0.6,  // Alert threshold
+      // Overall
+      p95_completion_latency_ms: null,
+      p95_what_to_why_latency_ms: null,
+      p95_why_to_evidence_latency_ms: null,
+      // Per step
+      what_ready_count: 0,
+      why_ready_count: 0,
+      why_requested_count: 0,
+      evidence_ready_count: 0,
+      evidence_requested_count: 0,
+      // Outcomes
+      success_count: 0,
+      fallback_count: 0,
+      failed_count: 0,
+      stale_ignored_count: 0,
+      // Branch-specific metrics (aggregated)
+      branches: {}
+    },
+    staleIgnoreRates: {
+      // Time-based windows for latency calculations (ms)
+      latencyWindows: {
+        p50: 30000,  // 5 minutes
+        p95: 30000,  // 5 minutes
+        p99: 60000   // 10 minutes
+      }
+    },
+    // Fallback rate tracking
+    fallbackRates: {
+      overall: 0,
+      per_branch: {}
+    },
+    // KPI targets (for post-implementation comparison)
+    targets: {
+      p95_completion_ms: 30000,       // 30 seconds
+      p95_what_to_why_ms: 10000,      // 10 seconds
+      p95_why_to_evidence_ms: 8000,   // 8 seconds
+      stale_ignore_rate: 0.01,        // < 1%
+      fallback_rate: 0.6              // Alert threshold
+    }
   }
 };
 
