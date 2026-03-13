@@ -358,7 +358,7 @@ export function dispatchNarrativeTelemetry(
   );
 }
 
-function asValidatablePayload(payload: Record<string, unknown>): NarrativeTelemetryPayload | AskWhyTelemetryPayload | null {
+function asValidatablePayload(payload: unknown): NarrativeTelemetryPayload | AskWhyTelemetryPayload | null {
   return (
     typeof payload === 'object' &&
     payload !== null &&
