@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.19.1](https://github.com/jscraik/trace-narrative/compare/trace-narrative-v0.19.0...trace-narrative-v0.19.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* **deps:** add overrides for undici and yauzl to resolve vulnerabilities ([d61b92f](https://github.com/jscraik/trace-narrative/commit/d61b92f95607721f8065248780cc4a78696fab2e))
+* **tests:** skip trace visual E2E tests pending Live Capture migration ([1d7a8cc](https://github.com/jscraik/trace-narrative/commit/1d7a8cc2e7cfca2558bc7046c60ea598f174e3b1))
+* **tests:** update app.spec.ts to match current UI ([497fd5e](https://github.com/jscraik/trace-narrative/commit/497fd5e4073b4c82c33d2de79811cd41be05997c))
+* **tests:** update E2E and Rust tests to match current UI ([6bb48be](https://github.com/jscraik/trace-narrative/commit/6bb48beaa580bfee46da14532712cd2c0a7405a2))
+
 ## [0.19.0](https://github.com/jscraik/trace-narrative/compare/trace-narrative-v0.18.1...trace-narrative-v0.19.0) (2026-03-13)
 
 
