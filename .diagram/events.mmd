@@ -1,10 +1,14 @@
 flowchart TD
   subgraph Channels["Event channels / queues"]
+    useTraceSignal_test_970c6ea1{{"useTraceSignal.test"}}
     narrativeTelemetry_70dfa1c5{{"narrativeTelemetry"}}
-    useFirefly_test_2c284fc9{{"useFirefly.test"}}
     settings_cde0fb0d["settings"]
-    useFirefly_4b28bfda["useFirefly"]
+    useDashboardViewState_0962a456["useDashboardViewState"]
+    useTraceSignal_8cb34386["useTraceSignal"]
+    dashboardMockStats_2008817f["dashboardMockStats"]
   end
-  useFirefly_test_2c284fc9 -->|emit| settings_cde0fb0d
-  useFirefly_4b28bfda -->|consume| settings_cde0fb0d
+  useTraceSignal_test_970c6ea1 -->|emit| settings_cde0fb0d
+  useDashboardViewState_0962a456 -->|consume| narrativeTelemetry_70dfa1c5
+  useDashboardViewState_0962a456 -->|consume| dashboardMockStats_2008817f
+  useTraceSignal_8cb34386 -->|consume| settings_cde0fb0d
   classDef eventNode fill:#db2777,color:#fff

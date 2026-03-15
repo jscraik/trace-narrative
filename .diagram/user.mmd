@@ -1,5 +1,11 @@
 flowchart LR
   User(("User"))
+  useTraceCollector_e3f811c3["useTraceCollector"]
+  User --> useTraceCollector_e3f811c3
+  useSourceLensData_c1b2d5d3["useSourceLensData"]
+  User --> useSourceLensData_c1b2d5d3
+  useAutoIngest_56f90d17["useAutoIngest"]
+  User --> useAutoIngest_56f90d17
   story_anchors_api_279f63a1["story-anchors-api"]
   User --> story_anchors_api_279f63a1
   rules_6c621d1a["rules"]
@@ -8,14 +14,16 @@ flowchart LR
   User --> attribution_api_b53df9d9
   atlas_api_0fe43c81["atlas-api"]
   User --> atlas_api_0fe43c81
-  useTraceCollector_e3f811c3["useTraceCollector"]
-  User --> useTraceCollector_e3f811c3
-  useSourceLensData_c1b2d5d3["useSourceLensData"]
-  User --> useSourceLensData_c1b2d5d3
-  useAutoIngest_56f90d17["useAutoIngest"]
-  User --> useAutoIngest_56f90d17
+  useDashboardViewState_0962a456["useDashboardViewState"]
+  User --> useDashboardViewState_0962a456
+  narrativeSurfaceData_d4f28a0b["narrativeSurfaceData"]
+  User --> narrativeSurfaceData_d4f28a0b
   docsAutoLoad_44c379b9["docsAutoLoad"]
   User --> docsAutoLoad_44c379b9
+  dashboardState_2c62cd16["dashboardState"]
+  User --> dashboardState_2c62cd16
+  dashboardMockStats_2008817f["dashboardMockStats"]
+  User --> dashboardMockStats_2008817f
   branchViewEvidence_9e7c8d82["branchViewEvidence"]
   User --> branchViewEvidence_9e7c8d82
   branchView_types_1fc9620a["branchView.types"]
@@ -24,6 +32,14 @@ flowchart LR
   User --> branchView_constants_91490435
   branchHeaderMapper_4dd9295b["branchHeaderMapper"]
   User --> branchHeaderMapper_4dd9295b
+  useTraceCollector_test_1261d5ea["useTraceCollector.test"]
+  User --> useTraceCollector_test_1261d5ea
+  useSourceLensData_test_7459bf0f["useSourceLensData.test"]
+  User --> useSourceLensData_test_7459bf0f
+  useAutoIngest_test_c64ef81e["useAutoIngest.test"]
+  User --> useAutoIngest_test_c64ef81e
+  narrativeTelemetry_70dfa1c5["narrativeTelemetry"]
+  User --> narrativeTelemetry_70dfa1c5
   otelReceiver_bd752dec["otelReceiver"]
   User --> otelReceiver_bd752dec
   narrativeFs_b94b096d["narrativeFs"]
@@ -46,54 +62,21 @@ flowchart LR
   User --> agentTrace_bc847946
   agentSessionTools_413c0d20["agentSessionTools"]
   User --> agentSessionTools_413c0d20
-  attribution_api_test_e7248f37["attribution-api.test"]
-  User --> attribution_api_test_e7248f37
-  useTraceCollector_test_1261d5ea["useTraceCollector.test"]
-  User --> useTraceCollector_test_1261d5ea
-  useSourceLensData_test_7459bf0f["useSourceLensData.test"]
-  User --> useSourceLensData_test_7459bf0f
-  useAutoIngest_test_c64ef81e["useAutoIngest.test"]
-  User --> useAutoIngest_test_c64ef81e
-  docsAutoLoad_test_e6636ba5["docsAutoLoad.test"]
-  User --> docsAutoLoad_test_e6636ba5
-  branchViewEvidence_test_c375af04["branchViewEvidence.test"]
-  User --> branchViewEvidence_test_c375af04
-  BranchView_test_9e320760["BranchView.test"]
-  User --> BranchView_test_9e320760
-  useBranchViewController_d4c2a4b8["useBranchViewController"]
-  User --> useBranchViewController_d4c2a4b8
-  useBranchTelemetry_d189d40e["useBranchTelemetry"]
-  User --> useBranchTelemetry_d189d40e
-  useBranchSelectionData_213a448c["useBranchSelectionData"]
-  User --> useBranchSelectionData_213a448c
-  useBranchNarrativeState_421f0b1f["useBranchNarrativeState"]
-  User --> useBranchNarrativeState_421f0b1f
   useTraceCollector_e3f811c3 --> otelReceiver_bd752dec
+  useTraceCollector_e3f811c3 --> traceConfig_7e9b1320
   useTraceCollector_e3f811c3 --> sessionLinking_8e056ceb
   useAutoIngest_56f90d17 --> otelReceiver_bd752dec
   useAutoIngest_56f90d17 --> activity_0651863b
+  useDashboardViewState_0962a456 --> narrativeTelemetry_70dfa1c5
+  useDashboardViewState_0962a456 --> dashboardMockStats_2008817f
+  narrativeSurfaceData_d4f28a0b --> dashboardState_2c62cd16
+  useTraceCollector_test_1261d5ea --> useTraceCollector_e3f811c3
+  useSourceLensData_test_7459bf0f --> useSourceLensData_c1b2d5d3
+  useAutoIngest_test_c64ef81e --> useAutoIngest_56f90d17
   traceScan_d94d6b75 --> narrativeFs_b94b096d
   sessions_1225ae6c --> narrativeFs_b94b096d
   codexConfig_229b7351 --> narrativeFs_b94b096d
   agentTrace_bc847946 --> narrativeFs_b94b096d
   agentTrace_bc847946 --> gitDiff_a3685ce7
-  useTraceCollector_test_1261d5ea --> useTraceCollector_e3f811c3
-  useSourceLensData_test_7459bf0f --> useSourceLensData_c1b2d5d3
-  useAutoIngest_test_c64ef81e --> useAutoIngest_56f90d17
-  branchViewEvidence_test_c375af04 --> branchViewEvidence_9e7c8d82
-  BranchView_test_9e320760 --> branchViewEvidence_9e7c8d82
-  useBranchViewController_d4c2a4b8 --> branchView_constants_91490435
-  useBranchViewController_d4c2a4b8 --> branchViewEvidence_9e7c8d82
-  useBranchViewController_d4c2a4b8 --> useBranchNarrativeState_421f0b1f
-  useBranchViewController_d4c2a4b8 --> useBranchTelemetry_d189d40e
-  useBranchViewController_d4c2a4b8 --> useBranchSelectionData_213a448c
-  useBranchTelemetry_d189d40e --> branchView_constants_91490435
-  useSessionImport_69292424 --> agentTrace_bc847946
-  useSessionImport_69292424 --> sessionLinking_8e056ceb
-  useSessionImport_69292424 --> narrativeFs_b94b096d
-  useSessionImport_69292424 --> story_anchors_api_279f63a1
-  indexer_70fa78e5 --> sessions_1225ae6c
-  indexer_70fa78e5 --> agentTrace_bc847946
-  indexer_70fa78e5 --> attribution_api_b53df9d9
-  indexer_70fa78e5 --> story_anchors_api_279f63a1
+  traceConfig_7e9b1320 --> narrativeFs_b94b096d
   classDef userNode fill:#16a34a,color:#fff

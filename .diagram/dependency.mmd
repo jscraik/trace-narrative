@@ -13,23 +13,20 @@ graph LR
   vite_b16efac1["vite"] --> vite_config_1_736b3c02
   _vitejs_plugin_react_9bd546e6["@vitejs/plugin-react"] --> vite_config_1_736b3c02
   node_path_0e7d56ab["node:path"] --> vite_config_1_736b3c02
-  _playwright_test_44c14a16["@playwright/test"] --> firefly_visual_system_v1_spec_def11f59
-  node_fs_df6b52af["node:fs"] --> firefly_visual_system_v1_spec_def11f59
-  node_os_e9717731["node:os"] --> firefly_visual_system_v1_spec_def11f59
-  node_path_0e7d56ab["node:path"] --> firefly_visual_system_v1_spec_def11f59
+  _playwright_test_44c14a16["@playwright/test"] --> trace_visual_system_v1_spec_98815fb6
+  node_fs_df6b52af["node:fs"] --> trace_visual_system_v1_spec_98815fb6
+  node_os_e9717731["node:os"] --> trace_visual_system_v1_spec_98815fb6
+  node_path_0e7d56ab["node:path"] --> trace_visual_system_v1_spec_98815fb6
   _playwright_test_44c14a16["@playwright/test"] --> critical_flows_spec_66db3f9a
   _playwright_test_44c14a16["@playwright/test"] --> app_spec_fe94aeca
   _playwright_test_44c14a16["@playwright/test"] --> agentation_baseline_spec_7c288669
   vitest_a9127f3d["vitest"] --> harness_integration_test_065db339
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> story_anchors_api_279f63a1
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> rules_6c621d1a
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> attribution_api_b53df9d9
-  zod_4f63cf5c["zod"] --> attribution_api_b53df9d9
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> atlas_api_0fe43c81
   react_27597608["react"] --> useUpdater_db2b740b
   _tauri_apps_plugin_updater_29f514c2["@tauri-apps/plugin-updater"] --> useUpdater_db2b740b
   _tauri_apps_plugin_process_a7086bef["@tauri-apps/plugin-process"] --> useUpdater_db2b740b
   _tauri_apps_plugin_dialog_672cd360["@tauri-apps/plugin-dialog"] --> useUpdater_db2b740b
+  react_27597608["react"] --> useTraceSignal_8cb34386
+  useTraceSignal_8cb34386 --> settings_cde0fb0d
   react_27597608["react"] --> useTraceCollector_e3f811c3
   _tauri_apps_api_641aee82["@tauri-apps/api"] --> useTraceCollector_e3f811c3
   _tauri_apps_plugin_shell_984b70f9["@tauri-apps/plugin-shell"] --> useTraceCollector_e3f811c3
@@ -48,6 +45,8 @@ graph LR
   useTestImport_136ded43 --> testRuns_ebc7ce74
   react_27597608["react"] --> useSourceLensData_c1b2d5d3
   _tauri_apps_api_641aee82["@tauri-apps/api"] --> useSourceLensData_c1b2d5d3
+  react_27597608["react"] --> useSnapshots_2b09c48f
+  useSnapshots_2b09c48f --> snapshots_2b36a6e6
   useSessionImport_69292424 --> basename_2910774c
   useSessionImport_69292424 --> sessionUtils_d704722d
   react_27597608["react"] --> useSessionImport_69292424
@@ -71,13 +70,10 @@ graph LR
   react_27597608["react"] --> useRepoFileExistence_7e258dc3
   useRepoFileExistence_7e258dc3 --> narrativeFs_b94b096d
   react_27597608["react"] --> useKeyboardShortcuts_c0879d98
-  react_27597608["react"] --> useFirefly_4b28bfda
-  useFirefly_4b28bfda --> settings_cde0fb0d
   react_27597608["react"] --> useCommitData_29c16895
   useCommitData_29c16895 --> agentTrace_bc847946
   useCommitData_29c16895 --> git_9a881b9b
   useCommitData_29c16895 --> indexer_70fa78e5
-  useCommitData_29c16895 --> nearbyGridDemo_82adb7f2
   _tauri_apps_api_641aee82["@tauri-apps/api"] --> useAutoIngest_56f90d17
   _tauri_apps_plugin_shell_984b70f9["@tauri-apps/plugin-shell"] --> useAutoIngest_56f90d17
   react_27597608["react"] --> useAutoIngest_56f90d17
@@ -87,67 +83,27 @@ graph LR
   react_27597608["react"] --> useAtlasSearch_7d18f6f2
   useAtlasSearch_7d18f6f2 --> atlas_api_0fe43c81
   sessionUtils_d704722d --> toolSanitizer_93dad926
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> story_anchors_api_279f63a1
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> rules_6c621d1a
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> attribution_api_b53df9d9
+  zod_4f63cf5c["zod"] --> attribution_api_b53df9d9
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> atlas_api_0fe43c81
   fs_dce7cce0["fs"] --> generate_dataset_d06adda7
   path_a0af9f86["path"] --> generate_dataset_d06adda7
   fs_dce7cce0["fs"] --> calibration_run_script_85d7a923
   path_a0af9f86["path"] --> calibration_run_script_85d7a923
-  _tauri_apps_plugin_store_87154caf["@tauri-apps/plugin-store"] --> settings_cde0fb0d
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> otelReceiver_bd752dec
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> narrativeFs_b94b096d
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> ingestConfig_c7e6037b
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> gitDiff_a3685ce7
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> activity_0651863b
-  traceScan_d94d6b75 --> narrativeFs_b94b096d
-  traceScan_d94d6b75 --> traceParser_f261b9c1
-  traceScan_d94d6b75 --> traceIngest_a4da94ac
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> traceScan_d94d6b75
-  traceIngest_a4da94ac --> db_7bdc25d1
-  traceIngest_a4da94ac --> redact_18f1255e
-  traceIngest_a4da94ac --> narrativeFs_b94b096d
-  traceIngest_a4da94ac --> traceParser_f261b9c1
-  traceIngest_a4da94ac --> otelAdapter_570cff77
-  traceConfig_7e9b1320 --> narrativeFs_b94b096d
-  testRuns_ebc7ce74 --> db_7bdc25d1
-  _tauri_apps_plugin_shell_984b70f9["@tauri-apps/plugin-shell"] --> shell_ce635c4e
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> sessions_1225ae6c
-  sessions_1225ae6c --> narrativeFs_b94b096d
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> sessionLinking_8e056ceb
-  sessionBadges_4a38460b --> sessions_1225ae6c
-  sessionBadges_4a38460b --> sessionLinking_8e056ceb
-  sessionBadges_4a38460b --> sessionLinking_8e056ceb
-  otelAdapter_570cff77 --> git_9a881b9b
-  otelAdapter_570cff77 --> gitDiff_a3685ce7
-  narrativeFeedback_16021c8c --> db_7bdc25d1
-  meta_ea3bd73e --> narrativeFs_b94b096d
-  indexer_70fa78e5 --> composeBranchNarrative_2a286eb3
-  indexer_70fa78e5 --> db_7bdc25d1
-  indexer_70fa78e5 --> git_9a881b9b
-  indexer_70fa78e5 --> sessions_1225ae6c
-  indexer_70fa78e5 --> agentTrace_bc847946
-  indexer_70fa78e5 --> traceConfig_7e9b1320
-  indexer_70fa78e5 --> attribution_api_b53df9d9
-  indexer_70fa78e5 --> story_anchors_api_279f63a1
-  indexer_70fa78e5 --> testRuns_ebc7ce74
-  githubContext_f8e56c92 --> redact_18f1255e
-  githubContext_f8e56c92 --> narrativeFs_b94b096d
-  gitNotes_8e1bf058 --> git_9a881b9b
-  git_9a881b9b --> shell_ce635c4e
-  _tauri_apps_plugin_sql_146f0298["@tauri-apps/plugin-sql"] --> db_7bdc25d1
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> codexConfig_229b7351
-  codexConfig_229b7351 --> narrativeFs_b94b096d
-  agentTrace_bc847946 --> redact_18f1255e
-  agentTrace_bc847946 --> db_7bdc25d1
-  agentTrace_bc847946 --> narrativeFs_b94b096d
-  agentTrace_bc847946 --> otelAdapter_570cff77
-  agentTrace_bc847946 --> gitDiff_a3685ce7
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> agentTrace_bc847946
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> agentTrace_bc847946
-  _tauri_apps_api_641aee82["@tauri-apps/api"] --> agentSessionTools_413c0d20
-  rolloutGovernance_513faed5 --> promptGovernance_f53dd659
-  vitest_a9127f3d["vitest"] --> attribution_api_test_e7248f37
+  react_27597608["react"] --> useDashboardViewState_0962a456
+  useDashboardViewState_0962a456 --> narrativeTelemetry_70dfa1c5
+  useDashboardViewState_0962a456 --> dashboardMockStats_2008817f
+  narrativeSurfaceData_d4f28a0b --> automation_6d65ed5c
+  narrativeSurfaceData_d4f28a0b --> dashboardState_2c62cd16
+  narrativeSurfaceData_d4f28a0b --> automation_6d65ed5c
   _testing_library_react_b35eda33["@testing-library/react"] --> useUpdater_test_0bde52b0
   vitest_a9127f3d["vitest"] --> useUpdater_test_0bde52b0
   useUpdater_test_0bde52b0 --> useUpdater_db2b740b
+  vitest_a9127f3d["vitest"] --> useTraceSignal_test_970c6ea1
+  _testing_library_react_b35eda33["@testing-library/react"] --> useTraceSignal_test_970c6ea1
+  useTraceSignal_test_970c6ea1 --> settings_cde0fb0d
   _testing_library_react_b35eda33["@testing-library/react"] --> useTraceCollector_test_1261d5ea
   vitest_a9127f3d["vitest"] --> useTraceCollector_test_1261d5ea
   useTraceCollector_test_1261d5ea --> useTraceCollector_e3f811c3
@@ -166,41 +122,67 @@ graph LR
   vitest_a9127f3d["vitest"] --> useKeyboardShortcuts_test_b00dfaeb
   _testing_library_react_b35eda33["@testing-library/react"] --> useKeyboardShortcuts_test_b00dfaeb
   useKeyboardShortcuts_test_b00dfaeb --> useKeyboardShortcuts_c0879d98
-  vitest_a9127f3d["vitest"] --> useFirefly_test_2c284fc9
-  _testing_library_react_b35eda33["@testing-library/react"] --> useFirefly_test_2c284fc9
-  useFirefly_test_2c284fc9 --> settings_cde0fb0d
   _testing_library_react_b35eda33["@testing-library/react"] --> useAutoIngest_test_c64ef81e
   vitest_a9127f3d["vitest"] --> useAutoIngest_test_c64ef81e
   useAutoIngest_test_c64ef81e --> useAutoIngest_56f90d17
   _testing_library_react_b35eda33["@testing-library/react"] --> useAtlasSearch_test_603682cd
   vitest_a9127f3d["vitest"] --> useAtlasSearch_test_603682cd
   useAtlasSearch_test_603682cd --> useAtlasSearch_7d18f6f2
-  vitest_a9127f3d["vitest"] --> docsAutoLoad_test_e6636ba5
-  vitest_a9127f3d["vitest"] --> branchViewEvidence_test_c375af04
-  branchViewEvidence_test_c375af04 --> branchViewEvidence_9e7c8d82
-  vitest_a9127f3d["vitest"] --> BranchView_test_9e320760
-  BranchView_test_9e320760 --> branchViewEvidence_9e7c8d82
-  react_27597608["react"] --> useBranchViewController_d4c2a4b8
-  useBranchViewController_d4c2a4b8 --> nearbyGridDemo_82adb7f2
-  useBranchViewController_d4c2a4b8 --> testRuns_ebc7ce74
-  useBranchViewController_d4c2a4b8 --> useFirefly_4b28bfda
-  useBranchViewController_d4c2a4b8 --> useTestImport_136ded43
-  useBranchViewController_d4c2a4b8 --> branchView_constants_91490435
-  useBranchViewController_d4c2a4b8 --> branchViewEvidence_9e7c8d82
-  useBranchViewController_d4c2a4b8 --> useBranchNarrativeState_421f0b1f
-  useBranchViewController_d4c2a4b8 --> useBranchTelemetry_d189d40e
-  useBranchViewController_d4c2a4b8 --> useBranchSelectionData_213a448c
-  react_27597608["react"] --> useBranchTelemetry_d189d40e
-  useBranchTelemetry_d189d40e --> branchView_constants_91490435
-  react_27597608["react"] --> useBranchSelectionData_213a448c
-  react_27597608["react"] --> useBranchNarrativeState_421f0b1f
-  useBranchNarrativeState_421f0b1f --> recallLane_27810870
-  useBranchNarrativeState_421f0b1f --> composeBranchNarrative_2a286eb3
-  useBranchNarrativeState_421f0b1f --> decisionArchaeology_df265c52
-  useBranchNarrativeState_421f0b1f --> rolloutGovernance_513faed5
-  useBranchNarrativeState_421f0b1f --> stakeholderProjections_df026476
-  useBranchNarrativeState_421f0b1f --> githubContext_f8e56c92
-  useBranchNarrativeState_421f0b1f --> narrativeFeedback_16021c8c
+  _tauri_apps_plugin_store_87154caf["@tauri-apps/plugin-store"] --> settings_cde0fb0d
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> otelReceiver_bd752dec
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> narrativeFs_b94b096d
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> ingestConfig_c7e6037b
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> gitDiff_a3685ce7
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> activity_0651863b
+  traceScan_d94d6b75 --> narrativeFs_b94b096d
+  traceScan_d94d6b75 --> traceParser_f261b9c1
+  traceScan_d94d6b75 --> traceIngest_a4da94ac
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> traceScan_d94d6b75
+  traceIngest_a4da94ac --> db_7bdc25d1
+  traceIngest_a4da94ac --> redact_18f1255e
+  traceIngest_a4da94ac --> narrativeFs_b94b096d
+  traceIngest_a4da94ac --> traceParser_f261b9c1
+  traceIngest_a4da94ac --> otelAdapter_570cff77
+  traceConfig_7e9b1320 --> narrativeFs_b94b096d
+  testRuns_ebc7ce74 --> db_7bdc25d1
+  snapshots_2b36a6e6 --> narrativeFs_b94b096d
+  snapshots_2b36a6e6 --> git_9a881b9b
+  _tauri_apps_plugin_shell_984b70f9["@tauri-apps/plugin-shell"] --> shell_ce635c4e
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> sessions_1225ae6c
+  sessions_1225ae6c --> narrativeFs_b94b096d
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> sessionLinking_8e056ceb
+  sessionBadges_4a38460b --> sessions_1225ae6c
+  sessionBadges_4a38460b --> sessionLinking_8e056ceb
+  sessionBadges_4a38460b --> sessionLinking_8e056ceb
+  otelAdapter_570cff77 --> git_9a881b9b
+  otelAdapter_570cff77 --> gitDiff_a3685ce7
+  narrativeFeedback_16021c8c --> db_7bdc25d1
+  meta_ea3bd73e --> narrativeFs_b94b096d
+  indexer_70fa78e5 --> composeBranchNarrative_2a286eb3
+  indexer_70fa78e5 --> db_7bdc25d1
+  indexer_70fa78e5 --> sessions_1225ae6c
+  indexer_70fa78e5 --> agentTrace_bc847946
+  indexer_70fa78e5 --> traceConfig_7e9b1320
+  indexer_70fa78e5 --> attribution_api_b53df9d9
+  indexer_70fa78e5 --> story_anchors_api_279f63a1
+  indexer_70fa78e5 --> testRuns_ebc7ce74
+  indexer_70fa78e5 --> snapshots_2b36a6e6
+  githubContext_f8e56c92 --> redact_18f1255e
+  githubContext_f8e56c92 --> narrativeFs_b94b096d
+  gitNotes_8e1bf058 --> git_9a881b9b
+  git_9a881b9b --> shell_ce635c4e
+  _tauri_apps_plugin_sql_146f0298["@tauri-apps/plugin-sql"] --> db_7bdc25d1
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> codexConfig_229b7351
+  codexConfig_229b7351 --> narrativeFs_b94b096d
+  agentTrace_bc847946 --> redact_18f1255e
+  agentTrace_bc847946 --> db_7bdc25d1
+  agentTrace_bc847946 --> narrativeFs_b94b096d
+  agentTrace_bc847946 --> otelAdapter_570cff77
+  agentTrace_bc847946 --> gitDiff_a3685ce7
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> agentTrace_bc847946
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> agentTrace_bc847946
+  _tauri_apps_api_641aee82["@tauri-apps/api"] --> agentSessionTools_413c0d20
+  rolloutGovernance_513faed5 --> promptGovernance_f53dd659
   style vitest_a9127f3d fill:#f59e0b,color:#fff
   style _vitejs_plugin_react_9bd546e6 fill:#f59e0b,color:#fff
   style _tailwindcss_vite_6b7ae948 fill:#f59e0b,color:#fff
@@ -213,14 +195,14 @@ graph LR
   style node_path_0e7d56ab fill:#f59e0b,color:#fff
   style node_fs_df6b52af fill:#f59e0b,color:#fff
   style node_os_e9717731 fill:#f59e0b,color:#fff
-  style _tauri_apps_api_641aee82 fill:#f59e0b,color:#fff
-  style zod_4f63cf5c fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_updater_29f514c2 fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_process_a7086bef fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_dialog_672cd360 fill:#f59e0b,color:#fff
+  style _tauri_apps_api_641aee82 fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_shell_984b70f9 fill:#f59e0b,color:#fff
+  style zod_4f63cf5c fill:#f59e0b,color:#fff
   style fs_dce7cce0 fill:#f59e0b,color:#fff
   style path_a0af9f86 fill:#f59e0b,color:#fff
+  style _testing_library_react_b35eda33 fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_store_87154caf fill:#f59e0b,color:#fff
   style _tauri_apps_plugin_sql_146f0298 fill:#f59e0b,color:#fff
-  style _testing_library_react_b35eda33 fill:#f59e0b,color:#fff

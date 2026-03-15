@@ -1,5 +1,6 @@
 {
   "harnessVersion": "0.8.1",
+  "ciProvider": "github-actions",
   "files": [
     {
       "path": "harness.contract.json",

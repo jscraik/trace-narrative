@@ -30,7 +30,19 @@ const compiledPatterns: Array<{ type: string; re: RegExp }> = (
   };
 });
 
+/** Maximum input size (bytes) we'll redact in one call. Larger inputs are returned unredacted. */
+const MAX_REDACT_INPUT_BYTES = 2 * 1024 * 1024; // 2 MB
+
 export function redactSecrets(input: string): RedactionResult {
+  if (input.length > MAX_REDACT_INPUT_BYTES) {
+    // Input is too large to scan safely — log a warning and skip.
+    // This prevents ReDoS on the PRIVATE_KEY_BLOCK [\s\S]*? pattern.
+    console.warn(
+      `[redact] Input too large to redact (${input.length} chars > ${MAX_REDACT_INPUT_BYTES}). Returning as-is.`
+    );
+    return { redacted: input, hits: [] };
+  }
+
   let redacted = input;
   const hits: RedactionHit[] = [];
 

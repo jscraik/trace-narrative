@@ -15,14 +15,9 @@ jobs:
     steps:
       - name: Validate PR template completion
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
-            if (context.payload.pull_request?.user?.login === 'dependabot[bot]') {
-              core.info('Skipping PR template enforcement for Dependabot PR.');
-              return;
-            }
-
             const body = context.payload.pull_request?.body ?? '';
             const errors = [];
 
@@ -102,7 +97,7 @@ jobs:
     name: linear-gate
     runs-on: ubuntu-latest
     needs: [pr-template]
-    if: ${{ always() && (github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && needs.pr-template.result == 'success')) }}
+    if: ${{ always() && (github.event_name == 'merge_group' || needs.pr-template.result == 'success') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -194,7 +189,7 @@ EOF
       - name: Detect dependency review support
         id: dependency-review-support
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -303,7 +298,7 @@ EOF
           fi
       - name: Upload advisory artifact
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: consistency-drift-advisory-latest
           path: artifacts/consistency-gate/consistency-drift-advisory-latest.json
@@ -371,7 +366,7 @@ EOF
           echo "::warning::consistency-drift-health running in bootstrap mode (baseline seed missing)."
       - name: Upload health artifact
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: consistency-drift-health-latest
           path: artifacts/consistency-gate/health.json

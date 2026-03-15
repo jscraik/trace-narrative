@@ -189,7 +189,6 @@ describe('indexer', () => {
       expect(progressCallbacks).toContain('notes');
       expect(progressCallbacks).toContain('intent');
       expect(progressCallbacks).toContain('sessions');
-      expect(progressCallbacks).toContain('trace-config');
       expect(progressCallbacks).toContain('trace');
       expect(progressCallbacks).toContain('meta');
       expect(progressCallbacks).toContain('done');

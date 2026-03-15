@@ -240,6 +240,19 @@ export async function rollbackCollectorMigration(): Promise<CollectorMigrationRe
 }
 
 export async function configureCodexOtel(endpoint: string): Promise<void> {
+  // Validate endpoint before sending to Rust — must be an http/https URL.
+  // Defense-in-depth: the backend validates too, but we catch mistakes early.
+  let parsed: URL;
+  try {
+    parsed = new URL(endpoint);
+  } catch {
+    throw new Error(`[configureCodexOtel] Invalid endpoint URL: ${JSON.stringify(endpoint)}`);
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(
+      `[configureCodexOtel] Endpoint must use http or https protocol, got: ${parsed.protocol}`
+    );
+  }
   await invoke('configure_codex_otel', { endpoint });
 }
 

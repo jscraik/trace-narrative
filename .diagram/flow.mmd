@@ -4,17 +4,17 @@ flowchart TD
   Start --> vite_integration_config_033b7d32
   vite_config_c473fba0["vite.config"]
   vite_integration_config_033b7d32 --> vite_config_c473fba0
+  test_debug_e2f6f6a5["test-debug"]
+  vite_config_c473fba0 --> test_debug_e2f6f6a5
   playwright_config_c5f93a12["playwright.config"]
-  vite_config_c473fba0 --> playwright_config_c5f93a12
+  test_debug_e2f6f6a5 --> playwright_config_c5f93a12
   setupTests_a1881263["setupTests"]
   playwright_config_c5f93a12 --> setupTests_a1881263
   axe_config_5dab6a88["axe-config"]
   setupTests_a1881263 --> axe_config_5dab6a88
   vite_config_1_736b3c02["vite.config"]
   axe_config_5dab6a88 --> vite_config_1_736b3c02
-  firefly_visual_system_v1_spec_def11f59["firefly-visual-system-v1.spec"]
-  vite_config_1_736b3c02 --> firefly_visual_system_v1_spec_def11f59
-  critical_flows_spec_66db3f9a["critical-flows.spec"]
-  firefly_visual_system_v1_spec_def11f59 --> critical_flows_spec_66db3f9a
+  trace_visual_system_v1_spec_98815fb6["trace-visual-system-v1.spec"]
+  vite_config_1_736b3c02 --> trace_visual_system_v1_spec_98815fb6
   End(["End"])
-  critical_flows_spec_66db3f9a --> End
+  trace_visual_system_v1_spec_98815fb6 --> End

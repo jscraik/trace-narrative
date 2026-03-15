@@ -4,12 +4,6 @@ flowchart TD
   agentation_baseline_spec_7c288669["agentation-baseline.spec"]
   UserRequest --> agentation_baseline_spec_7c288669
   agentation_baseline_spec_7c288669 --> agentation_baseline_spec_7c288669_result["result"]
-  story_anchors_api_279f63a1["story-anchors-api"]
-  UserRequest --> story_anchors_api_279f63a1
-  story_anchors_api_279f63a1 --> story_anchors_api_279f63a1_result["result"]
-  atlas_api_0fe43c81["atlas-api"]
-  UserRequest --> atlas_api_0fe43c81
-  atlas_api_0fe43c81 --> atlas_api_0fe43c81_result["result"]
   useUpdater_db2b740b["useUpdater"]
   UserRequest --> useUpdater_db2b740b
   useUpdater_db2b740b --> useUpdater_db2b740b_write["write/update"]
@@ -25,6 +19,10 @@ flowchart TD
   useTestImport_136ded43 --> useTestImport_136ded43_result["result"]
   useTestImport_136ded43 --> junit_018bb207
   useTestImport_136ded43 --> testRuns_ebc7ce74
+  useSnapshots_2b09c48f["useSnapshots"]
+  UserRequest --> useSnapshots_2b09c48f
+  useSnapshots_2b09c48f --> useSnapshots_2b09c48f_result["result"]
+  useSnapshots_2b09c48f --> snapshots_2b36a6e6
   useSessionImport_69292424["useSessionImport"]
   UserRequest --> useSessionImport_69292424
   useSessionImport_69292424 --> useSessionImport_69292424_result["result"]
@@ -45,21 +43,55 @@ flowchart TD
   useCommitData_29c16895 --> agentTrace_bc847946
   useCommitData_29c16895 --> git_9a881b9b
   useCommitData_29c16895 --> indexer_70fa78e5
-  useCommitData_29c16895 --> nearbyGridDemo_82adb7f2
   useAutoIngest_56f90d17["useAutoIngest"]
   UserRequest --> useAutoIngest_56f90d17
   useAutoIngest_56f90d17 --> useAutoIngest_56f90d17_result["result"]
   useAutoIngest_56f90d17 --> sessionBadges_4a38460b
   useAutoIngest_56f90d17 --> otelReceiver_bd752dec
+  story_anchors_api_279f63a1["story-anchors-api"]
+  UserRequest --> story_anchors_api_279f63a1
+  story_anchors_api_279f63a1 --> story_anchors_api_279f63a1_result["result"]
+  atlas_api_0fe43c81["atlas-api"]
+  UserRequest --> atlas_api_0fe43c81
+  atlas_api_0fe43c81 --> atlas_api_0fe43c81_result["result"]
   generate_dataset_d06adda7["generate-dataset"]
   UserRequest --> generate_dataset_d06adda7
   generate_dataset_d06adda7 --> generate_dataset_d06adda7_result["result"]
+  useDashboardViewState_0962a456["useDashboardViewState"]
+  UserRequest --> useDashboardViewState_0962a456
+  useDashboardViewState_0962a456 --> useDashboardViewState_0962a456_result["result"]
+  useDashboardViewState_0962a456 --> narrativeTelemetry_70dfa1c5
+  narrativeSurfaceData_d4f28a0b["narrativeSurfaceData"]
+  UserRequest --> narrativeSurfaceData_d4f28a0b
+  narrativeSurfaceData_d4f28a0b --> narrativeSurfaceData_d4f28a0b_result["result"]
   docsAutoLoad_44c379b9["docsAutoLoad"]
   UserRequest --> docsAutoLoad_44c379b9
   docsAutoLoad_44c379b9 --> docsAutoLoad_44c379b9_result["result"]
   branchHeaderMapper_4dd9295b["branchHeaderMapper"]
   UserRequest --> branchHeaderMapper_4dd9295b
   branchHeaderMapper_4dd9295b --> branchHeaderMapper_4dd9295b_result["result"]
+  useTraceCollector_test_1261d5ea["useTraceCollector.test"]
+  UserRequest --> useTraceCollector_test_1261d5ea
+  useTraceCollector_test_1261d5ea --> useTraceCollector_test_1261d5ea_result["result"]
+  useTraceCollector_test_1261d5ea --> useTraceCollector_e3f811c3
+  useTestImport_test_da639ade["useTestImport.test"]
+  UserRequest --> useTestImport_test_da639ade
+  useTestImport_test_da639ade --> useTestImport_test_da639ade_result["result"]
+  useTestImport_test_da639ade --> useTestImport_136ded43
+  useRepoLoader_test_c0765b39["useRepoLoader.test"]
+  UserRequest --> useRepoLoader_test_c0765b39
+  useRepoLoader_test_c0765b39 --> useRepoLoader_test_c0765b39_result["result"]
+  useRepoLoader_test_c0765b39 --> useRepoLoader_df6f8864
+  useRepoFileExistence_test_ae1ae469["useRepoFileExistence.test"]
+  UserRequest --> useRepoFileExistence_test_ae1ae469
+  useRepoFileExistence_test_ae1ae469 --> useRepoFileExistence_test_ae1ae469_result["result"]
+  useAutoIngest_test_c64ef81e["useAutoIngest.test"]
+  UserRequest --> useAutoIngest_test_c64ef81e
+  useAutoIngest_test_c64ef81e --> useAutoIngest_test_c64ef81e_result["result"]
+  useAutoIngest_test_c64ef81e --> useAutoIngest_56f90d17
+  narrativeTelemetry_70dfa1c5["narrativeTelemetry"]
+  UserRequest --> narrativeTelemetry_70dfa1c5
+  narrativeTelemetry_70dfa1c5 --> narrativeTelemetry_70dfa1c5_result["result"]
   otelReceiver_bd752dec["otelReceiver"]
   UserRequest --> otelReceiver_bd752dec
   otelReceiver_bd752dec --> otelReceiver_bd752dec_result["result"]
@@ -90,6 +122,10 @@ flowchart TD
   UserRequest --> testRuns_ebc7ce74
   testRuns_ebc7ce74 --> testRuns_ebc7ce74_result["result"]
   testRuns_ebc7ce74 --> db_7bdc25d1
+  snapshots_2b36a6e6["snapshots"]
+  UserRequest --> snapshots_2b36a6e6
+  snapshots_2b36a6e6 --> snapshots_2b36a6e6_result["result"]
+  snapshots_2b36a6e6 --> git_9a881b9b
   shell_ce635c4e["shell"]
   UserRequest --> shell_ce635c4e
   shell_ce635c4e --> shell_ce635c4e_result["result"]
@@ -126,12 +162,12 @@ flowchart TD
   indexer_70fa78e5 --> indexer_70fa78e5_result["result"]
   indexer_70fa78e5 --> composeBranchNarrative_2a286eb3
   indexer_70fa78e5 --> db_7bdc25d1
-  indexer_70fa78e5 --> git_9a881b9b
   indexer_70fa78e5 --> sessions_1225ae6c
   indexer_70fa78e5 --> agentTrace_bc847946
   indexer_70fa78e5 --> traceConfig_7e9b1320
   indexer_70fa78e5 --> story_anchors_api_279f63a1
   indexer_70fa78e5 --> testRuns_ebc7ce74
+  indexer_70fa78e5 --> snapshots_2b36a6e6
   githubContext_f8e56c92["githubContext"]
   UserRequest --> githubContext_f8e56c92
   githubContext_f8e56c92 --> githubContext_f8e56c92_result["result"]
@@ -160,43 +196,5 @@ flowchart TD
   composeBranchNarrative_2a286eb3["composeBranchNarrative"]
   UserRequest --> composeBranchNarrative_2a286eb3
   composeBranchNarrative_2a286eb3 --> composeBranchNarrative_2a286eb3_result["result"]
-  nearbyGridDemo_82adb7f2["nearbyGridDemo"]
-  UserRequest --> nearbyGridDemo_82adb7f2
-  nearbyGridDemo_82adb7f2 --> nearbyGridDemo_82adb7f2_result["result"]
-  useTraceCollector_test_1261d5ea["useTraceCollector.test"]
-  UserRequest --> useTraceCollector_test_1261d5ea
-  useTraceCollector_test_1261d5ea --> useTraceCollector_test_1261d5ea_result["result"]
-  useTraceCollector_test_1261d5ea --> useTraceCollector_e3f811c3
-  useTestImport_test_da639ade["useTestImport.test"]
-  UserRequest --> useTestImport_test_da639ade
-  useTestImport_test_da639ade --> useTestImport_test_da639ade_result["result"]
-  useTestImport_test_da639ade --> useTestImport_136ded43
-  useRepoLoader_test_c0765b39["useRepoLoader.test"]
-  UserRequest --> useRepoLoader_test_c0765b39
-  useRepoLoader_test_c0765b39 --> useRepoLoader_test_c0765b39_result["result"]
-  useRepoLoader_test_c0765b39 --> useRepoLoader_df6f8864
-  useRepoFileExistence_test_ae1ae469["useRepoFileExistence.test"]
-  UserRequest --> useRepoFileExistence_test_ae1ae469
-  useRepoFileExistence_test_ae1ae469 --> useRepoFileExistence_test_ae1ae469_result["result"]
-  useAutoIngest_test_c64ef81e["useAutoIngest.test"]
-  UserRequest --> useAutoIngest_test_c64ef81e
-  useAutoIngest_test_c64ef81e --> useAutoIngest_test_c64ef81e_result["result"]
-  useAutoIngest_test_c64ef81e --> useAutoIngest_56f90d17
-  docsAutoLoad_test_e6636ba5["docsAutoLoad.test"]
-  UserRequest --> docsAutoLoad_test_e6636ba5
-  docsAutoLoad_test_e6636ba5 --> docsAutoLoad_test_e6636ba5_result["result"]
-  useBranchViewController_d4c2a4b8["useBranchViewController"]
-  UserRequest --> useBranchViewController_d4c2a4b8
-  useBranchViewController_d4c2a4b8 --> useBranchViewController_d4c2a4b8_result["result"]
-  useBranchViewController_d4c2a4b8 --> nearbyGridDemo_82adb7f2
-  useBranchViewController_d4c2a4b8 --> testRuns_ebc7ce74
-  useBranchViewController_d4c2a4b8 --> useTestImport_136ded43
-  useBranchViewController_d4c2a4b8 --> useBranchNarrativeState_421f0b1f
-  useBranchNarrativeState_421f0b1f["useBranchNarrativeState"]
-  UserRequest --> useBranchNarrativeState_421f0b1f
-  useBranchNarrativeState_421f0b1f --> useBranchNarrativeState_421f0b1f_result["result"]
-  useBranchNarrativeState_421f0b1f --> composeBranchNarrative_2a286eb3
-  useBranchNarrativeState_421f0b1f --> githubContext_f8e56c92
-  useBranchNarrativeState_421f0b1f --> narrativeFeedback_16021c8c
   classDef dbNode fill:#0ea5e9,color:#fff
   classDef decisionNode fill:#0284c7,color:#fff

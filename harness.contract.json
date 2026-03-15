@@ -148,7 +148,7 @@
       },
       {
         "tool": "uv",
-        "version": "0.9.5"
+        "version": "0.10.9"
       },
       {
         "tool": "cargo:prek",
@@ -651,6 +651,15 @@
         "missing_snapshot_integrity_verification"
       ]
     }
+  },
+  "ciProviderPolicy": {
+    "activeProvider": "github-actions",
+    "mode": "shadow",
+    "migrationStage": "dual-provider",
+    "transitionStatusArtifactPath": ".harness/ci-provider-transition-status.json",
+    "authorityConfigPath": "harness.contract.json",
+    "requiredCheckManifestPath": ".harness/ci-required-checks.json",
+    "trustedPolicyRef": "refs/heads/main"
   },
   "contextIntegrityPolicy": {
     "mode": "shadow",

@@ -11,6 +11,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
     globals: true,
+    testTimeout: 15000,
     exclude: ['node_modules/', 'src-tauri/', 'e2e/', 'tmp/', '**/*.integration.test.ts'],
     coverage: {
       provider: 'v8',

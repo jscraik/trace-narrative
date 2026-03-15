@@ -8,6 +8,12 @@ flowchart TD
   Untrusted --> useKeyboardShortcuts_c0879d98
   sessionUtils_d704722d["sessionUtils"]
   Untrusted --> sessionUtils_d704722d
+  useDashboardViewState_0962a456["useDashboardViewState"]
+  Untrusted --> useDashboardViewState_0962a456
+  useTestImport_test_da639ade["useTestImport.test"]
+  Untrusted --> useTestImport_test_da639ade
+  narrativeTelemetry_70dfa1c5["narrativeTelemetry"]
+  Untrusted --> narrativeTelemetry_70dfa1c5
   ingestConfig_c7e6037b["ingestConfig"]
   Untrusted --> ingestConfig_c7e6037b
   toolSanitizer_93dad926["toolSanitizer"]
@@ -24,24 +30,22 @@ flowchart TD
   Untrusted --> githubContext_f8e56c92
   agentTrace_bc847946["agentTrace"]
   Untrusted --> agentTrace_bc847946
-  useTestImport_test_da639ade["useTestImport.test"]
-  Untrusted --> useTestImport_test_da639ade
+  useAtlasSearch_7d18f6f2["useAtlasSearch"]
+  Untrusted --> useAtlasSearch_7d18f6f2
   story_anchors_api_279f63a1["story-anchors-api"]
   Untrusted --> story_anchors_api_279f63a1
   attribution_api_b53df9d9["attribution-api"]
   Untrusted --> attribution_api_b53df9d9
   atlas_api_0fe43c81["atlas-api"]
   Untrusted --> atlas_api_0fe43c81
-  useAtlasSearch_7d18f6f2["useAtlasSearch"]
-  Untrusted --> useAtlasSearch_7d18f6f2
   calibration_run_script_85d7a923["calibration-run-script"]
   Untrusted --> calibration_run_script_85d7a923
+  useAutoIngest_test_c64ef81e["useAutoIngest.test"]
+  Untrusted --> useAutoIngest_test_c64ef81e
   sessionLinking_8e056ceb["sessionLinking"]
   Untrusted --> sessionLinking_8e056ceb
   agentSessionTools_413c0d20["agentSessionTools"]
   Untrusted --> agentSessionTools_413c0d20
-  useAutoIngest_test_c64ef81e["useAutoIngest.test"]
-  Untrusted --> useAutoIngest_test_c64ef81e
   vite_integration_config_033b7d32["vite.integration.config"]
   Untrusted --> vite_integration_config_033b7d32
   vite_config_c473fba0["vite.config"]
@@ -67,6 +71,9 @@ flowchart TD
   useSessionImport_69292424 --> narrativeFs_b94b096d
   useSessionImport_69292424 --> story_anchors_api_279f63a1
   sessionUtils_d704722d --> toolSanitizer_93dad926
+  useDashboardViewState_0962a456 --> narrativeTelemetry_70dfa1c5
+  useDashboardViewState_0962a456 --> dashboardMockStats_2008817f
+  useTestImport_test_da639ade --> useTestImport_136ded43
   traceIngest_a4da94ac --> db_7bdc25d1
   traceIngest_a4da94ac --> redact_18f1255e
   traceIngest_a4da94ac --> narrativeFs_b94b096d
@@ -80,20 +87,14 @@ flowchart TD
   agentTrace_bc847946 --> narrativeFs_b94b096d
   agentTrace_bc847946 --> otelAdapter_570cff77
   agentTrace_bc847946 --> gitDiff_a3685ce7
-  useTestImport_test_da639ade --> useTestImport_136ded43
   useAtlasSearch_7d18f6f2 --> atlas_api_0fe43c81
   testRuns_ebc7ce74 --> db_7bdc25d1
-  useBranchViewController_d4c2a4b8 --> testRuns_ebc7ce74
-  useBranchViewController_d4c2a4b8 --> useTestImport_136ded43
-  useBranchViewController_d4c2a4b8 --> useBranchNarrativeState_421f0b1f
   sessionBadges_4a38460b --> sessionLinking_8e056ceb
   useKeyboardShortcuts_test_b00dfaeb --> useKeyboardShortcuts_c0879d98
   otelAdapter_570cff77 --> gitDiff_a3685ce7
   traceScan_d94d6b75 --> narrativeFs_b94b096d
   traceScan_d94d6b75 --> traceParser_f261b9c1
   traceScan_d94d6b75 --> traceIngest_a4da94ac
-  useBranchNarrativeState_421f0b1f --> githubContext_f8e56c92
-  useBranchNarrativeState_421f0b1f --> narrativeFeedback_16021c8c
   useCommitData_29c16895 --> agentTrace_bc847946
   useCommitData_29c16895 --> indexer_70fa78e5
   indexer_70fa78e5 --> db_7bdc25d1
@@ -101,4 +102,5 @@ flowchart TD
   indexer_70fa78e5 --> attribution_api_b53df9d9
   indexer_70fa78e5 --> story_anchors_api_279f63a1
   indexer_70fa78e5 --> testRuns_ebc7ce74
+  useAtlasSearch_test_603682cd --> useAtlasSearch_7d18f6f2
   classDef securityNode fill:#dc2626,color:#fff

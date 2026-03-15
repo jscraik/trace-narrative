@@ -57,7 +57,6 @@ export async function indexRepo(
     'notes',
     'intent',
     'sessions',
-    'trace-config',
     'trace',
     'meta',
     'done'
@@ -81,8 +80,10 @@ export async function indexRepo(
   reportProgress('resolve', 'Resolving repository…');
   const root = await resolveGitRoot(selectedPath);
   reportProgress('branch', 'Reading branch metadata…');
-  const branch = await getHeadBranch(root);
-  const headSha = await getHeadSha(root);
+  const [branch, headSha] = await Promise.all([
+    getHeadBranch(root),
+    getHeadSha(root),
+  ]);
 
   reportProgress('repo', 'Preparing repo index…');
   const repoId = await upsertRepo(root);
@@ -101,29 +102,23 @@ export async function indexRepo(
   ]);
 
   reportProgress('notes', 'Importing attribution notes…');
-  try {
-    await importAttributionNotesBatch(repoId, commits.map((c) => c.sha));
-  } catch (e) {
-    // Notes import is best-effort, but log the error for debugging
-    console.error('[Indexer] Attribution notes import failed:', e);
-  }
-
-  // Story Anchors (sessions) are also best-effort.
-  try {
-    await importSessionLinkNotesBatch(repoId, commits.map((c) => c.sha));
-  } catch (e) {
-    console.error('[Indexer] Session link notes import failed:', e);
-  }
+  await Promise.allSettled([
+    importAttributionNotesBatch(repoId, commits.map((c) => c.sha)).catch((e) => {
+      console.error('[Indexer] Attribution notes import failed:', e);
+    }),
+    importSessionLinkNotesBatch(repoId, commits.map((c) => c.sha)).catch((e) => {
+      console.error('[Indexer] Session link notes import failed:', e);
+    }),
+  ]);
 
   // Story Anchors status hydration is best-effort (used for timeline indicators).
   let anchorStatusBySha: Record<string, StoryAnchorCommitStatus> = {};
-  try {
-    const rows = await getStoryAnchorStatus(repoId, commits.map((c) => c.sha));
-    anchorStatusBySha = Object.fromEntries(rows.map((r) => [r.commitSha, r]));
-  } catch (e) {
-    console.warn('[Indexer] Story Anchors status hydration failed:', e);
-  }
-  const hasAnchorStatus = Object.keys(anchorStatusBySha).length > 0;
+  let dirtyFiles: string[] = [];
+  let dirtyChurnLines = 0;
+  let sessionExcerpts: Awaited<ReturnType<typeof loadSessionExcerpts>> = [];
+  let traceConfig: Awaited<ReturnType<typeof loadTraceConfig>>;
+  let snapshots: Awaited<ReturnType<typeof listSnapshots>> = [];
+  let testSummaries: Awaited<ReturnType<typeof getLatestTestRunSummaryByCommit>> = {};
 
   reportProgress('intent', 'Preparing intent summaries…');
   const intent: IntentItem[] = commits.slice(0, 6).map((c, idx) => ({
@@ -132,12 +127,48 @@ export async function indexRepo(
     tag: c.sha.slice(0, 7)
   }));
 
+  // Run all independent post-commits work concurrently
   reportProgress('sessions', 'Loading session excerpts…');
-  const sessionExcerpts = await loadSessionExcerpts(root, repoId, 1);
-  reportProgress('trace-config', 'Loading trace configuration…');
-  const traceConfig = await loadTraceConfig(root);
-  
-  // Trace ingestion is best-effort; don't fail repo loading if it errors
+  [
+    anchorStatusBySha,
+    sessionExcerpts,
+    traceConfig,
+    dirtyFiles,
+    dirtyChurnLines,
+    snapshots,
+    testSummaries,
+  ] = await Promise.all([
+    getStoryAnchorStatus(repoId, commits.map((c) => c.sha))
+      .then((rows) => Object.fromEntries(rows.map((r) => [r.commitSha, r])))
+      .catch((e) => {
+        console.warn('[Indexer] Story Anchors status hydration failed:', e);
+        return {};
+      }) as Promise<Record<string, StoryAnchorCommitStatus>>,
+    loadSessionExcerpts(root, repoId, 1).catch((e) => {
+      console.warn('[Indexer] Session excerpts load failed:', e);
+      return [];
+    }),
+    loadTraceConfig(root),
+    getDirtyFiles(root).catch((e) => {
+      console.warn('[Indexer] Dirty-file scan failed:', e);
+      return [];
+    }),
+    getWorkingTreeChurn(root).catch((e) => {
+      console.warn('[Indexer] Dirty-churn scan failed:', e);
+      return 0;
+    }),
+    listSnapshots(root).catch(() => []),
+    getLatestTestRunSummaryByCommit(repoId, commits.map((c) => c.sha)).catch((e) => {
+      console.warn('[Indexer] Test run hydration failed:', e);
+      return {};
+    }),
+  ] as const);
+
+  const hasAnchorStatus = Object.keys(anchorStatusBySha).length > 0;
+
+  // Trace ingestion is best-effort; don't fail repo loading if it errors.
+  // OTel ingest must complete before scan (scan reads what ingest wrote).
+  reportProgress('trace', 'Scanning trace data…');
   let otelIngest: Awaited<ReturnType<typeof ingestCodexOtelLogFile>> = {
     status: { state: 'inactive', message: 'Not configured' },
     recordsWritten: 0
@@ -147,21 +178,6 @@ export async function indexRepo(
     byFileByCommit: {},
     totals: { conversations: 0, ranges: 0 }
   };
-  
-  reportProgress('trace', 'Scanning trace data…');
-  let dirtyFiles: string[] = [];
-  let dirtyChurnLines = 0;
-  try {
-    dirtyFiles = await getDirtyFiles(root);
-  } catch (e) {
-    console.warn('[Indexer] Dirty-file scan failed:', e);
-  }
-  try {
-    dirtyChurnLines = await getWorkingTreeChurn(root);
-  } catch (e) {
-    console.warn('[Indexer] Dirty-churn scan failed:', e);
-  }
-  const snapshots = await listSnapshots(root);
   try {
     otelIngest = await ingestCodexOtelLogFile({
       repoRoot: root,
@@ -170,16 +186,7 @@ export async function indexRepo(
     });
     trace = await scanAgentTraceRecords(root, repoId, commits.map((c) => c.sha));
   } catch (e) {
-    // Trace scanning failed, but we can still show the repo without trace data
     console.error('[Indexer] Trace scanning failed:', e);
-  }
-
-  // Test run badge hydration is best-effort; DB table may not exist on older installs.
-  let testSummaries: Awaited<ReturnType<typeof getLatestTestRunSummaryByCommit>> = {};
-  try {
-    testSummaries = await getLatestTestRunSummaryByCommit(repoId, commits.map((c) => c.sha));
-  } catch (e) {
-    console.warn('[Indexer] Test run hydration failed:', e);
   }
 
   const timeline: TimelineNode[] = commits

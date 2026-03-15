@@ -66,7 +66,8 @@ export CLAUDE_APPROVAL_POSTURE="${CLAUDE_APPROVAL_POSTURE:-require}"
 
 required_mise_tools=("node" "pnpm" "python" "uv" "cargo:prek" "npm:@brainwav/diagram" "npm:@argos-ci/cli" "cosign" "cloudflared" "npm:vitest" "ruff" "npm:eslint" "npm:agent-browser" "npm:agentation" "npm:agentation-mcp" "npm:@mermaid-js/mermaid-cli" "npm:@brainwav/rsearch" "npm:@brainwav/wsearch-cli" "npm:beautiful-mermaid" "npm:markdownlint-cli2" "npm:semver" "npm:wrangler" "semgrep" "trivy" "vale")
 for tool in "${required_mise_tools[@]}"; do
-	if ! rg -Fq ""${tool}" = " "$MISE_PATH" && ! rg -Fq "${tool} = " "$MISE_PATH"; then
+	tool_pattern="$(printf '%s' "$tool" | sed 's/[][(){}.^$*+?|\\]/\\&/g')"
+	if ! rg -q "^[[:space:]]*(\"${tool_pattern}\"|${tool_pattern})[[:space:]]*=" "$MISE_PATH"; then
 		echo "Error: required tool '$tool' is not pinned in $MISE_PATH [tools]"
 		echo "Fix: add '$tool = \"<version>\"' to $MISE_PATH."
 		exit 1
@@ -121,7 +122,7 @@ fi
 	for hook_spec in "${required_prek_hooks[@]}"; do
 		hook_name="${hook_spec%%|*}"
 		hook_command="${hook_spec#*|}"
-		if ! rg -Fq "${hook_name} = ["${hook_command}"]" "$PREK_CONFIG_PATH"; then
+		if ! rg -q "^[[:space:]]*${hook_name}[[:space:]]*=[[:space:]]*\\[[[:space:]]*\"${hook_command}\"[[:space:]]*\\][[:space:]]*$" "$PREK_CONFIG_PATH"; then
 			echo "Error: required prek hook '$hook_name' is missing or out of date in $PREK_CONFIG_PATH"
 			exit 1
 		fi
@@ -237,10 +238,80 @@ fi
 	mkdir -p "$REPO_ROOT/artifacts/policy"
 
 echo "Running harness environment preflight..."
-pnpm exec tsx src/cli.ts check-environment \
-	--contract "$CONTRACT_PATH" \
-	--json \
-	--attestation "$ATTESTATION_PATH"
+
+run_check_environment_with_runner() {
+	local label="$1"
+	shift
+	local -a runner=("$@")
+	local output=""
+	local exit_code=0
+
+	rm -f "$ATTESTATION_PATH"
+
+	echo "Using harness runner: $label"
+	set +e
+	output="$("${runner[@]}" check-environment \
+		--contract "$CONTRACT_PATH" \
+		--json \
+		--attestation "$ATTESTATION_PATH" 2>&1)"
+	exit_code=$?
+	set -e
+
+	if [[ -n "$output" ]]; then
+		printf '%s\n' "$output"
+	fi
+
+	if [[ "$exit_code" -ne 0 ]]; then
+		echo "Runner failed: $label (exit $exit_code)"
+		return 1
+	fi
+
+	if [[ ! -f "$ATTESTATION_PATH" ]]; then
+		local json_line
+		json_line="$(printf '%s\n' "$output" | awk '/^\{/{line=$0} END{if(line!="") print line}')"
+		if [[ -n "$json_line" ]]; then
+			printf '%s\n' "$json_line" > "$ATTESTATION_PATH"
+		fi
+	fi
+
+	if [[ ! -f "$ATTESTATION_PATH" ]]; then
+		echo "Runner produced no attestation output: $label"
+		return 1
+	fi
+
+	return 0
+}
+
+if ! command -v npm >/dev/null 2>&1; then
+	echo "Error: npm is required to validate global harness installation."
+	exit 1
+fi
+
+if ! npm ls -g --depth=0 @brainwav/coding-harness >/dev/null 2>&1; then
+	echo "Error: @brainwav/coding-harness is not installed globally via npm."
+	echo "Install globally and retry:"
+	echo "  npm i -g @brainwav/coding-harness"
+	echo "Private registry auth is required:"
+	echo "  - Local shell: export NPM_TOKEN=<token>"
+	echo "  - GitHub Actions: add repository secret NPM_TOKEN and map it to workflow env"
+	echo '    env: NPM_TOKEN: ${{ secrets.NPM_TOKEN }}'
+	exit 1
+fi
+
+if ! command -v harness >/dev/null 2>&1; then
+	echo "Error: global harness binary is not on PATH after npm installation."
+	echo "Fix: ensure npm global bin directory is on PATH, then retry."
+	exit 1
+fi
+
+if ! run_check_environment_with_runner "global npm harness ($(command -v harness))" harness; then
+	echo "Error: global npm harness failed to run check-environment successfully."
+	echo "Reinstall and retry:"
+	echo "  npm i -g @brainwav/coding-harness"
+	echo "If this is CI, confirm:"
+	echo '  env: NPM_TOKEN: ${{ secrets.NPM_TOKEN }}'
+	exit 1
+fi
 
 jq -e '.passed == true' "$ATTESTATION_PATH" >/dev/null
 echo "Environment check passed (attestation: $ATTESTATION_PATH)"
