@@ -246,9 +246,10 @@ export function useTraceSignal(
 					setEnabled(settings.enabled);
 				}
 			} catch (error) {
+				const _msg = String(error);
 				if (!cancelled) {
 					options.onPersistenceError?.(
-						`Unable to load Trace settings: ${getErrorMessage(error)}`,
+						`Unable to load Trace settings: ${_msg}`,
 					);
 				}
 			} finally {

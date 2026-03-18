@@ -179,8 +179,9 @@ export function StoryAnchorsPanel(props: {
 			try {
 				await action(context);
 			} catch (error) {
+				const _msg = String(error);
 				if (context.isStaleRequest()) return;
-				setMessage(error instanceof Error ? error.message : String(error));
+				setMessage(error instanceof Error ? error.message : _msg);
 			} finally {
 				finalizeAction(
 					context.isStaleRequest,

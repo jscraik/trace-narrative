@@ -215,9 +215,10 @@ export function useSessionImport({
 				await exportSessionLinkNote(expectedRepoId, link.commitSha);
 				if (isStaleRequest()) return;
 			} catch (e) {
+				const _msg = String(e);
 				console.warn(
 					"[SessionImport] exportSessionLinkNote failed (best-effort):",
-					e,
+					_msg,
 				);
 				if (isStaleRequest()) return;
 			}
@@ -231,8 +232,9 @@ export function useSessionImport({
 				{ limit: 10 },
 			);
 		} catch (e: unknown) {
+			const _msg = String(e);
 			if (isStaleRequest()) return;
-			setActionError(e instanceof Error ? e.message : String(e));
+			setActionError(e instanceof Error ? e.message : _msg);
 		}
 	}, [beginActionGuard, setRepoState, setActionError]);
 
@@ -325,9 +327,10 @@ export function useSessionImport({
 				await exportSessionLinkNote(expectedRepoId, link.commitSha);
 				if (isStaleRequest()) return;
 			} catch (e) {
+				const _msg = String(e);
 				console.warn(
 					"[SessionImport] exportSessionLinkNote failed (best-effort):",
-					e,
+					_msg,
 				);
 				if (isStaleRequest()) return;
 			}
@@ -341,8 +344,9 @@ export function useSessionImport({
 				{ limit: 10 },
 			);
 		} catch (e: unknown) {
+			const _msg = String(e);
 			if (isStaleRequest()) return;
-			setActionError(e instanceof Error ? e.message : String(e));
+			setActionError(e instanceof Error ? e.message : _msg);
 		}
 	}, [beginActionGuard, setRepoState, setActionError]);
 
@@ -380,8 +384,9 @@ export function useSessionImport({
 				applyTraceUpdate(prev, trace),
 			);
 		} catch (e: unknown) {
+			const _msg = String(e);
 			if (isStaleRequest()) return;
-			setActionError(e instanceof Error ? e.message : String(e));
+			setActionError(e instanceof Error ? e.message : _msg);
 		}
 	}, [beginActionGuard, applyScopedRepoUpdate, setActionError]);
 

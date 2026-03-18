@@ -340,7 +340,11 @@ export async function indexRepo(
 			}
 		}
 	} catch (e) {
-		console.warn("[Indexer] Metadata write failed (repo may be read-only):", e);
+		const _msg = String(e);
+		console.warn(
+			"[Indexer] Metadata write failed (repo may be read-only):",
+			_msg,
+		);
 	}
 
 	const modelBase: BranchViewModel = {
@@ -383,7 +387,8 @@ export async function getOrLoadCommitFiles(repo: RepoIndex, sha: string) {
 	try {
 		await writeCommitFilesMeta(repo.root, sha, details.fileChanges);
 	} catch (e) {
-		console.warn("[Indexer] Commit files metadata write failed:", e);
+		const _msg = String(e);
+		console.warn("[Indexer] Commit files metadata write failed:", _msg);
 	}
 
 	return details.fileChanges;

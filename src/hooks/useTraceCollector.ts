@@ -192,7 +192,8 @@ export function useTraceCollector({
 							applyTraceUpdate(prev, trace),
 						);
 					} catch (e: unknown) {
-						setActionError(e instanceof Error ? e.message : String(e));
+						const _msg = String(e);
+						setActionError(e instanceof Error ? e.message : _msg);
 					}
 				},
 			);
@@ -247,8 +248,9 @@ export function useTraceCollector({
 					applyTraceUpdate(prev, trace),
 				);
 			} catch (e: unknown) {
+				const _msg = String(e);
 				if (isStaleRequest()) return;
-				setActionError(e instanceof Error ? e.message : String(e));
+				setActionError(e instanceof Error ? e.message : _msg);
 			}
 		},
 		[beginActionGuard, timeline, applyScopedRepoUpdate, setActionError],
@@ -288,8 +290,9 @@ export function useTraceCollector({
 					applyTraceUpdate(prev, trace),
 				);
 			} catch (e: unknown) {
+				const _msg = String(e);
 				if (isStaleRequest()) return;
-				setActionError(e instanceof Error ? e.message : String(e));
+				setActionError(e instanceof Error ? e.message : _msg);
 			}
 		},
 		[beginActionGuard, timeline, applyScopedRepoUpdate, setActionError],
@@ -330,8 +333,9 @@ export function useTraceCollector({
 					applyTraceUpdate(prev, trace),
 				);
 			} catch (e: unknown) {
+				const _msg = String(e);
 				if (isStaleRequest()) return;
-				setActionError(e instanceof Error ? e.message : String(e));
+				setActionError(e instanceof Error ? e.message : _msg);
 			}
 		},
 		[beginActionGuard, timeline, applyScopedRepoUpdate, setActionError],

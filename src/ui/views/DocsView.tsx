@@ -62,6 +62,7 @@ export function DocsView(props: {
 					applyDocsAutoloadSuccess(prev, defaultPath, model, repo),
 				);
 			} catch (error) {
+				const _msg = String(error);
 				setRepoState((prev) => applyDocsAutoloadError(prev, error));
 			} finally {
 				setIsLoading(false);
