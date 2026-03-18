@@ -79,6 +79,10 @@ async function executeWithRetry(
 				!isTransientPersistenceError(error) ||
 				attempt >= MAX_INSERT_RETRIES
 			) {
+				console.debug(
+					"[narrativeFeedback] non-transient or max-retries exceeded:",
+					error,
+				);
 				throw error;
 			}
 			const jitter = Math.floor(Math.random() * RETRY_JITTER_MS);

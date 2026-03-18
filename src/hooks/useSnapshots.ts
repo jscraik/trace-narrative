@@ -71,7 +71,7 @@ export function useSnapshots(params: {
 				};
 			});
 		} catch (_e) {
-			/* best-effort snapshot refresh — non-fatal */
+			console.debug("[snapshots] refresh failed (non-fatal):", _e);
 		}
 	}, [repoRoot, setRepoState]);
 

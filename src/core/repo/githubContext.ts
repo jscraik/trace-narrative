@@ -149,6 +149,7 @@ export async function loadGitHubContext(
 			lastLoadedAtISO: new Date().toISOString(),
 		};
 	} catch (error: unknown) {
+		console.debug("[githubContext] context load failed:", error);
 		return {
 			status: "error",
 			entries: [],

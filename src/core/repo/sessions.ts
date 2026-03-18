@@ -139,6 +139,7 @@ async function loadSessionExcerptsFromDisk(
 
 		return excerpts;
 	} catch (_err) {
+		console.debug("[sessions] loadFromDisk failed (non-fatal) err=", _err);
 		return [];
 	}
 }
@@ -156,6 +157,7 @@ async function loadSessionExcerptsFromDb(
 			normalizeExcerpt(payload.id ?? `session-${idx}`, payload),
 		);
 	} catch (_err) {
+		console.debug("[sessions] loadFromDb failed (non-fatal):", _err);
 		return [];
 	}
 }

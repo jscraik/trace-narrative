@@ -22,7 +22,8 @@ async function applyDbPragmas(db: Database): Promise<void> {
 		try {
 			await db.execute(pragma);
 		} catch (_error) {
-			/* best-effort pragma — ignore unsupported SQLite options */
+			const _msg = String(_error);
+			console.warn("[db] pragma not supported (best-effort):", _msg);
 		}
 	}
 

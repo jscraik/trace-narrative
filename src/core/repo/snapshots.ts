@@ -61,7 +61,8 @@ export async function listSnapshots(repoRoot: string): Promise<Snapshot[]> {
 				const content = await readNarrativeFile(repoRoot, file);
 				snapshots.push(JSON.parse(content));
 			} catch (_e) {
-				/* best-effort snapshot parse — skip malformed file */
+				const _msg = String(_e);
+				console.warn("[snapshots] skipping malformed snapshot file:", _msg);
 			}
 		}
 
@@ -70,7 +71,7 @@ export async function listSnapshots(repoRoot: string): Promise<Snapshot[]> {
 			(a, b) => new Date(b.atISO).getTime() - new Date(a.atISO).getTime(),
 		);
 	} catch (_e) {
-		// Directory might not exist yet
+		console.debug("[snapshots] directory not yet created (non-fatal):", _e);
 		return [];
 	}
 }

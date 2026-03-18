@@ -24,6 +24,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
 				containerRef.current.innerHTML = renderedSvg;
 				setError("");
 			} catch (_err) {
+				console.debug("[MermaidDiagram] render failed err=", _err);
 				setError("Failed to render diagram");
 				if (containerRef.current) {
 					containerRef.current.innerHTML = "";

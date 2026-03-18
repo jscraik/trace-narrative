@@ -138,7 +138,10 @@ export function useDashboardViewState({
 						/* slow TTI threshold exceeded — metrics available via performance API */
 					}
 				} catch (_error) {
-					// ignore measurement errors
+					console.debug(
+						"[dashboard] performance measurement error (non-fatal):",
+						_error,
+					);
 				}
 			});
 		}
@@ -162,7 +165,10 @@ export function useDashboardViewState({
 						/* slow interaction threshold exceeded — metrics available via performance API */
 					}
 				} catch (_error) {
-					// ignore measurement errors
+					console.debug(
+						"[dashboard] performance measurement error (non-fatal):",
+						_error,
+					);
 				}
 				performance.clearMarks("dashboard_filter_start");
 				performance.clearMarks("dashboard_filter_end");
