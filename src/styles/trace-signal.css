@@ -1,389 +1,394 @@
 /* Trace Signal System — CSS tokens and animations */
 
 :root {
-  /* Colors */
-  --color-trace-glow: oklch(0.85 0.15 85);
-  --color-trace-dim: oklch(0.6 0.05 85);
-  --color-trace-insight: oklch(0.88 0.2 92);
-  --color-trace-amber: rgb(251 191 36);
-  --color-trace-amber-soft: rgb(255 235 130);
-  --color-trace-amber-bright: rgb(255 210 90);
-  --color-trace-success: rgb(16 185 129);
-  --color-trace-error: rgb(239 68 68);
-  --color-trace-analyzing: rgb(252 211 77);
-  --color-trace-brand-light: rgb(192 94 10);
-  --color-trace-brand-dark: rgb(254 243 199);
-  --color-trace-brand-shadow-deep: rgb(180 80 0);
-  --color-trace-brand-shadow-warm: rgb(245 158 11);
+	/* Colors */
+	--color-trace-glow: oklch(0.85 0.15 85);
+	--color-trace-dim: oklch(0.6 0.05 85);
+	--color-trace-insight: oklch(0.88 0.2 92);
+	--color-trace-amber: rgb(251 191 36);
+	--color-trace-amber-soft: rgb(255 235 130);
+	--color-trace-amber-bright: rgb(255 210 90);
+	--color-trace-success: rgb(16 185 129);
+	--color-trace-error: rgb(239 68 68);
+	--color-trace-analyzing: rgb(252 211 77);
+	--color-trace-brand-light: rgb(192 94 10);
+	--color-trace-brand-dark: rgb(254 243 199);
+	--color-trace-brand-shadow-deep: rgb(180 80 0);
+	--color-trace-brand-shadow-warm: rgb(245 158 11);
 
-  /* Sizes */
-  --size-trace-dot: 0.625rem;
-  --size-trace-wing-width: 0.8125rem;
-  --size-trace-wing-height: 0.5rem;
-  --size-trace-wing-offset: -0.125rem;
-  --size-trace-wing-track-shift: 0.25rem;
-  --radius-trace-pill: 999rem;
+	/* Sizes */
+	--size-trace-dot: 0.625rem;
+	--size-trace-wing-width: 0.8125rem;
+	--size-trace-wing-height: 0.5rem;
+	--size-trace-wing-offset: -0.125rem;
+	--size-trace-wing-track-shift: 0.25rem;
+	--radius-trace-pill: 999rem;
 
-  /* Durations */
-  --duration-slow: 8s;
-  --duration-medium: 350ms;
-  --duration-fast: 400ms;
-  --duration-analyze: 700ms;
-  --duration-insight: 520ms;
+	/* Durations */
+	--duration-slow: 8s;
+	--duration-medium: 350ms;
+	--duration-fast: 400ms;
+	--duration-analyze: 700ms;
+	--duration-insight: 520ms;
 
-  /* Easings */
-  --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-bounce: cubic-bezier(0.165, 0.84, 0.44, 1);
+	/* Easings */
+	--ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	--ease-bounce: cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 /* Keyframe animations */
 @keyframes trace-idle {
+	0%,
+	100% {
+		opacity: 0.4;
+		transform: scale(1) translateZ(0);
+	}
 
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(1) translateZ(0);
-  }
-
-  50% {
-    opacity: 0.68;
-    transform: scale(1.06) translateZ(0);
-  }
+	50% {
+		opacity: 0.68;
+		transform: scale(1.06) translateZ(0);
+	}
 }
 
 @keyframes trace-tracking {
-  0% {
-    transform: scale(1) translateZ(0);
-    opacity: 0.6;
-  }
+	0% {
+		transform: scale(1) translateZ(0);
+		opacity: 0.6;
+	}
 
-  100% {
-    transform: scale(1.12) translateZ(0);
-    opacity: 0.85;
-  }
+	100% {
+		transform: scale(1.12) translateZ(0);
+		opacity: 0.85;
+	}
 }
 
 @keyframes trace-analyzing {
+	0%,
+	100% {
+		transform: scale(1) translateZ(0);
+		opacity: 0.7;
+	}
 
-  0%,
-  100% {
-    transform: scale(1) translateZ(0);
-    opacity: 0.7;
-  }
-
-  50% {
-    transform: scale(1.18) translateZ(0);
-    opacity: 0.95;
-  }
+	50% {
+		transform: scale(1.18) translateZ(0);
+		opacity: 0.95;
+	}
 }
 
 @keyframes trace-insight {
+	0%,
+	100% {
+		transform: scale(1) translateZ(0);
+		opacity: 0.7;
+		box-shadow:
+			0 0 0.625rem 0.125rem
+			color-mix(in oklab, var(--color-trace-amber) 35%, transparent),
+			0 0 1.25rem 0.3125rem
+			color-mix(in oklab, var(--color-trace-amber) 20%, transparent);
+	}
 
-  0%,
-  100% {
-    transform: scale(1) translateZ(0);
-    opacity: 0.7;
-    box-shadow:
-      0 0 0.625rem 0.125rem color-mix(in oklab, var(--color-trace-amber) 35%, transparent),
-      0 0 1.25rem 0.3125rem color-mix(in oklab, var(--color-trace-amber) 20%, transparent);
-  }
-
-  45% {
-    transform: scale(1.28) translateZ(0);
-    opacity: 1;
-    box-shadow:
-      0 0 0.875rem 0.25rem color-mix(in oklab, var(--color-trace-amber-soft) 75%, transparent),
-      0 0 1.75rem 0.5rem color-mix(in oklab, var(--color-trace-amber-bright) 45%, transparent);
-  }
+	45% {
+		transform: scale(1.28) translateZ(0);
+		opacity: 1;
+		box-shadow:
+			0 0 0.875rem 0.25rem
+			color-mix(in oklab, var(--color-trace-amber-soft) 75%, transparent),
+			0 0 1.75rem 0.5rem
+			color-mix(in oklab, var(--color-trace-amber-bright) 45%, transparent);
+	}
 }
 
 /* Wing Animations */
 @keyframes wing-idle-left {
+	0%,
+	100% {
+		transform: rotate(-10deg) scaleX(0.9);
+		opacity: 0.3;
+	}
 
-  0%,
-  100% {
-    transform: rotate(-10deg) scaleX(0.9);
-    opacity: 0.3;
-  }
-
-  50% {
-    transform: rotate(-35deg) scaleX(1);
-    opacity: 0.6;
-  }
+	50% {
+		transform: rotate(-35deg) scaleX(1);
+		opacity: 0.6;
+	}
 }
 
 @keyframes wing-idle-right {
+	0%,
+	100% {
+		transform: rotate(10deg) scaleX(0.9);
+		opacity: 0.3;
+	}
 
-  0%,
-  100% {
-    transform: rotate(10deg) scaleX(0.9);
-    opacity: 0.3;
-  }
-
-  50% {
-    transform: rotate(35deg) scaleX(1);
-    opacity: 0.6;
-  }
+	50% {
+		transform: rotate(35deg) scaleX(1);
+		opacity: 0.6;
+	}
 }
 
 @keyframes wing-track-left {
-  to {
-    transform: rotate(60deg) scaleX(0.6) translateY(var(--size-trace-wing-track-shift));
-    opacity: 0.2;
-  }
+	to {
+		transform: rotate(60deg) scaleX(0.6)
+			translateY(var(--size-trace-wing-track-shift));
+		opacity: 0.2;
+	}
 }
 
 @keyframes wing-track-right {
-  to {
-    transform: rotate(-60deg) scaleX(0.6) translateY(var(--size-trace-wing-track-shift));
-    opacity: 0.2;
-  }
+	to {
+		transform: rotate(-60deg) scaleX(0.6)
+			translateY(var(--size-trace-wing-track-shift));
+		opacity: 0.2;
+	}
 }
 
 @keyframes wing-analyze-left {
-  0% {
-    transform: rotate(-15deg);
-  }
+	0% {
+		transform: rotate(-15deg);
+	}
 
-  50% {
-    transform: rotate(-45deg);
-  }
+	50% {
+		transform: rotate(-45deg);
+	}
 
-  100% {
-    transform: rotate(-15deg);
-  }
+	100% {
+		transform: rotate(-15deg);
+	}
 }
 
 @keyframes wing-analyze-right {
-  0% {
-    transform: rotate(15deg);
-  }
+	0% {
+		transform: rotate(15deg);
+	}
 
-  50% {
-    transform: rotate(45deg);
-  }
+	50% {
+		transform: rotate(45deg);
+	}
 
-  100% {
-    transform: rotate(15deg);
-  }
+	100% {
+		transform: rotate(15deg);
+	}
 }
 
 @keyframes wing-insight-left {
-  0% {
-    transform: rotate(-10deg) scaleX(1);
-    /* width implicit via scale */
-  }
+	0% {
+		transform: rotate(-10deg) scaleX(1);
+		/* width implicit via scale */
+	}
 
-  50% {
-    transform: rotate(-60deg) scaleX(1.6);
-    /* Approx 1.57x wider than the base wing span. */
-    opacity: 0.8;
-    box-shadow: 0 0 0.5rem gold;
-  }
+	50% {
+		transform: rotate(-60deg) scaleX(1.6);
+		/* Approx 1.57x wider than the base wing span. */
+		opacity: 0.8;
+		box-shadow: 0 0 0.5rem gold;
+	}
 
-  100% {
-    transform: rotate(-10deg) scaleX(1);
-  }
+	100% {
+		transform: rotate(-10deg) scaleX(1);
+	}
 }
 
 @keyframes wing-insight-right {
-  0% {
-    transform: rotate(10deg) scaleX(1);
-  }
+	0% {
+		transform: rotate(10deg) scaleX(1);
+	}
 
-  50% {
-    transform: rotate(60deg) scaleX(1.6);
-    opacity: 0.8;
-    box-shadow: 0 0 0.5rem gold;
-  }
+	50% {
+		transform: rotate(60deg) scaleX(1.6);
+		opacity: 0.8;
+		box-shadow: 0 0 0.5rem gold;
+	}
 
-  100% {
-    transform: rotate(10deg) scaleX(1);
-  }
+	100% {
+		transform: rotate(10deg) scaleX(1);
+	}
 }
-
 
 /* Utility classes */
 .animate-trace-idle {
-  animation: trace-idle var(--duration-slow) ease-in-out infinite;
+	animation: trace-idle var(--duration-slow) ease-in-out infinite;
 }
 
 .animate-trace-tracking {
-  animation: trace-tracking var(--duration-medium) var(--ease-smooth) infinite alternate;
+	animation: trace-tracking var(--duration-medium) var(--ease-smooth) infinite
+		alternate;
 }
 
 .animate-trace-analyzing {
-  animation: trace-analyzing var(--duration-analyze) var(--ease-bounce) infinite;
+	animation: trace-analyzing var(--duration-analyze) var(--ease-bounce) infinite;
 }
 
 .animate-trace-insight {
-  animation: trace-insight var(--duration-insight) var(--ease-bounce) infinite;
+	animation: trace-insight var(--duration-insight) var(--ease-bounce) infinite;
 }
 
 @keyframes trace-burst-success {
-  0% {
-    transform: scale(1.18) translateZ(0);
-  }
+	0% {
+		transform: scale(1.18) translateZ(0);
+	}
 
-  20% {
-    transform: scale(1.6) translateZ(0);
-    box-shadow:
-      0 0 1rem 0.375rem color-mix(in oklab, var(--color-trace-success) 60%, transparent),
-      0 0 1.875rem 0.625rem color-mix(in oklab, var(--color-trace-success) 40%, transparent);
-    background-color: oklch(0.85 0.15 150);
-  }
+	20% {
+		transform: scale(1.6) translateZ(0);
+		box-shadow:
+			0 0 1rem 0.375rem
+			color-mix(in oklab, var(--color-trace-success) 60%, transparent),
+			0 0 1.875rem 0.625rem
+			color-mix(in oklab, var(--color-trace-success) 40%, transparent);
+		background-color: oklch(0.85 0.15 150);
+	}
 
-  100% {
-    transform: scale(1) translateZ(0);
-  }
+	100% {
+		transform: scale(1) translateZ(0);
+	}
 }
 
 .trace-burst-success {
-  animation: trace-burst-success 0.8s ease-out forwards;
+	animation: trace-burst-success 0.8s ease-out forwards;
 }
 
 @keyframes trace-burst-error {
-  0% {
-    transform: scale(1.18) translateZ(0);
-  }
+	0% {
+		transform: scale(1.18) translateZ(0);
+	}
 
-  20% {
-    transform: scale(1.6) translateZ(0);
-    box-shadow:
-      0 0 1rem 0.375rem color-mix(in oklab, var(--color-trace-error) 60%, transparent),
-      0 0 1.875rem 0.625rem color-mix(in oklab, var(--color-trace-error) 38%, transparent);
-    background-color: oklch(0.64 0.24 26);
-  }
+	20% {
+		transform: scale(1.6) translateZ(0);
+		box-shadow:
+			0 0 1rem 0.375rem
+			color-mix(in oklab, var(--color-trace-error) 60%, transparent),
+			0 0 1.875rem 0.625rem
+			color-mix(in oklab, var(--color-trace-error) 38%, transparent);
+		background-color: oklch(0.64 0.24 26);
+	}
 
-  100% {
-    transform: scale(1) translateZ(0);
-  }
+	100% {
+		transform: scale(1) translateZ(0);
+	}
 }
 
 .trace-burst-error {
-  animation: trace-burst-error 0.8s ease-out forwards;
+	animation: trace-burst-error 0.8s ease-out forwards;
 }
-
-
 
 /* Trace component styles */
 .trace {
-  position: absolute;
-  pointer-events: none;
-  width: var(--size-trace-dot);
-  height: var(--size-trace-dot);
-  display: grid;
-  place-items: center;
-  transform-origin: center;
-  will-change: transform;
-  contain: layout paint;
-  z-index: 20;
+	position: absolute;
+	pointer-events: none;
+	width: var(--size-trace-dot);
+	height: var(--size-trace-dot);
+	display: grid;
+	place-items: center;
+	transform-origin: center;
+	will-change: transform;
+	contain: layout paint;
+	z-index: 20;
 }
 
 .trace-orb {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-trace-pill);
-  background-color: var(--color-trace-amber);
-  box-shadow:
-    0 0 0.5rem 0.125rem color-mix(in oklab, var(--color-trace-amber) 50%, transparent),
-    0 0 1rem 0.25rem color-mix(in oklab, var(--color-trace-amber) 30%, transparent);
-  transform-origin: center;
-  will-change: transform, opacity;
-  z-index: 2;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	border-radius: var(--radius-trace-pill);
+	background-color: var(--color-trace-amber);
+	box-shadow:
+		0 0 0.5rem 0.125rem
+		color-mix(in oklab, var(--color-trace-amber) 50%, transparent),
+		0 0 1rem 0.25rem
+		color-mix(in oklab, var(--color-trace-amber) 30%, transparent);
+	transform-origin: center;
+	will-change: transform, opacity;
+	z-index: 2;
 }
 
 /* Wing Styles */
 .trace-wings {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 1;
-  /* Below orb */
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 100%;
+	height: 100%;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+	z-index: 1;
+	/* Below orb */
 }
 
 .trace-wing {
-  position: absolute;
-  top: 40%;
-  width: var(--size-trace-wing-width);
-  height: var(--size-trace-wing-height);
-  border-top: 0.0625rem solid color-mix(in oklab, var(--color-trace-amber) 70%, transparent);
-  box-shadow: 0 -0.0625rem 0.25rem color-mix(in oklab, var(--color-trace-amber) 20%, transparent);
-  opacity: 0.6;
-  will-change: transform;
-  /* Make them look like thin threads */
-  border-radius: 100% 0 0 0;
+	position: absolute;
+	top: 40%;
+	width: var(--size-trace-wing-width);
+	height: var(--size-trace-wing-height);
+	border-top: 0.0625rem solid
+		color-mix(in oklab, var(--color-trace-amber) 70%, transparent);
+	box-shadow: 0 -0.0625rem 0.25rem
+		color-mix(in oklab, var(--color-trace-amber) 20%, transparent);
+	opacity: 0.6;
+	will-change: transform;
+	/* Make them look like thin threads */
+	border-radius: 100% 0 0 0;
 }
 
 .trace-wing.left {
-  right: 50%;
-  transform-origin: 100% 60%;
-  /* Pivot near center-right */
-  margin-right: var(--size-trace-wing-offset);
-  transform: rotate(-20deg);
+	right: 50%;
+	transform-origin: 100% 60%;
+	/* Pivot near center-right */
+	margin-right: var(--size-trace-wing-offset);
+	transform: rotate(-20deg);
 }
 
 .trace-wing.right {
-  left: 50%;
-  transform-origin: 0% 60%;
-  /* Pivot near center-left */
-  margin-left: var(--size-trace-wing-offset);
-  transform: rotate(20deg) scaleX(-1);
-  /* Mirror */
+	left: 50%;
+	transform-origin: 0% 60%;
+	/* Pivot near center-left */
+	margin-left: var(--size-trace-wing-offset);
+	transform: rotate(20deg) scaleX(-1);
+	/* Mirror */
 }
-
 
 /* Wing State Animations */
-[data-state='idle'] .trace-wing.left {
-  animation: wing-idle-left 5s ease-in-out infinite;
+[data-state="idle"] .trace-wing.left {
+	animation: wing-idle-left 5s ease-in-out infinite;
 }
 
-[data-state='idle'] .trace-wing.right {
-  animation: wing-idle-right 5s ease-in-out infinite;
+[data-state="idle"] .trace-wing.right {
+	animation: wing-idle-right 5s ease-in-out infinite;
 }
 
-[data-state='tracking'] .trace-wing.left {
-  animation: wing-track-left 0.3s ease-out forwards;
+[data-state="tracking"] .trace-wing.left {
+	animation: wing-track-left 0.3s ease-out forwards;
 }
 
-[data-state='tracking'] .trace-wing.right {
-  animation: wing-track-right 0.3s ease-out forwards;
+[data-state="tracking"] .trace-wing.right {
+	animation: wing-track-right 0.3s ease-out forwards;
 }
 
-[data-state='analyzing'] .trace-wing.left {
-  animation: wing-analyze-left 0.1s linear infinite;
+[data-state="analyzing"] .trace-wing.left {
+	animation: wing-analyze-left 0.1s linear infinite;
 }
 
-[data-state='analyzing'] .trace-wing.right {
-  animation: wing-analyze-right 0.1s linear infinite;
+[data-state="analyzing"] .trace-wing.right {
+	animation: wing-analyze-right 0.1s linear infinite;
 }
 
-[data-state='insight'] .trace-wing.left {
-  animation: wing-insight-left 0.6s ease-out infinite;
+[data-state="insight"] .trace-wing.left {
+	animation: wing-insight-left 0.6s ease-out infinite;
 }
 
-[data-state='insight'] .trace-wing.right {
-  animation: wing-insight-right 0.6s ease-out infinite;
+[data-state="insight"] .trace-wing.right {
+	animation: wing-insight-right 0.6s ease-out infinite;
 }
-
 
 /* Orb State Colors */
 .trace-idle,
 .trace-tracking {
-  background-color: var(--color-trace-glow);
+	background-color: var(--color-trace-glow);
 }
 
 .trace-analyzing {
-  background-color: var(--color-trace-analyzing);
+	background-color: var(--color-trace-analyzing);
 }
 
 .trace-insight {
-  background-color: var(--color-trace-insight);
+	background-color: var(--color-trace-insight);
 }
 
 /* Reduced Motion Static States */
@@ -391,81 +396,103 @@
 .trace-tracking-static,
 .trace-analyzing-static,
 .trace-insight-static {
-  animation: none;
-  opacity: 0.72;
-  transform: scale(1) translateZ(0);
+	animation: none;
+	opacity: 0.72;
+	transform: scale(1) translateZ(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.trace-orb,
+	.trace-wing {
+		animation: none;
+		transform: none;
+		transition: none;
+	}
 
-  .trace-orb,
-  .trace-wing {
-    animation: none;
-    transform: none;
-    transition: none;
-  }
+	[data-state="idle"] .trace-wing.left,
+	[data-state="idle"] .trace-wing.right,
+	[data-state="tracking"] .trace-wing.left,
+	[data-state="tracking"] .trace-wing.right,
+	[data-state="analyzing"] .trace-wing.left,
+	[data-state="analyzing"] .trace-wing.right,
+	[data-state="insight"] .trace-wing.left,
+	[data-state="insight"] .trace-wing.right {
+		animation: none;
+		transform: none;
+		transition: none;
+	}
 
-  [data-state='idle'] .trace-wing.left,
-  [data-state='idle'] .trace-wing.right,
-  [data-state='tracking'] .trace-wing.left,
-  [data-state='tracking'] .trace-wing.right,
-  [data-state='analyzing'] .trace-wing.left,
-  [data-state='analyzing'] .trace-wing.right,
-  [data-state='insight'] .trace-wing.left,
-  [data-state='insight'] .trace-wing.right {
-    animation: none;
-    transform: none;
-    transition: none;
-  }
-
-  .trace-wing {
-    display: none;
-    /* Hide flashing wings in reduced motion */
-  }
+	.trace-wing {
+		display: none;
+		/* Hide flashing wings in reduced motion */
+	}
 }
 
-
 :root {
-  --trace-brand-text: var(--color-trace-brand-light);
-  /* amber-700 saturated */
-  --trace-brand-shadow:
-    0 0 0.375rem color-mix(in oklab, var(--color-trace-amber) 50%, transparent),
-    0 0 0.875rem color-mix(in oklab, var(--color-trace-amber) 20%, transparent);
+	--trace-brand-text: var(--color-trace-brand-light);
+	/* amber-700 saturated */
+	--trace-brand-shadow:
+		0 0 0.375rem color-mix(in oklab, var(--color-trace-amber) 50%, transparent),
+		0 0 0.875rem color-mix(in oklab, var(--color-trace-amber) 20%, transparent);
 }
 
 :root[data-theme="dark"] {
-  --trace-brand-text: var(--color-trace-brand-dark);
-  --trace-brand-shadow:
-    0 0 0.375rem color-mix(in oklab, var(--color-trace-amber) 100%, transparent), /* tight inner glow */
-    0 0 1rem color-mix(in oklab, var(--color-trace-amber) 70%, transparent), /* mid amber halo */
-    0 0 2.25rem color-mix(in oklab, var(--color-trace-amber) 35%, transparent), /* outer warmth */
-    0 0 3.75rem color-mix(in oklab, var(--color-trace-brand-shadow-warm) 15%, transparent); /* very wide ambient spill */
-  /* very wide ambient spill */
+	--trace-brand-text: var(--color-trace-brand-dark);
+	--trace-brand-shadow:
+		0 0 0.375rem color-mix(in oklab, var(--color-trace-amber) 100%, transparent), /* tight inner glow */
+		0 0 1rem color-mix(in oklab, var(--color-trace-amber) 70%, transparent), /* mid amber halo */
+		0 0 2.25rem color-mix(in oklab, var(--color-trace-amber) 35%, transparent), /* outer warmth */
+		0 0 3.75rem
+		color-mix(in oklab, var(--color-trace-brand-shadow-warm) 15%, transparent); /* very wide ambient spill */
+	/* very wide ambient spill */
 }
 
 /* Typography for Logo */
 .brand-trace {
-  font-family: 'Caveat', cursive;
-  font-weight: 700;
-  color: var(--trace-brand-text);
-  letter-spacing: 0.02em;
-  /* Light-mode default: tighter, more saturated glow so it reads against pale backgrounds.
+	font-family: "Caveat", cursive;
+	font-weight: 700;
+	color: var(--trace-brand-text);
+	letter-spacing: 0.02em;
+	/* Light-mode default: tighter, more saturated glow so it reads against pale backgrounds.
      TraceHero writes --trace-breath (0–1) each rAF frame. */
-  text-shadow:
-    0 0 calc(0.125rem + var(--trace-breath, 0.5) * 0.5rem) color-mix(in oklab, var(--color-trace-brand-shadow-deep) calc(70% + var(--trace-breath, 0.5) * 30%), transparent),
-    0 0 calc(0.375rem + var(--trace-breath, 0.5) * 0.75rem) color-mix(in oklab, var(--color-trace-brand-shadow-warm) calc(40% + var(--trace-breath, 0.5) * 40%), transparent);
+	text-shadow:
+		0 0 calc(0.125rem + var(--trace-breath, 0.5) * 0.5rem)
+		color-mix(
+			in oklab,
+			var(--color-trace-brand-shadow-deep)
+				calc(70% + var(--trace-breath, 0.5) * 30%),
+			transparent
+		),
+		0 0 calc(0.375rem + var(--trace-breath, 0.5) * 0.75rem)
+		color-mix(
+			in oklab,
+			var(--color-trace-brand-shadow-warm)
+				calc(40% + var(--trace-breath, 0.5) * 40%),
+			transparent
+		);
 }
 
 /* Dark-mode: wider, softer glow — luminous against the dark background */
 [data-theme="dark"] .brand-trace {
-  text-shadow:
-    0 0 calc(0.25rem + var(--trace-breath, 0.5) * 0.875rem) color-mix(in oklab, var(--color-trace-amber) calc(55% + var(--trace-breath, 0.5) * 45%), transparent),
-    0 0 calc(0.625rem + var(--trace-breath, 0.5) * 1.25rem) color-mix(in oklab, var(--color-trace-brand-shadow-warm) calc(20% + var(--trace-breath, 0.5) * 30%), transparent);
+	text-shadow:
+		0 0 calc(0.25rem + var(--trace-breath, 0.5) * 0.875rem)
+		color-mix(
+			in oklab,
+			var(--color-trace-amber) calc(55% + var(--trace-breath, 0.5) * 45%),
+			transparent
+		),
+		0 0 calc(0.625rem + var(--trace-breath, 0.5) * 1.25rem)
+		color-mix(
+			in oklab,
+			var(--color-trace-brand-shadow-warm)
+				calc(20% + var(--trace-breath, 0.5) * 30%),
+			transparent
+		);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brand-trace {
-    /* Static mid-glow when animation is off */
-    text-shadow: var(--trace-brand-shadow);
-  }
+	.brand-trace {
+		/* Static mid-glow when animation is off */
+		text-shadow: var(--trace-brand-shadow);
+	}
 }

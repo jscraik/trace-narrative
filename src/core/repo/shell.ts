@@ -1,18 +1,18 @@
-import { Command } from '@tauri-apps/plugin-shell';
+import { Command } from "@tauri-apps/plugin-shell";
 
 export type ShellOutput = {
-  code: number | null;
-  stdout: string;
-  stderr: string;
+	code: number | null;
+	stdout: string;
+	stderr: string;
 };
 
 export class ShellError extends Error {
-  public readonly output?: ShellOutput;
-  constructor(message: string, output?: ShellOutput) {
-    super(message);
-    this.name = 'ShellError';
-    this.output = output;
-  }
+	public readonly output?: ShellOutput;
+	constructor(message: string, output?: ShellOutput) {
+		super(message);
+		this.name = "ShellError";
+		this.output = output;
+	}
 }
 
 /**
@@ -23,19 +23,19 @@ export class ShellError extends Error {
  * - `program` must match the `name` field in the shell permission scope.
  */
 export async function execProgram(
-  program: string,
-  args: string[],
-  options?: { cwd?: string }
+	program: string,
+	args: string[],
+	options?: { cwd?: string },
 ): Promise<ShellOutput> {
-  const cmd = Command.create(program, args, {
-    cwd: options?.cwd,
-    encoding: 'utf-8'
-  });
+	const cmd = Command.create(program, args, {
+		cwd: options?.cwd,
+		encoding: "utf-8",
+	});
 
-  const out = await cmd.execute();
-  return {
-    code: out.code ?? null,
-    stdout: String(out.stdout ?? ''),
-    stderr: String(out.stderr ?? '')
-  };
+	const out = await cmd.execute();
+	return {
+		code: out.code ?? null,
+		stdout: String(out.stdout ?? ""),
+		stderr: String(out.stderr ?? ""),
+	};
 }

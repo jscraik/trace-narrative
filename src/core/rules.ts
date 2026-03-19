@@ -7,80 +7,80 @@
  * - Non-zero exit on violations
  */
 
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from "@tauri-apps/api/core";
 
 /**
  * Rule severity level
  */
-export type RuleSeverity = 'error' | 'warning';
+export type RuleSeverity = "error" | "warning";
 
 /**
  * Rule definition
  */
 export interface Rule {
-  /** Unique rule identifier */
-  name: string;
-  /** Human-readable description */
-  description: string;
-  /** Regex pattern to match (or simple string for contains check) */
-  pattern: string;
-  /** Is this a regex pattern? */
-  is_regex?: boolean;
-  /** Severity level */
-  severity?: RuleSeverity;
-  /** File patterns to include (glob-style) */
-  include_files?: string[];
-  /** File patterns to exclude (glob-style) */
-  exclude_files?: string[];
-  /** Suggested fix message */
-  suggestion?: string;
+	/** Unique rule identifier */
+	name: string;
+	/** Human-readable description */
+	description: string;
+	/** Regex pattern to match (or simple string for contains check) */
+	pattern: string;
+	/** Is this a regex pattern? */
+	is_regex?: boolean;
+	/** Severity level */
+	severity?: RuleSeverity;
+	/** File patterns to include (glob-style) */
+	include_files?: string[];
+	/** File patterns to exclude (glob-style) */
+	exclude_files?: string[];
+	/** Suggested fix message */
+	suggestion?: string;
 }
 
 /**
  * Rule violation result
  */
 export interface RuleViolation {
-  /** Name of the rule that was violated */
-  rule_name: string;
-  /** Severity of the violation */
-  severity: RuleSeverity;
-  /** File where violation occurred */
-  file: string;
-  /** Line number where violation occurred */
-  line: number;
-  /** The matched content */
-  matched: string;
-  /** Suggested fix */
-  suggestion: string;
+	/** Name of the rule that was violated */
+	rule_name: string;
+	/** Severity of the violation */
+	severity: RuleSeverity;
+	/** File where violation occurred */
+	file: string;
+	/** Line number where violation occurred */
+	line: number;
+	/** The matched content */
+	matched: string;
+	/** Suggested fix */
+	suggestion: string;
 }
 
 /**
  * Review result summary
  */
 export interface ReviewSummary {
-  total_files_scanned: number;
-  total_rules: number;
-  violations_found: number;
-  errors: number;
-  warnings: number;
+	total_files_scanned: number;
+	total_rules: number;
+	violations_found: number;
+	errors: number;
+	warnings: number;
 }
 
 /**
  * Complete review result
  */
 export interface ReviewResult {
-  summary: ReviewSummary;
-  violations: RuleViolation[];
-  files_scanned: string[];
-  rules_applied: string[];
+	summary: ReviewSummary;
+	violations: RuleViolation[];
+	files_scanned: string[];
+	rules_applied: string[];
 }
 
 /**
  * Rule validation error
  */
 export interface RuleValidationError {
-  rule_name: string;
-  error: string;
+	rule_name: string;
+	error: string;
 }
 
 /**
@@ -93,7 +93,7 @@ export interface RuleValidationError {
  * @returns Review result with violations and summary
  */
 export async function reviewRepo(repoRoot: string): Promise<ReviewResult> {
-  return invoke('review_repo', { repoRoot });
+	return invoke("review_repo", { repoRoot });
 }
 
 /**
@@ -103,7 +103,7 @@ export async function reviewRepo(repoRoot: string): Promise<ReviewResult> {
  * @returns Array of rules
  */
 export async function getRules(repoRoot: string): Promise<Rule[]> {
-  return invoke('get_rules', { repoRoot });
+	return invoke("get_rules", { repoRoot });
 }
 
 /**
@@ -114,10 +114,10 @@ export async function getRules(repoRoot: string): Promise<Rule[]> {
  * @returns Array of validation errors (empty if valid)
  */
 export async function validateRules(
-  repoRoot: string,
-  ruleFile: string
+	repoRoot: string,
+	ruleFile: string,
 ): Promise<RuleValidationError[]> {
-  return invoke('validate_rules', { repoRoot, ruleFile });
+	return invoke("validate_rules", { repoRoot, ruleFile });
 }
 
 /**
@@ -129,7 +129,7 @@ export async function validateRules(
  * @returns Success message with path to created file
  */
 export async function createDefaultRules(repoRoot: string): Promise<string> {
-  return invoke('create_default_rules', { repoRoot });
+	return invoke("create_default_rules", { repoRoot });
 }
 
 /**
@@ -147,15 +147,15 @@ export async function createDefaultRules(repoRoot: string): Promise<string> {
  * @returns Exit code (0 = success, 1 = violations, 2 = errors)
  */
 export async function reviewRepoWithExitCode(repoRoot: string): Promise<{
-  exitCode: number;
-  result: ReviewResult;
+	exitCode: number;
+	result: ReviewResult;
 }> {
-  const result = await reviewRepo(repoRoot);
+	const result = await reviewRepo(repoRoot);
 
-  let exitCode = 0;
-  if (result.summary.violations_found > 0) {
-    exitCode = 1;
-  }
+	let exitCode = 0;
+	if (result.summary.violations_found > 0) {
+		exitCode = 1;
+	}
 
-  return { exitCode, result };
+	return { exitCode, result };
 }

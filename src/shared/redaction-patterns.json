@@ -1,72 +1,72 @@
 [
-  {
-    "kind": "OPENAI_KEY",
-    "pattern": "\\bsk-[A-Za-z0-9]{20,}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "GITHUB_TOKEN",
-    "pattern": "\\bghp_[A-Za-z0-9]{20,}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "AWS_ACCESS_KEY",
-    "pattern": "\\bAKIA[0-9A-Z]{16}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "PRIVATE_KEY_BLOCK",
-    "pattern": "-----BEGIN[\\s\\S]*?PRIVATE KEY-----[\\s\\S]*?-----END[\\s\\S]*?PRIVATE KEY-----",
-    "flags": "g"
-  },
-  {
-    "kind": "BEARER_TOKEN",
-    "pattern": "\\bBearer\\s+[A-Za-z0-9._-]+\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "STRIPE_KEY",
-    "pattern": "\\bsk_(live|test)_[A-Za-z0-9]{24,}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "SLACK_TOKEN",
-    "pattern": "\\bxox[baprs]-[A-Za-z0-9]{10,}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "NPM_TOKEN",
-    "pattern": "\\bnpm_[A-Za-z0-9]{36}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "JWT_TOKEN",
-    "pattern": "\\beyJ[A-Za-z0-9_-]*\\.eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "DATABASE_URL",
-    "pattern": "\\b(mysql|postgres|mongodb|redis)://[^:]+:[^@]+@[^/]+\\b",
-    "flags": "gi"
-  },
-  {
-    "kind": "SENDGRID_KEY",
-    "pattern": "\\bSG\\.[A-Za-z0-9_-]{22}\\.[A-Za-z0-9_-]{43}",
-    "flags": "g"
-  },
-  {
-    "kind": "TWILIO_SID",
-    "pattern": "\\bAC[a-f0-9]{32}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "GOOGLE_API_KEY",
-    "pattern": "\\bAIza[0-9A-Za-z_-]{35}\\b",
-    "flags": "g"
-  },
-  {
-    "kind": "PASSWORD_ASSIGNMENT",
-    "pattern": "(password|passwd|pwd|secret|api_key|apikey)\\s*[=:]\\s*['\"][^'\"]{8,}['\"]",
-    "flags": "gi"
-  }
+	{
+		"kind": "OPENAI_KEY",
+		"pattern": "\\bsk-[A-Za-z0-9]{20,}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "GITHUB_TOKEN",
+		"pattern": "\\bghp_[A-Za-z0-9]{20,}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "AWS_ACCESS_KEY",
+		"pattern": "\\bAKIA[0-9A-Z]{16}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "PRIVATE_KEY_BLOCK",
+		"pattern": "-----BEGIN[\\s\\S]*?PRIVATE KEY-----[\\s\\S]*?-----END[\\s\\S]*?PRIVATE KEY-----",
+		"flags": "g"
+	},
+	{
+		"kind": "BEARER_TOKEN",
+		"pattern": "\\bBearer\\s+[A-Za-z0-9._-]+\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "STRIPE_KEY",
+		"pattern": "\\bsk_(live|test)_[A-Za-z0-9]{24,}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "SLACK_TOKEN",
+		"pattern": "\\bxox[baprs]-[A-Za-z0-9]{10,}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "NPM_TOKEN",
+		"pattern": "\\bnpm_[A-Za-z0-9]{36}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "JWT_TOKEN",
+		"pattern": "\\beyJ[A-Za-z0-9_-]*\\.eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "DATABASE_URL",
+		"pattern": "\\b(mysql|postgres|mongodb|redis)://[^:]+:[^@]+@[^/]+\\b",
+		"flags": "gi"
+	},
+	{
+		"kind": "SENDGRID_KEY",
+		"pattern": "\\bSG\\.[A-Za-z0-9_-]{22}\\.[A-Za-z0-9_-]{43}",
+		"flags": "g"
+	},
+	{
+		"kind": "TWILIO_SID",
+		"pattern": "\\bAC[a-f0-9]{32}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "GOOGLE_API_KEY",
+		"pattern": "\\bAIza[0-9A-Za-z_-]{35}\\b",
+		"flags": "g"
+	},
+	{
+		"kind": "PASSWORD_ASSIGNMENT",
+		"pattern": "(password|passwd|pwd|secret|api_key|apikey)\\s*[=:]\\s*['\"][^'\"]{8,}['\"]",
+		"flags": "gi"
+	}
 ]

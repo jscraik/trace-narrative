@@ -11,19 +11,19 @@
  * - FR4: Unlink Flow
  */
 
-import { invoke } from '@tauri-apps/api/core';
-import type { SessionExcerpt } from '../types';
+import { invoke } from "@tauri-apps/api/core";
+import type { SessionExcerpt } from "../types";
 
 /**
  * Result of linking a session to a commit.
  */
 export type SessionLinkResult = {
-  commitSha: string;
-  confidence: number;
-  autoLinked: boolean;
-  temporalScore: number;
-  fileScore: number;
-  needsReview: boolean;
+	commitSha: string;
+	confidence: number;
+	autoLinked: boolean;
+	temporalScore: number;
+	fileScore: number;
+	needsReview: boolean;
 };
 
 /**
@@ -40,13 +40,13 @@ export type SessionLinkResult = {
  * @returns Link result with commit and confidence score
  */
 export async function linkSessionToCommit(
-  repoId: number,
-  session: SessionExcerpt
+	repoId: number,
+	session: SessionExcerpt,
 ): Promise<SessionLinkResult> {
-  return await invoke<SessionLinkResult>('link_session_to_commit', {
-    repoId,
-    sessionData: session
-  });
+	return await invoke<SessionLinkResult>("link_session_to_commit", {
+		repoId,
+		sessionData: session,
+	});
 }
 
 /**
@@ -63,13 +63,13 @@ export async function linkSessionToCommit(
  * @returns Link result or error if secrets detected
  */
 export async function importAndLinkSessionFile(
-  repoId: number,
-  filePath: string
+	repoId: number,
+	filePath: string,
 ): Promise<SessionLinkResult> {
-  return await invoke<SessionLinkResult>('import_and_link_session_file', {
-    repoId,
-    filePath
-  });
+	return await invoke<SessionLinkResult>("import_and_link_session_file", {
+		repoId,
+		filePath,
+	});
 }
 
 /**
@@ -79,9 +79,9 @@ export async function importAndLinkSessionFile(
  * @returns Array of session links
  */
 export async function getSessionLinksForRepo(
-  repoId: number
+	repoId: number,
 ): Promise<SessionLink[]> {
-  return await invoke<SessionLink[]>('get_session_links_for_repo', { repoId });
+	return await invoke<SessionLink[]>("get_session_links_for_repo", { repoId });
 }
 
 /**
@@ -92,13 +92,13 @@ export async function getSessionLinksForRepo(
  * @returns Array of session links for this commit
  */
 export async function getSessionLinksForCommit(
-  repoId: number,
-  commitSha: string
+	repoId: number,
+	commitSha: string,
 ): Promise<SessionLink[]> {
-  return await invoke<SessionLink[]>('get_session_links_for_commit', {
-    repoId,
-    commitSha
-  });
+	return await invoke<SessionLink[]>("get_session_links_for_commit", {
+		repoId,
+		commitSha,
+	});
 }
 
 /**
@@ -107,7 +107,7 @@ export async function getSessionLinksForCommit(
  * @param linkId - Link ID to delete
  */
 export async function deleteSessionLink(linkId: number): Promise<void> {
-  await invoke('delete_session_link', { linkId });
+	await invoke("delete_session_link", { linkId });
 }
 
 /**
@@ -118,12 +118,15 @@ export async function deleteSessionLink(linkId: number): Promise<void> {
  * @param repoId - Repository ID
  * @param sessionId - Session ID to unlink
  */
-export async function deleteSessionLinkBySessionId(repoId: number, sessionId: string): Promise<void> {
-  const links = await getSessionLinksForRepo(repoId);
-  const link = links.find((l) => l.sessionId === sessionId);
-  if (link) {
-    await deleteSessionLink(link.id);
-  }
+export async function deleteSessionLinkBySessionId(
+	repoId: number,
+	sessionId: string,
+): Promise<void> {
+	const links = await getSessionLinksForRepo(repoId);
+	const link = links.find((l) => l.sessionId === sessionId);
+	if (link) {
+		await deleteSessionLink(link.id);
+	}
 }
 
 /**
@@ -133,26 +136,26 @@ export async function deleteSessionLinkBySessionId(repoId: number, sessionId: st
  * after unlinking.
  */
 export async function deleteSessionLinkBySessionIdWithCommit(
-  repoId: number,
-  sessionId: string
+	repoId: number,
+	sessionId: string,
 ): Promise<string | null> {
-  const links = await getSessionLinksForRepo(repoId);
-  const link = links.find((l) => l.sessionId === sessionId);
-  if (!link) return null;
-  await deleteSessionLink(link.id);
-  return link.commitSha;
+	const links = await getSessionLinksForRepo(repoId);
+	const link = links.find((l) => l.sessionId === sessionId);
+	if (!link) return null;
+	await deleteSessionLink(link.id);
+	return link.commitSha;
 }
 
 /**
  * Session link record from database.
  */
 export type SessionLink = {
-  id: number;
-  repoId: number;
-  sessionId: string;
-  commitSha: string;
-  confidence: number;
-  autoLinked: boolean;
-  needsReview?: boolean;
-  createdAt: string;
+	id: number;
+	repoId: number;
+	sessionId: string;
+	commitSha: string;
+	confidence: number;
+	autoLinked: boolean;
+	needsReview?: boolean;
+	createdAt: string;
 };

@@ -1,39 +1,39 @@
-export type BranchStatus = 'open' | 'merged';
+export type BranchStatus = "open" | "merged";
 
 export type Mode =
-  | 'dashboard'
-  | 'repo'
-  | 'docs'
-  | 'live'
-  | 'sessions'
-  | 'transcripts'
-  | 'tools'
-  | 'costs'
-  | 'setup'
-  | 'ports'
-  | 'work-graph'
-  | 'repo-pulse'
-  | 'timeline'
-  | 'diffs'
-  | 'snapshots'
-  | 'skills'
-  | 'agents'
-  | 'memory'
-  | 'hooks'
-  | 'hygiene'
-  | 'deps'
-  | 'worktrees'
-  | 'env'
-  | 'settings'
-  | 'assistant'
-  | 'attribution'
-  | 'status';
+	| "dashboard"
+	| "repo"
+	| "docs"
+	| "live"
+	| "sessions"
+	| "transcripts"
+	| "tools"
+	| "costs"
+	| "setup"
+	| "ports"
+	| "work-graph"
+	| "repo-pulse"
+	| "timeline"
+	| "diffs"
+	| "snapshots"
+	| "skills"
+	| "agents"
+	| "memory"
+	| "hooks"
+	| "hygiene"
+	| "deps"
+	| "worktrees"
+	| "env"
+	| "settings"
+	| "assistant"
+	| "attribution"
+	| "status";
 
 /**
  * AnchorMode — the three dedicated views with distinct behavior and richer interaction models.
  * These bypass the shared narrative surface and must never be routed through NarrativeSurfaceView.
  */
-export type AnchorMode = 'dashboard' | 'repo' | 'docs';
+export type AnchorMode = "dashboard" | "repo" | "docs";
 
 /**
  * SurfaceMode — every Mode that is NOT an anchor.
@@ -46,460 +46,496 @@ export type SurfaceMode = Exclude<Mode, AnchorMode>;
  * ViewSection — the sidebar grouping for each mode.
  * Determines section headers and framing in operator-facing copy.
  */
-export type ViewSection = 'Narrative' | 'Evidence' | 'Workspace' | 'Integrations' | 'Health' | 'Configure';
-
-
+export type ViewSection =
+	| "Narrative"
+	| "Evidence"
+	| "Workspace"
+	| "Integrations"
+	| "Health"
+	| "Configure";
 
 export type Stats = {
-  added: number;
-  removed: number;
-  files: number;
-  commits: number;
-  prompts: number;
-  responses: number;
+	added: number;
+	removed: number;
+	files: number;
+	commits: number;
+	prompts: number;
+	responses: number;
 };
 
-export type SnapshotType = 'automatic' | 'manual' | 'preflight' | 'recovery';
+export type SnapshotType = "automatic" | "manual" | "preflight" | "recovery";
 
 export type Snapshot = {
-  id: string;
-  atISO: string;
-  type: SnapshotType;
-  branch: string;
-  headSha: string;
-  filesChanged: string[];
-  message?: string;
-  metadata?: Record<string, unknown>;
+	id: string;
+	atISO: string;
+	type: SnapshotType;
+	branch: string;
+	headSha: string;
+	filesChanged: string[];
+	message?: string;
+	metadata?: Record<string, unknown>;
 };
 
 export type HeaderMetricUnavailableReason =
-  | 'NO_TRACE_DATA'
-  | 'SOURCE_UNSUPPORTED'
-  | 'LOADING'
-  | 'PERMISSION_DENIED'
-  | 'ERROR';
+	| "NO_TRACE_DATA"
+	| "SOURCE_UNSUPPORTED"
+	| "LOADING"
+	| "PERMISSION_DENIED"
+	| "ERROR";
 
 export type HeaderMetric =
-  | { kind: 'known'; value: number }
-  | { kind: 'unavailable'; reason: HeaderMetricUnavailableReason };
+	| { kind: "known"; value: number }
+	| { kind: "unavailable"; reason: HeaderMetricUnavailableReason };
 
 export type BranchHeaderMetricSet = {
-  added: HeaderMetric;
-  removed: HeaderMetric;
-  files: HeaderMetric;
-  commits: HeaderMetric;
-  prompts: HeaderMetric;
-  responses: HeaderMetric;
+	added: HeaderMetric;
+	removed: HeaderMetric;
+	files: HeaderMetric;
+	commits: HeaderMetric;
+	prompts: HeaderMetric;
+	responses: HeaderMetric;
 };
 
 export type BranchHeaderViewModel =
-  | {
-    kind: 'hidden';
-    reason:
-    | 'mode_unsupported'
-    | 'repo_idle'
-    | 'model_missing'
-    | 'feature_disabled';
-  }
-  | {
-    kind: 'shell';
-    state: 'loading' | 'error';
-    message: string;
-  }
-  | {
-    kind: 'full';
-    title: string;
-    status: BranchStatus;
-    description: string;
-    metrics: BranchHeaderMetricSet;
-    isFilteredView: boolean;
-  };
+	| {
+			kind: "hidden";
+			reason:
+				| "mode_unsupported"
+				| "repo_idle"
+				| "model_missing"
+				| "feature_disabled";
+	  }
+	| {
+			kind: "shell";
+			state: "loading" | "error";
+			message: string;
+	  }
+	| {
+			kind: "full";
+			title: string;
+			status: BranchStatus;
+			description: string;
+			metrics: BranchHeaderMetricSet;
+			isFilteredView: boolean;
+	  };
 
-export type IntentType = 'feature' | 'fix' | 'refactor' | 'test' | 'docs' | 'other';
+export type IntentType =
+	| "feature"
+	| "fix"
+	| "refactor"
+	| "test"
+	| "docs"
+	| "other";
 
 export type IntentItem = {
-  id: string;
-  text: string;
-  tag?: string;
-  type?: IntentType;
+	id: string;
+	text: string;
+	tag?: string;
+	type?: IntentType;
 };
 
 export type FileChange = {
-  path: string;
-  additions: number;
-  deletions: number;
+	path: string;
+	additions: number;
+	deletions: number;
 };
 
 export type SessionTool =
-  | 'claude-code'
-  | 'codex'
-  | 'kimi'
-  | 'cursor'
-  | 'gemini'
-  | 'copilot'
-  | 'continue'
-  | 'unknown';
+	| "claude-code"
+	| "codex"
+	| "kimi"
+	| "cursor"
+	| "gemini"
+	| "copilot"
+	| "continue"
+	| "unknown";
 
-export type SessionMessageRole = 'user' | 'assistant' | 'thinking' | 'plan' | 'tool_call';
+export type SessionMessageRole =
+	| "user"
+	| "assistant"
+	| "thinking"
+	| "plan"
+	| "tool_call";
 
 export type SessionMessage = {
-  id: string;
-  role: SessionMessageRole;
-  text: string;
-  files?: string[];
-  toolName?: string;
-  toolInput?: unknown;
+	id: string;
+	role: SessionMessageRole;
+	text: string;
+	files?: string[];
+	toolName?: string;
+	toolInput?: unknown;
 };
 
 export type SessionExcerpt = {
-  id: string;
-  tool: SessionTool;
-  agentName?: string;
-  durationMin?: number;
-  messages: SessionMessage[];
-  importedAtISO?: string;
-  // Link state (Phase 1 MVP)
-  linkedCommitSha?: string;
-  linkConfidence?: number;
-  autoLinked?: boolean;
-  needsReview?: boolean;
-  redactionCount?: number;
+	id: string;
+	tool: SessionTool;
+	agentName?: string;
+	durationMin?: number;
+	messages: SessionMessage[];
+	importedAtISO?: string;
+	// Link state (Phase 1 MVP)
+	linkedCommitSha?: string;
+	linkConfidence?: number;
+	autoLinked?: boolean;
+	needsReview?: boolean;
+	redactionCount?: number;
 };
 
-export type TimelineStatus = 'ok' | 'warn' | 'error';
+export type TimelineStatus = "ok" | "warn" | "error";
 
 export type SessionBadgeTool =
-  | 'claude-code'
-  | 'codex'
-  | 'cursor'
-  | 'gemini'
-  | 'copilot'
-  | 'continue'
-  | 'kimi'
-  | 'unknown';
+	| "claude-code"
+	| "codex"
+	| "cursor"
+	| "gemini"
+	| "copilot"
+	| "continue"
+	| "kimi"
+	| "unknown";
 
 export type TimelineBadge = {
-  type: 'file' | 'test' | 'trace' | 'contribution' | 'session' | 'anchor';
-  label: string;
-  status?: 'passed' | 'failed' | 'mixed';
-  stats?: {
-    aiPercentage: number;
-    tool?: string;
-    model?: string;
-  };
-  anchor?: {
-    hasAttributionNote: boolean;
-    hasSessionsNote: boolean;
-    hasLineageNote: boolean;
-  };
-  sessionTools?: SessionBadgeTool[];
+	type: "file" | "test" | "trace" | "contribution" | "session" | "anchor";
+	label: string;
+	status?: "passed" | "failed" | "mixed";
+	stats?: {
+		aiPercentage: number;
+		tool?: string;
+		model?: string;
+	};
+	anchor?: {
+		hasAttributionNote: boolean;
+		hasSessionsNote: boolean;
+		hasLineageNote: boolean;
+	};
+	sessionTools?: SessionBadgeTool[];
 };
 
-export type TraceContributorType = 'human' | 'ai' | 'mixed' | 'unknown';
+export type TraceContributorType = "human" | "ai" | "mixed" | "unknown";
 
 export type TraceContributor = {
-  type: TraceContributorType;
-  modelId?: string;
+	type: TraceContributorType;
+	modelId?: string;
 };
 
 export type TraceRange = {
-  startLine: number;
-  endLine: number;
-  contentHash?: string;
-  contributor?: TraceContributor;
+	startLine: number;
+	endLine: number;
+	contentHash?: string;
+	contributor?: TraceContributor;
 };
 
 export type TraceConversation = {
-  url?: string;
-  contributor?: TraceContributor;
-  ranges: TraceRange[];
-  related?: Array<{ type: string; url: string }>;
+	url?: string;
+	contributor?: TraceContributor;
+	ranges: TraceRange[];
+	related?: Array<{ type: string; url: string }>;
 };
 
 export type TraceFile = {
-  path: string;
-  conversations: TraceConversation[];
+	path: string;
+	conversations: TraceConversation[];
 };
 
 export type TraceRecord = {
-  id: string;
-  version: string;
-  timestamp: string;
-  vcs: { type: 'git'; revision: string };
-  tool?: { name?: string; version?: string };
-  files: TraceFile[];
-  metadata?: Record<string, unknown>;
+	id: string;
+	version: string;
+	timestamp: string;
+	vcs: { type: "git"; revision: string };
+	tool?: { name?: string; version?: string };
+	files: TraceFile[];
+	metadata?: Record<string, unknown>;
 };
 
 export type TraceFileSummary = {
-  path: string;
-  aiLines: number;
-  humanLines: number;
-  mixedLines: number;
-  unknownLines: number;
-  aiPercent: number;
+	path: string;
+	aiLines: number;
+	humanLines: number;
+	mixedLines: number;
+	unknownLines: number;
+	aiPercent: number;
 };
 
 export type TraceCommitSummary = {
-  commitSha: string;
-  aiLines: number;
-  humanLines: number;
-  mixedLines: number;
-  unknownLines: number;
-  aiPercent: number;
-  modelIds: string[];
-  toolNames: string[];
+	commitSha: string;
+	aiLines: number;
+	humanLines: number;
+	mixedLines: number;
+	unknownLines: number;
+	aiPercent: number;
+	modelIds: string[];
+	toolNames: string[];
 };
 
 export type TraceCollectorStatus = {
-  state: 'active' | 'inactive' | 'error' | 'partial';
-  message?: string;
-  issues?: string[];
-  lastSeenAtISO?: string;
+	state: "active" | "inactive" | "error" | "partial";
+	message?: string;
+	issues?: string[];
+	lastSeenAtISO?: string;
 };
 
 export type TraceCollectorConfig = {
-  codexOtelLogPath: string;
-  codexOtelReceiverEnabled: boolean;
+	codexOtelLogPath: string;
+	codexOtelReceiverEnabled: boolean;
 };
 
 export type TimelineNode = {
-  id: string;
-  atISO?: string;
-  label?: string;
-  status?: TimelineStatus;
-  type: 'milestone' | 'commit';
-  badges?: TimelineBadge[];
-  testRunId?: string;
+	id: string;
+	atISO?: string;
+	label?: string;
+	status?: TimelineStatus;
+	type: "milestone" | "commit";
+	badges?: TimelineBadge[];
+	testRunId?: string;
 };
 
-export type NarrativeExecutionState = 'running' | 'ready' | 'needs_attention' | 'failed';
+export type NarrativeExecutionState =
+	| "running"
+	| "ready"
+	| "needs_attention"
+	| "failed";
 
-export type NarrativeDetailLevel = 'summary' | 'evidence' | 'diff';
+export type NarrativeDetailLevel = "summary" | "evidence" | "diff";
 
-export type NarrativeFeedbackActorRole = 'developer' | 'reviewer';
-export type NarrativeFeedbackType = 'highlight_key' | 'highlight_wrong' | 'branch_missing_decision';
-export type NarrativeFeedbackTargetKind = 'highlight' | 'branch';
+export type NarrativeFeedbackActorRole = "developer" | "reviewer";
+export type NarrativeFeedbackType =
+	| "highlight_key"
+	| "highlight_wrong"
+	| "branch_missing_decision";
+export type NarrativeFeedbackTargetKind = "highlight" | "branch";
 
 export type NarrativeFeedbackAction = {
-  actorRole: NarrativeFeedbackActorRole;
-  feedbackType: NarrativeFeedbackType;
-  targetKind: NarrativeFeedbackTargetKind;
-  targetId?: string;
-  detailLevel: NarrativeDetailLevel;
+	actorRole: NarrativeFeedbackActorRole;
+	feedbackType: NarrativeFeedbackType;
+	targetKind: NarrativeFeedbackTargetKind;
+	targetId?: string;
+	detailLevel: NarrativeDetailLevel;
 };
 
-export type NarrativeEvidenceKind = 'commit' | 'session' | 'file' | 'diff';
+export type NarrativeEvidenceKind = "commit" | "session" | "file" | "diff";
 
 export type NarrativeEvidenceLink = {
-  id: string;
-  kind: NarrativeEvidenceKind;
-  label: string;
-  commitSha?: string;
-  filePath?: string;
-  sessionId?: string;
+	id: string;
+	kind: NarrativeEvidenceKind;
+	label: string;
+	commitSha?: string;
+	filePath?: string;
+	sessionId?: string;
 };
 
-export type NarrativeConfidenceTier = 'low' | 'medium' | 'high';
+export type NarrativeConfidenceTier = "low" | "medium" | "high";
 
-export type NarrativeRecallLaneItemSource = 'highlight' | 'fallback';
+export type NarrativeRecallLaneItemSource = "highlight" | "fallback";
 
 export type NarrativeRecallLaneItem = {
-  id: string;
-  title: string;
-  whyThisMatters: string;
-  confidence: number;
-  confidenceTier: NarrativeConfidenceTier;
-  evidenceLinks: NarrativeEvidenceLink[];
-  source: NarrativeRecallLaneItemSource;
+	id: string;
+	title: string;
+	whyThisMatters: string;
+	confidence: number;
+	confidenceTier: NarrativeConfidenceTier;
+	evidenceLinks: NarrativeEvidenceLink[];
+	source: NarrativeRecallLaneItemSource;
 };
 
 export type NarrativeHighlight = {
-  id: string;
-  title: string;
-  whyThisMatters: string;
-  confidence: number;
-  evidenceLinks: NarrativeEvidenceLink[];
+	id: string;
+	title: string;
+	whyThisMatters: string;
+	confidence: number;
+	evidenceLinks: NarrativeEvidenceLink[];
 };
 
-export type StakeholderAudience = 'executive' | 'manager' | 'engineer';
+export type StakeholderAudience = "executive" | "manager" | "engineer";
 
 export type StakeholderProjection = {
-  audience: StakeholderAudience;
-  headline: string;
-  bullets: string[];
-  risks: string[];
-  evidenceLinks: NarrativeEvidenceLink[];
+	audience: StakeholderAudience;
+	headline: string;
+	bullets: string[];
+	risks: string[];
+	evidenceLinks: NarrativeEvidenceLink[];
 };
 
-export type StakeholderProjections = Record<StakeholderAudience, StakeholderProjection>;
+export type StakeholderProjections = Record<
+	StakeholderAudience,
+	StakeholderProjection
+>;
 
 export type DecisionArchaeologyEntry = {
-  id: string;
-  title: string;
-  intent: string;
-  tradeoffs: string[];
-  alternatives: string[];
-  evidenceLinks: NarrativeEvidenceLink[];
-  confidence: number;
+	id: string;
+	title: string;
+	intent: string;
+	tradeoffs: string[];
+	alternatives: string[];
+	evidenceLinks: NarrativeEvidenceLink[];
+	confidence: number;
 };
 
 export type BranchNarrative = {
-  schemaVersion: number;
-  generatedAtISO: string;
-  state: NarrativeExecutionState;
-  summary: string;
-  confidence: number;
-  highlights: NarrativeHighlight[];
-  evidenceLinks: NarrativeEvidenceLink[];
-  promptTemplate?: {
-    id: string;
-    version: string;
-  };
-  fallbackReason?: string;
+	schemaVersion: number;
+	generatedAtISO: string;
+	state: NarrativeExecutionState;
+	summary: string;
+	confidence: number;
+	highlights: NarrativeHighlight[];
+	evidenceLinks: NarrativeEvidenceLink[];
+	promptTemplate?: {
+		id: string;
+		version: string;
+	};
+	fallbackReason?: string;
 };
 
 export type NarrativeCalibrationProfile = {
-  repoId: number;
-  rankingBias: number;
-  confidenceOffset: number;
-  confidenceScale: number;
-  sampleCount: number;
-  windowStartISO?: string;
-  windowEndISO?: string;
-  actorWeightPolicyVersion: string;
-  branchMissingDecisionCount: number;
-  highlightAdjustments: Record<string, number>;
-  updatedAtISO: string;
+	repoId: number;
+	rankingBias: number;
+	confidenceOffset: number;
+	confidenceScale: number;
+	sampleCount: number;
+	windowStartISO?: string;
+	windowEndISO?: string;
+	actorWeightPolicyVersion: string;
+	branchMissingDecisionCount: number;
+	highlightAdjustments: Record<string, number>;
+	updatedAtISO: string;
 };
 
-export type GitHubContextStatus = 'disabled' | 'loading' | 'ready' | 'partial' | 'empty' | 'error';
+export type GitHubContextStatus =
+	| "disabled"
+	| "loading"
+	| "ready"
+	| "partial"
+	| "empty"
+	| "error";
 
 export type GitHubContextEntry = {
-  id: string;
-  number?: number;
-  title: string;
-  body?: string;
-  reviewSummary?: string;
-  url?: string;
-  updatedAtISO?: string;
-  redactionHits: number;
+	id: string;
+	number?: number;
+	title: string;
+	body?: string;
+	reviewSummary?: string;
+	url?: string;
+	updatedAtISO?: string;
+	redactionHits: number;
 };
 
 export type GitHubContextState = {
-  status: GitHubContextStatus;
-  entries: GitHubContextEntry[];
-  lastLoadedAtISO?: string;
-  failedFileCount?: number;
-  error?: string;
+	status: GitHubContextStatus;
+	entries: GitHubContextEntry[];
+	lastLoadedAtISO?: string;
+	failedFileCount?: number;
+	error?: string;
 };
 
 export type NarrativeObservabilityMetrics = {
-  layerSwitchedCount: number;
-  evidenceOpenedCount: number;
-  fallbackUsedCount: number;
-  killSwitchTriggeredCount: number;
-  lastEventAtISO?: string;
+	layerSwitchedCount: number;
+	evidenceOpenedCount: number;
+	fallbackUsedCount: number;
+	killSwitchTriggeredCount: number;
+	lastEventAtISO?: string;
 };
 
-export type NarrativeRolloutStatus = 'healthy' | 'watch' | 'rollback';
+export type NarrativeRolloutStatus = "healthy" | "watch" | "rollback";
 
 export type NarrativeRubricMetric = {
-  id: 'confidence' | 'evidence_coverage' | 'projection_completeness' | 'fallback_health' | 'connector_safety';
-  label: string;
-  score: number;
-  threshold: number;
-  status: 'pass' | 'warn' | 'fail';
-  rationale: string;
+	id:
+		| "confidence"
+		| "evidence_coverage"
+		| "projection_completeness"
+		| "fallback_health"
+		| "connector_safety";
+	label: string;
+	score: number;
+	threshold: number;
+	status: "pass" | "warn" | "fail";
+	rationale: string;
 };
 
 export type NarrativeKillSwitchRule = {
-  id: string;
-  label: string;
-  severity: 'warning' | 'critical';
-  triggered: boolean;
-  rationale: string;
+	id: string;
+	label: string;
+	severity: "warning" | "critical";
+	triggered: boolean;
+	rationale: string;
 };
 
 export type NarrativeRolloutReport = {
-  status: NarrativeRolloutStatus;
-  rubric: NarrativeRubricMetric[];
-  rules: NarrativeKillSwitchRule[];
-  averageScore: number;
-  generatedAtISO: string;
+	status: NarrativeRolloutStatus;
+	rubric: NarrativeRubricMetric[];
+	rules: NarrativeKillSwitchRule[];
+	averageScore: number;
+	generatedAtISO: string;
 };
 
 export type BranchViewModel = {
-  source: 'demo' | 'git';
-  title: string;
-  status: BranchStatus;
-  description: string;
-  stats: Stats;
-  intent: IntentItem[];
-  timeline: TimelineNode[];
-  // Optional, mainly for demo mode
-  sessionExcerpts?: SessionExcerpt[];
-  // Dirty working-tree files (live repo mode)
-  dirtyFiles?: string[];
-  // Added + removed lines across staged and unstaged working-tree diffs (live repo mode)
-  dirtyChurnLines?: number;
-  filesChanged?: FileChange[];
-  diffsByFile?: Record<string, string>;
-  traceSummaries?: {
-    byCommit: Record<string, TraceCommitSummary>;
-    byFileByCommit: Record<string, Record<string, TraceFileSummary>>;
-  };
-  traceStatus?: TraceCollectorStatus;
-  traceConfig?: TraceCollectorConfig;
-  narrative?: BranchNarrative;
-  snapshots?: Snapshot[];
-  meta?: {
-    repoPath?: string;
-    branchName?: string;
-    headSha?: string;
-    repoId?: number;
-  };
+	source: "demo" | "git";
+	title: string;
+	status: BranchStatus;
+	description: string;
+	stats: Stats;
+	intent: IntentItem[];
+	timeline: TimelineNode[];
+	// Optional, mainly for demo mode
+	sessionExcerpts?: SessionExcerpt[];
+	// Dirty working-tree files (live repo mode)
+	dirtyFiles?: string[];
+	// Added + removed lines across staged and unstaged working-tree diffs (live repo mode)
+	dirtyChurnLines?: number;
+	filesChanged?: FileChange[];
+	diffsByFile?: Record<string, string>;
+	traceSummaries?: {
+		byCommit: Record<string, TraceCommitSummary>;
+		byFileByCommit: Record<string, Record<string, TraceFileSummary>>;
+	};
+	traceStatus?: TraceCollectorStatus;
+	traceConfig?: TraceCollectorConfig;
+	narrative?: BranchNarrative;
+	snapshots?: Snapshot[];
+	meta?: {
+		repoPath?: string;
+		branchName?: string;
+		headSha?: string;
+		repoId?: number;
+	};
 };
 
 export type CommitSummary = {
-  sha: string;
-  subject: string;
-  author: string;
-  authoredAtISO: string;
+	sha: string;
+	subject: string;
+	author: string;
+	authoredAtISO: string;
 };
 
 export type CommitDetails = {
-  sha: string;
-  fileChanges: FileChange[];
+	sha: string;
+	fileChanges: FileChange[];
 };
 
-export type TestStatus = 'passed' | 'failed' | 'skipped';
+export type TestStatus = "passed" | "failed" | "skipped";
 
 export type TestCase = {
-  id: string;
-  name: string;
-  status: TestStatus;
-  durationMs: number;
-  errorMessage?: string;
-  filePath?: string;
+	id: string;
+	name: string;
+	status: TestStatus;
+	durationMs: number;
+	errorMessage?: string;
+	filePath?: string;
 };
 
 export type TestRun = {
-  id: string;
-  /** ISO timestamp when this test run was imported into Narrative (repo mode). */
-  importedAtISO?: string;
-  /** Basename of the imported artifact (repo mode). */
-  sourceBasename?: string;
-  /** Path under `.narrative/` where the raw artifact was stored (repo mode). */
-  rawRelPath?: string;
-  sessionId?: string;
-  commitSha?: string;
-  atISO: string;
-  durationSec: number;
-  passed: number;
-  failed: number;
-  skipped: number;
-  tests: TestCase[];
+	id: string;
+	/** ISO timestamp when this test run was imported into Narrative (repo mode). */
+	importedAtISO?: string;
+	/** Basename of the imported artifact (repo mode). */
+	sourceBasename?: string;
+	/** Path under `.narrative/` where the raw artifact was stored (repo mode). */
+	rawRelPath?: string;
+	sessionId?: string;
+	commitSha?: string;
+	atISO: string;
+	durationSec: number;
+	passed: number;
+	failed: number;
+	skipped: number;
+	tests: TestCase[];
 };
 
 // EnhancedTimelineNode is now just TimelineNode (badges and testRunId added above)
@@ -509,264 +545,279 @@ export type EnhancedTimelineNode = TimelineNode;
 // Rules System Types
 // ============================================================================
 
-export type RuleSeverity = 'error' | 'warning';
+export type RuleSeverity = "error" | "warning";
 
 export type Rule = {
-  name: string;
-  description: string;
-  pattern: string;
-  is_regex?: boolean;
-  severity?: RuleSeverity;
-  include_files?: string[];
-  exclude_files?: string[];
-  suggestion?: string;
+	name: string;
+	description: string;
+	pattern: string;
+	is_regex?: boolean;
+	severity?: RuleSeverity;
+	include_files?: string[];
+	exclude_files?: string[];
+	suggestion?: string;
 };
 
 export type RuleViolation = {
-  rule_name: string;
-  severity: RuleSeverity;
-  file: string;
-  line: number;
-  matched: string;
-  suggestion: string;
+	rule_name: string;
+	severity: RuleSeverity;
+	file: string;
+	line: number;
+	matched: string;
+	suggestion: string;
 };
 
 export type ReviewSummary = {
-  total_files_scanned: number;
-  total_rules: number;
-  violations_found: number;
-  errors: number;
-  warnings: number;
+	total_files_scanned: number;
+	total_rules: number;
+	violations_found: number;
+	errors: number;
+	warnings: number;
 };
 
 export type ReviewResult = {
-  summary: ReviewSummary;
-  violations: RuleViolation[];
-  files_scanned: string[];
-  rules_applied: string[];
+	summary: ReviewSummary;
+	violations: RuleViolation[];
+	files_scanned: string[];
+	rules_applied: string[];
 };
 
 export type RuleValidationError = {
-  rule_name: string;
-  error: string;
+	rule_name: string;
+	error: string;
 };
 
 // ============================================================================
 // Dashboard Types (Phase 1: Analytics Dashboard)
 // ============================================================================
 
-export type TimeRangePreset = '7d' | '30d' | '90d' | 'all';
+export type TimeRangePreset = "7d" | "30d" | "90d" | "all";
 
 export interface CustomTimeRange {
-  from: string; // ISO date string
-  to: string; // ISO date string
+	from: string; // ISO date string
+	to: string; // ISO date string
 }
 
 export type TimeRange = TimeRangePreset | CustomTimeRange;
 
 export interface DashboardStats {
-  repo: RepoInfo;
-  timeRange: TimeRange;
-  currentPeriod: PeriodStats;
-  previousPeriod?: PeriodStats;
-  topFiles: PaginatedFiles;
+	repo: RepoInfo;
+	timeRange: TimeRange;
+	currentPeriod: PeriodStats;
+	previousPeriod?: PeriodStats;
+	topFiles: PaginatedFiles;
 }
 
 export type DashboardState =
-  | 'default'
-  | 'loading'
-  | 'empty'
-  | 'error'
-  | 'offline'
-  | 'permission_denied';
+	| "default"
+	| "loading"
+	| "empty"
+	| "error"
+	| "offline"
+	| "permission_denied";
 
-export type DashboardTrustState = 'healthy' | 'degraded';
+export type DashboardTrustState = "healthy" | "degraded";
 
 export type SurfaceTrustState = DashboardTrustState;
-export type DataAuthorityTier = 'live_repo' | 'live_capture' | 'derived_summary' | 'static_scaffold' | 'system_signal';
+export type DataAuthorityTier =
+	| "live_repo"
+	| "live_capture"
+	| "derived_summary"
+	| "static_scaffold"
+	| "system_signal";
 
-export type DashboardPanelStatus = 'ready' | 'loading' | 'empty' | 'error' | 'degraded';
+export type DashboardPanelStatus =
+	| "ready"
+	| "loading"
+	| "empty"
+	| "error"
+	| "degraded";
 
-export type PanelStatusMap = Partial<Record<'metrics' | 'topFiles', DashboardPanelStatus>>;
+export type PanelStatusMap = Partial<
+	Record<"metrics" | "topFiles", DashboardPanelStatus>
+>;
 
 export type RetryFailureClass =
-  | 'ipc_timeout'
-  | 'io_transient'
-  | 'offline_source'
-  | 'authority_denied';
+	| "ipc_timeout"
+	| "io_transient"
+	| "offline_source"
+	| "authority_denied";
 
-export type DashboardRuntimeEnvironment = 'dev' | 'ci' | 'prod';
+export type DashboardRuntimeEnvironment = "dev" | "ci" | "prod";
 
-export type DashboardStaleDropReason = 'superseded' | 'mode_exit' | 'abort_unavailable';
+export type DashboardStaleDropReason =
+	| "superseded"
+	| "mode_exit"
+	| "abort_unavailable";
 
 export type RetryBudgetProfile = {
-  failureClass: RetryFailureClass;
-  maxAttempts: number;
-  maxTotalRetryMs: number;
-  backoffScheduleMs: number[];
-  jitterPercent: number;
+	failureClass: RetryFailureClass;
+	maxAttempts: number;
+	maxTotalRetryMs: number;
+	backoffScheduleMs: number[];
+	jitterPercent: number;
 };
 
 export type DashboardRequestFailureMetadata = {
-  repoId: number;
-  requestKeyHash: string;
-  failureClass: RetryFailureClass;
-  authorityOutcome?: Exclude<CommandAuthorityOutcome, 'allowed'>;
-  attempt: number;
-  failedAtIso: string;
-  message: string;
+	repoId: number;
+	requestKeyHash: string;
+	failureClass: RetryFailureClass;
+	authorityOutcome?: Exclude<CommandAuthorityOutcome, "allowed">;
+	attempt: number;
+	failedAtIso: string;
+	message: string;
 };
 
 export type DashboardDroppedRequestDiagnostic = {
-  repoId: number;
-  requestKeyHash: string;
-  attempt: number;
-  reason: DashboardStaleDropReason;
-  droppedAtIso: string;
+	repoId: number;
+	requestKeyHash: string;
+	attempt: number;
+	reason: DashboardStaleDropReason;
+	droppedAtIso: string;
 };
 
 export type CommandAuthorityOutcome =
-  | 'allowed'
-  | 'denied_capability'
-  | 'denied_scope'
-  | 'denied_window';
+	| "allowed"
+	| "denied_capability"
+	| "denied_scope"
+	| "denied_window";
 
 export interface RepoInfo {
-  id: number;
-  path: string;
-  name: string;
+	id: number;
+	path: string;
+	name: string;
 }
 
 export interface PeriodStats {
-  period: {
-    start: string;
-    end: string;
-    commits: number;
-  };
-  attribution: {
-    totalLines: number;
-    humanLines: number;
-    aiAgentLines: number;
-    aiAssistLines: number;
-    collaborativeLines: number;
-    aiPercentage: number;
-  };
-  toolBreakdown: ToolStats[];
-  trend: TrendPoint[];
+	period: {
+		start: string;
+		end: string;
+		commits: number;
+	};
+	attribution: {
+		totalLines: number;
+		humanLines: number;
+		aiAgentLines: number;
+		aiAssistLines: number;
+		collaborativeLines: number;
+		aiPercentage: number;
+	};
+	toolBreakdown: ToolStats[];
+	trend: TrendPoint[];
 }
 
 export interface ToolStats {
-  tool: string;
-  model?: string;
-  lineCount: number;
+	tool: string;
+	model?: string;
+	lineCount: number;
 }
 
 export interface TrendPoint {
-  date: string;
-  granularity: 'hour' | 'day' | 'week';
-  aiPercentage: number;
-  commitCount: number;
+	date: string;
+	granularity: "hour" | "day" | "week";
+	aiPercentage: number;
+	commitCount: number;
 }
 
 export interface PaginatedFiles {
-  files: FileStats[];
-  total: number;
-  offset: number;
-  limit: number;
-  hasMore: boolean;
+	files: FileStats[];
+	total: number;
+	offset: number;
+	limit: number;
+	hasMore: boolean;
 }
 
 export interface FileStats {
-  filePath: string;
-  totalLines: number;
-  aiLines: number;
-  aiPercentage: number;
-  commitCount: number;
+	filePath: string;
+	totalLines: number;
+	aiLines: number;
+	aiPercentage: number;
+	commitCount: number;
 }
 
 export type DashboardEmptyReason =
-  | 'no-repo'
-  | 'no-commits'
-  | 'no-ai'
-  | 'no-attribution';
+	| "no-repo"
+	| "no-commits"
+	| "no-ai"
+	| "no-attribution";
 
 export interface DashboardFilter {
-  type: 'ai-only' | 'tool' | 'file' | 'date-range';
-  value?: string;
-  dateRange?: { from: string; to: string };
+	type: "ai-only" | "tool" | "file" | "date-range";
+	value?: string;
+	dateRange?: { from: string; to: string };
 }
 
 export interface TrendContext {
-  metric: 'ai-percentage' | 'commits' | 'ai-lines' | 'human-lines';
-  direction: 'up' | 'down' | 'neutral';
-  previousValue?: number;
-  currentValue: number;
+	metric: "ai-percentage" | "commits" | "ai-lines" | "human-lines";
+	direction: "up" | "down" | "neutral";
+	previousValue?: number;
+	currentValue: number;
 }
 
 export interface TrendColor {
-  color: string;
-  label: string;
-  icon: 'trending_up' | 'trending_down' | 'minus';
-  ariaLabel: string;
+	color: string;
+	label: string;
+	icon: "trending_up" | "trending_down" | "minus";
+	ariaLabel: string;
 }
 
 // ============================================================================
 // Causal Recall Copilot Types (Phase 1)
 // ============================================================================
 
-export type AskWhyConfidenceBand = 'high' | 'medium' | 'low';
+export type AskWhyConfidenceBand = "high" | "medium" | "low";
 
 export type AskWhyFallbackReasonCode =
-  | 'no_evidence'
-  | 'conflicting_signals'
-  | 'atlas_unavailable'
-  | 'low_confidence_override';
+	| "no_evidence"
+	| "conflicting_signals"
+	| "atlas_unavailable"
+	| "low_confidence_override";
 
-export type AskWhyCitationType = 'commit' | 'session' | 'file' | 'diff';
+export type AskWhyCitationType = "commit" | "session" | "file" | "diff";
 
 export type AskWhyCitation = {
-  id: string;
-  type: AskWhyCitationType;
-  label: string;
-  commitSha?: string;
-  filePath?: string;
-  sessionId?: string;
+	id: string;
+	type: AskWhyCitationType;
+	label: string;
+	commitSha?: string;
+	filePath?: string;
+	sessionId?: string;
 };
 
 export type AskWhySentenceCitationMapEntry = {
-  sentenceIndex: number;
-  citationIds: string[];
-  uncertain?: boolean;
+	sentenceIndex: number;
+	citationIds: string[];
+	uncertain?: boolean;
 };
 
 export type AskWhyQuestionInput = {
-  question: string;
-  branchId: string;
-  repoId?: number;
+	question: string;
+	branchId: string;
+	repoId?: number;
 };
 
 export type AskWhyAnswerPayload = {
-  queryId: string;
-  questionHash: string;
-  answerParagraph: string;
-  confidenceBand: AskWhyConfidenceBand;
-  confidence: number;
-  citations: AskWhyCitation[];
-  sentenceCitationMap: AskWhySentenceCitationMapEntry[];
-  fallbackUsed: boolean;
-  fallbackReasonCode?: AskWhyFallbackReasonCode;
-  generatedAtISO: string;
+	queryId: string;
+	questionHash: string;
+	answerParagraph: string;
+	confidenceBand: AskWhyConfidenceBand;
+	confidence: number;
+	citations: AskWhyCitation[];
+	sentenceCitationMap: AskWhySentenceCitationMapEntry[];
+	fallbackUsed: boolean;
+	fallbackReasonCode?: AskWhyFallbackReasonCode;
+	generatedAtISO: string;
 };
 
 export type AskWhyState =
-  | { kind: 'idle' }
-  | { kind: 'loading'; queryId: string }
-  | { kind: 'ready'; answer: AskWhyAnswerPayload }
-  | { kind: 'error'; queryId: string; errorType: string; message?: string };
+	| { kind: "idle" }
+	| { kind: "loading"; queryId: string }
+	| { kind: "ready"; answer: AskWhyAnswerPayload }
+	| { kind: "error"; queryId: string; errorType: string; message?: string };
 
 export type AskWhyTelemetryEventName =
-  | 'ask_why_submitted'
-  | 'ask_why_answer_viewed'
-  | 'ask_why_evidence_opened'
-  | 'ask_why_fallback_used'
-  | 'ask_why_error';
+	| "ask_why_submitted"
+	| "ask_why_answer_viewed"
+	| "ask_why_evidence_opened"
+	| "ask_why_fallback_used"
+	| "ask_why_error";

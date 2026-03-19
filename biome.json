@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -8,16 +8,33 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"ignore": [
-			"node_modules",
-			"dist",
-			"coverage",
-			"artifacts"
+		"includes": [
+			"**",
+			"!**/node_modules",
+			"!**/dist",
+			"!**/coverage",
+			"!**/artifacts"
 		]
+	},
+	"css": {
+		"parser": {
+			"allowWrongLineComments": true,
+			"cssModules": false,
+			"tailwindDirectives": true
+		},
+		"linter": {
+			"enabled": false
+		}
 	},
 	"overrides": [
 		{
-			"include": ["*.config.ts", "vite.config.ts", "vitest.config.ts"],
+			"includes": [
+				"**/*.config.ts",
+				"**/vite.config.ts",
+				"**/vitest.config.ts",
+				"**/*.stories.tsx",
+				"**/*.stories.ts"
+			],
 			"linter": {
 				"rules": {
 					"style": {
@@ -38,8 +55,11 @@
 			"suspicious": {
 				"noEmptyBlockStatements": "error",
 				"noExplicitAny": "warn",
-				"noConsoleLog": "warn",
-				"noDebugger": "error"
+				"noDebugger": "error",
+				"noConsole": {
+					"level": "warn",
+					"options": { "allow": ["log", "warn", "error"] }
+				}
 			},
 			"style": {
 				"noDefaultExport": "error",
@@ -47,8 +67,5 @@
 				"useImportType": "error"
 			}
 		}
-	},
-	"organizeImports": {
-		"enabled": true
 	}
 }

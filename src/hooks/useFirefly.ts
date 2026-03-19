@@ -1,15 +1,15 @@
 import {
-  TRACE_ANALYZING_DWELL_MS,
-  TRACE_INSIGHT_DWELL_MS,
-  TRACE_PRECEDENCE,
-  TRACE_TRANSITION_MATRIX,
-  useTraceSignal,
-  type TraceEvent,
-  type TraceLoader,
-  type TraceStateType,
-  type UseTraceSignalOptions,
-  type UseTraceSignalReturn,
-} from './useTraceSignal';
+	TRACE_ANALYZING_DWELL_MS,
+	TRACE_INSIGHT_DWELL_MS,
+	TRACE_PRECEDENCE,
+	TRACE_TRANSITION_MATRIX,
+	type TraceEvent,
+	type TraceLoader,
+	type TraceStateType,
+	type UseTraceSignalOptions,
+	type UseTraceSignalReturn,
+	useTraceSignal,
+} from "./useTraceSignal";
 
 export const FIREFLY_ANALYZING_DWELL_MS = TRACE_ANALYZING_DWELL_MS;
 export const FIREFLY_INSIGHT_DWELL_MS = TRACE_INSIGHT_DWELL_MS;
