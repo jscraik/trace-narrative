@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.2](https://github.com/jscraik/trace-narrative/compare/trace-narrative-v0.19.1...trace-narrative-v0.19.2) (2026-03-19)
+
+
+### Bug Fixes
+
+* resolve Biome warnings, contract parity failures, and test timeouts ([#85](https://github.com/jscraik/trace-narrative/issues/85)) ([55d1cf6](https://github.com/jscraik/trace-narrative/commit/55d1cf6c32955f42556c860d5c35023790da5e99))
+
 ## [0.19.1](https://github.com/jscraik/trace-narrative/compare/trace-narrative-v0.19.0...trace-narrative-v0.19.1) (2026-03-13)
 
 
