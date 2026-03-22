@@ -51,13 +51,6 @@ preflight_repo() {
 
 	echo "== Codex Preflight =="
 	echo "pwd: $(pwd)"
-	local learning_doc_primary="${HOME}/dev/config/codex/instructions/Learning.md"
-	local learning_doc_fallback="${HOME}/dev/config/codex/instructions/Learnings.md"
-	local learning_doc_path="${learning_doc_primary}"
-	if [[ ! -f "${learning_doc_path}" && -f "${learning_doc_fallback}" ]]; then
-		learning_doc_path="${learning_doc_fallback}"
-	fi
-	echo "learning doc: ${learning_doc_path}"
 
 	if ! command -v git >/dev/null 2>&1; then
 		echo "❌ missing binary: git" >&2

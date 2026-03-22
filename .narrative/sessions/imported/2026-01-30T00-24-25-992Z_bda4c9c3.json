@@ -1,44 +1,44 @@
 {
-  "importedAtISO": "2026-01-30T00:24:25.992Z",
-  "sourceBasename": "1p_failed_events.5ef41e3d-7be6-474d-9561-fe947bc737bc.c83600a5-8350-4ddb-842d-c56b795dfede.json",
-  "sha256": "bda4c9c32ffb149c8abd792a83df778a4418b09dbcf4f480b5499473c0798aed",
-  "redactions": [],
-  "toolSanitizer": [],
-  "payload": {
-    "event_type": "ClaudeCodeInternalEvent",
-    "event_data": {
-      "event_name": "tengu_config_cache_stats",
-      "client_timestamp": "2026-01-29T02:19:39.807Z",
-      "model": "glm-4.7",
-      "session_id": "5ef41e3d-7be6-474d-9561-fe947bc737bc",
-      "user_type": "external",
-      "betas": "claude-code-20250219,interleaved-thinking-2025-05-14",
-      "env": {
-        "platform": "darwin",
-        "node_version": "v25.2.1",
-        "terminal": "Apple_Terminal",
-        "package_managers": "npm,yarn,pnpm",
-        "runtimes": "bun,deno,node",
-        "is_running_with_bun": false,
-        "is_ci": false,
-        "is_claubbit": false,
-        "is_github_action": false,
-        "is_claude_code_action": false,
-        "is_claude_ai_auth": false,
-        "version": "2.1.12",
-        "arch": "arm64",
-        "is_claude_code_remote": false,
-        "deployment_environment": "unknown-darwin",
-        "is_conductor": false,
-        "version_base": "2.1.12"
-      },
-      "entrypoint": "cli",
-      "is_interactive": true,
-      "client_type": "cli",
-      "additional_metadata": "{\"cache_hits\":21935111140,\"cache_misses\":1820850,\"hit_rate\":0.9999169961414464}",
-      "event_id": "9fbd5fa5-060a-44c6-8aa4-1fca71152712",
-      "device_id": "b505cf5b13289cf69bd0b42c0630afd2944e090dcd8a11acb6874579ba73769e",
-      "parent_session_id": "9e3e1f0d-e07f-49cb-bc05-6174915c5994"
-    }
-  }
+	"importedAtISO": "2026-01-30T00:24:25.992Z",
+	"sourceBasename": "1p_failed_events.5ef41e3d-7be6-474d-9561-fe947bc737bc.c83600a5-8350-4ddb-842d-c56b795dfede.json",
+	"sha256": "bda4c9c32ffb149c8abd792a83df778a4418b09dbcf4f480b5499473c0798aed",
+	"redactions": [],
+	"toolSanitizer": [],
+	"payload": {
+		"event_type": "ClaudeCodeInternalEvent",
+		"event_data": {
+			"event_name": "tengu_config_cache_stats",
+			"client_timestamp": "2026-01-29T02:19:39.807Z",
+			"model": "glm-4.7",
+			"session_id": "5ef41e3d-7be6-474d-9561-fe947bc737bc",
+			"user_type": "external",
+			"betas": "claude-code-20250219,interleaved-thinking-2025-05-14",
+			"env": {
+				"platform": "darwin",
+				"node_version": "v25.2.1",
+				"terminal": "Apple_Terminal",
+				"package_managers": "npm,yarn,pnpm",
+				"runtimes": "bun,deno,node",
+				"is_running_with_bun": false,
+				"is_ci": false,
+				"is_claubbit": false,
+				"is_github_action": false,
+				"is_claude_code_action": false,
+				"is_claude_ai_auth": false,
+				"version": "2.1.12",
+				"arch": "arm64",
+				"is_claude_code_remote": false,
+				"deployment_environment": "unknown-darwin",
+				"is_conductor": false,
+				"version_base": "2.1.12"
+			},
+			"entrypoint": "cli",
+			"is_interactive": true,
+			"client_type": "cli",
+			"additional_metadata": "{\"cache_hits\":21935111140,\"cache_misses\":1820850,\"hit_rate\":0.9999169961414464}",
+			"event_id": "9fbd5fa5-060a-44c6-8aa4-1fca71152712",
+			"device_id": "b505cf5b13289cf69bd0b42c0630afd2944e090dcd8a11acb6874579ba73769e",
+			"parent_session_id": "9e3e1f0d-e07f-49cb-bc05-6174915c5994"
+		}
+	}
 }

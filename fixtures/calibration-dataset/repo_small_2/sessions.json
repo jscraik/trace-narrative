@@ -1,176 +1,136 @@
 [
-  {
-    "id": "session_1769717095677_e5o1tjtpg",
-    "tool": "codex",
-    "durationMin": 11,
-    "imported_at_iso": "2024-01-01T11:21:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095677_9o4m4o24f",
-        "role": "user",
-        "text": "Update README.md with new feature",
-        "files": [
-          "README.md",
-          "src/types/Session.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095677_36poxskcf",
-        "role": "assistant",
-        "text": "I'll update README.md and src/types/Session.ts with the requested changes.",
-        "files": [
-          "README.md",
-          "src/types/Session.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095677_3kn16tez5",
-    "tool": "codex",
-    "durationMin": 14,
-    "imported_at_iso": "2024-01-01T12:08:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095677_w7s7rmomv",
-        "role": "user",
-        "text": "Update src/types/Session.ts with new feature",
-        "files": [
-          "src/types/Session.ts",
-          "src/utils/format.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095677_tm2w4es0r",
-        "role": "assistant",
-        "text": "I'll update src/types/Session.ts and src/utils/format.ts with the requested changes.",
-        "files": [
-          "src/types/Session.ts",
-          "src/utils/format.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095677_m9bmchm8k",
-    "tool": "codex",
-    "durationMin": 10,
-    "imported_at_iso": "2024-01-01T12:47:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095677_y68gdiykl",
-        "role": "user",
-        "text": "Update src/services/cache.ts with new feature",
-        "files": [
-          "src/services/cache.ts",
-          "vite.config.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095677_6pi1dgzit",
-        "role": "assistant",
-        "text": "I'll update src/services/cache.ts and vite.config.ts with the requested changes.",
-        "files": [
-          "src/services/cache.ts",
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095677_e2mu8qp2v",
-    "tool": "codex",
-    "durationMin": 13,
-    "imported_at_iso": "2024-01-01T13:32:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095677_7qqetivnh",
-        "role": "user",
-        "text": "Update vite.config.ts with new feature",
-        "files": [
-          "vite.config.ts",
-          "src/types/Session.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095677_ka35bfp6t",
-        "role": "assistant",
-        "text": "I'll update vite.config.ts and src/types/Session.ts with the requested changes.",
-        "files": [
-          "vite.config.ts",
-          "src/types/Session.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095677_tncv2jl5g",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-01-01T14:22:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095677_j5hnbjgjs",
-        "role": "user",
-        "text": "Update package.json with new feature",
-        "files": [
-          "package.json",
-          "vite.config.ts",
-          "src/services/cache.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095677_wzq9ju81y",
-        "role": "assistant",
-        "text": "I'll update package.json and vite.config.ts and src/services/cache.ts with the requested changes.",
-        "files": [
-          "package.json",
-          "vite.config.ts",
-          "src/services/cache.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095677_7a6stzpn2",
-    "tool": "codex",
-    "durationMin": 14,
-    "imported_at_iso": "2024-01-01T15:06:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095677_qtvh0o9yy",
-        "role": "user",
-        "text": "Update vite.config.ts with new feature",
-        "files": [
-          "vite.config.ts",
-          "src/types/Repo.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095677_bqsrkn2nj",
-        "role": "assistant",
-        "text": "I'll update vite.config.ts and src/types/Repo.ts with the requested changes.",
-        "files": [
-          "vite.config.ts",
-          "src/types/Repo.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095677_4uantp3zx",
-    "tool": "claude-code",
-    "durationMin": 5,
-    "imported_at_iso": "2024-01-02T02:40:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095677_o1hfnazqb",
-        "role": "user",
-        "text": "Explore potential refactoring options",
-        "files": [
-          "src/legacy/old-module.ts"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095677_e5o1tjtpg",
+		"tool": "codex",
+		"durationMin": 11,
+		"imported_at_iso": "2024-01-01T11:21:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095677_9o4m4o24f",
+				"role": "user",
+				"text": "Update README.md with new feature",
+				"files": ["README.md", "src/types/Session.ts"]
+			},
+			{
+				"id": "msg_1769717095677_36poxskcf",
+				"role": "assistant",
+				"text": "I'll update README.md and src/types/Session.ts with the requested changes.",
+				"files": ["README.md", "src/types/Session.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095677_3kn16tez5",
+		"tool": "codex",
+		"durationMin": 14,
+		"imported_at_iso": "2024-01-01T12:08:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095677_w7s7rmomv",
+				"role": "user",
+				"text": "Update src/types/Session.ts with new feature",
+				"files": ["src/types/Session.ts", "src/utils/format.ts"]
+			},
+			{
+				"id": "msg_1769717095677_tm2w4es0r",
+				"role": "assistant",
+				"text": "I'll update src/types/Session.ts and src/utils/format.ts with the requested changes.",
+				"files": ["src/types/Session.ts", "src/utils/format.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095677_m9bmchm8k",
+		"tool": "codex",
+		"durationMin": 10,
+		"imported_at_iso": "2024-01-01T12:47:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095677_y68gdiykl",
+				"role": "user",
+				"text": "Update src/services/cache.ts with new feature",
+				"files": ["src/services/cache.ts", "vite.config.ts"]
+			},
+			{
+				"id": "msg_1769717095677_6pi1dgzit",
+				"role": "assistant",
+				"text": "I'll update src/services/cache.ts and vite.config.ts with the requested changes.",
+				"files": ["src/services/cache.ts", "vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095677_e2mu8qp2v",
+		"tool": "codex",
+		"durationMin": 13,
+		"imported_at_iso": "2024-01-01T13:32:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095677_7qqetivnh",
+				"role": "user",
+				"text": "Update vite.config.ts with new feature",
+				"files": ["vite.config.ts", "src/types/Session.ts"]
+			},
+			{
+				"id": "msg_1769717095677_ka35bfp6t",
+				"role": "assistant",
+				"text": "I'll update vite.config.ts and src/types/Session.ts with the requested changes.",
+				"files": ["vite.config.ts", "src/types/Session.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095677_tncv2jl5g",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-01-01T14:22:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095677_j5hnbjgjs",
+				"role": "user",
+				"text": "Update package.json with new feature",
+				"files": ["package.json", "vite.config.ts", "src/services/cache.ts"]
+			},
+			{
+				"id": "msg_1769717095677_wzq9ju81y",
+				"role": "assistant",
+				"text": "I'll update package.json and vite.config.ts and src/services/cache.ts with the requested changes.",
+				"files": ["package.json", "vite.config.ts", "src/services/cache.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095677_7a6stzpn2",
+		"tool": "codex",
+		"durationMin": 14,
+		"imported_at_iso": "2024-01-01T15:06:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095677_qtvh0o9yy",
+				"role": "user",
+				"text": "Update vite.config.ts with new feature",
+				"files": ["vite.config.ts", "src/types/Repo.ts"]
+			},
+			{
+				"id": "msg_1769717095677_bqsrkn2nj",
+				"role": "assistant",
+				"text": "I'll update vite.config.ts and src/types/Repo.ts with the requested changes.",
+				"files": ["vite.config.ts", "src/types/Repo.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095677_4uantp3zx",
+		"tool": "claude-code",
+		"durationMin": 5,
+		"imported_at_iso": "2024-01-02T02:40:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095677_o1hfnazqb",
+				"role": "user",
+				"text": "Explore potential refactoring options",
+				"files": ["src/legacy/old-module.ts"]
+			}
+		]
+	}
 ]

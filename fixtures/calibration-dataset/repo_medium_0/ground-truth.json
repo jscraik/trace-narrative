@@ -1,74 +1,74 @@
 [
-  {
-    "sessionId": "session_1769717095678_be9ebolwt",
-    "commitSha": "6873f0b2",
-    "confidence": 0.9,
-    "reason": "High confidence: perfect temporal and file overlap"
-  },
-  {
-    "sessionId": "session_1769717095678_gyhtxiefe",
-    "commitSha": "da76da1d",
-    "confidence": 0.75,
-    "reason": "Medium confidence: temporal match but partial file overlap"
-  },
-  {
-    "sessionId": "session_1769717095678_0n55grcbr",
-    "commitSha": "1e970da4",
-    "confidence": 0.72,
-    "reason": "Low confidence: temporal proximity but minimal file overlap"
-  },
-  {
-    "sessionId": "session_1769717095678_64gds0bmj",
-    "commitSha": "84a7ebe3",
-    "confidence": 0.7973595675404428,
-    "reason": "Weak match, may fall below threshold"
-  },
-  {
-    "sessionId": "session_1769717095678_n5zl7r49l",
-    "commitSha": "f1fdc344",
-    "confidence": 0.8615230108568274,
-    "reason": "Weak match, may fall below threshold"
-  },
-  {
-    "sessionId": "session_1769717095678_erejz4xu2",
-    "commitSha": "db26a1f6",
-    "confidence": 0.924985572589298,
-    "reason": "Weak match, may fall below threshold"
-  },
-  {
-    "sessionId": "session_1769717095678_7xz2zne7h",
-    "commitSha": "da76da1d",
-    "confidence": 0.8928845675391042,
-    "reason": "Good overlap"
-  },
-  {
-    "sessionId": "session_1769717095678_dv7h6rb9p",
-    "commitSha": "e8f6537c",
-    "confidence": 0.668337045480096,
-    "reason": "Good overlap"
-  },
-  {
-    "sessionId": "session_1769717095678_tthizmx41",
-    "commitSha": "641430e1",
-    "confidence": 0.7822060856799159,
-    "reason": "Weak match, may fall below threshold"
-  },
-  {
-    "sessionId": "session_1769717095678_g83kfzu4e",
-    "commitSha": "7728805c",
-    "confidence": 0.8920898469918093,
-    "reason": "Weak match, may fall below threshold"
-  },
-  {
-    "sessionId": "session_1769717095678_c9oewjimr",
-    "commitSha": "6873964b",
-    "confidence": 0.78,
-    "reason": "Multi-session commit: session 1 of 2"
-  },
-  {
-    "sessionId": "session_1769717095678_cp3opnimj",
-    "commitSha": "6873964b",
-    "confidence": 0.82,
-    "reason": "Multi-session commit: session 2 of 2"
-  }
+	{
+		"sessionId": "session_1769717095678_be9ebolwt",
+		"commitSha": "6873f0b2",
+		"confidence": 0.9,
+		"reason": "High confidence: perfect temporal and file overlap"
+	},
+	{
+		"sessionId": "session_1769717095678_gyhtxiefe",
+		"commitSha": "da76da1d",
+		"confidence": 0.75,
+		"reason": "Medium confidence: temporal match but partial file overlap"
+	},
+	{
+		"sessionId": "session_1769717095678_0n55grcbr",
+		"commitSha": "1e970da4",
+		"confidence": 0.72,
+		"reason": "Low confidence: temporal proximity but minimal file overlap"
+	},
+	{
+		"sessionId": "session_1769717095678_64gds0bmj",
+		"commitSha": "84a7ebe3",
+		"confidence": 0.7973595675404428,
+		"reason": "Weak match, may fall below threshold"
+	},
+	{
+		"sessionId": "session_1769717095678_n5zl7r49l",
+		"commitSha": "f1fdc344",
+		"confidence": 0.8615230108568274,
+		"reason": "Weak match, may fall below threshold"
+	},
+	{
+		"sessionId": "session_1769717095678_erejz4xu2",
+		"commitSha": "db26a1f6",
+		"confidence": 0.924985572589298,
+		"reason": "Weak match, may fall below threshold"
+	},
+	{
+		"sessionId": "session_1769717095678_7xz2zne7h",
+		"commitSha": "da76da1d",
+		"confidence": 0.8928845675391042,
+		"reason": "Good overlap"
+	},
+	{
+		"sessionId": "session_1769717095678_dv7h6rb9p",
+		"commitSha": "e8f6537c",
+		"confidence": 0.668337045480096,
+		"reason": "Good overlap"
+	},
+	{
+		"sessionId": "session_1769717095678_tthizmx41",
+		"commitSha": "641430e1",
+		"confidence": 0.7822060856799159,
+		"reason": "Weak match, may fall below threshold"
+	},
+	{
+		"sessionId": "session_1769717095678_g83kfzu4e",
+		"commitSha": "7728805c",
+		"confidence": 0.8920898469918093,
+		"reason": "Weak match, may fall below threshold"
+	},
+	{
+		"sessionId": "session_1769717095678_c9oewjimr",
+		"commitSha": "6873964b",
+		"confidence": 0.78,
+		"reason": "Multi-session commit: session 1 of 2"
+	},
+	{
+		"sessionId": "session_1769717095678_cp3opnimj",
+		"commitSha": "6873964b",
+		"confidence": 0.82,
+		"reason": "Multi-session commit: session 2 of 2"
+	}
 ]

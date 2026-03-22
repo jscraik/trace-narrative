@@ -1,138 +1,122 @@
 {
-  "generatedAt": "2026-01-29T20:04:55.705Z",
-  "totalRepos": 10,
-  "smallRepos": 3,
-  "mediumRepos": 5,
-  "largeRepos": 2,
-  "totalCommits": 7021,
-  "totalSessions": 96,
-  "totalGroundTruth": 93,
-  "allEdgeCases": [
-    "Unlinked session: no matching commit time window",
-    "Unlinked session: no matching commit time window",
-    "Unlinked session: no matching commit time window",
-    "Multi-session commit: two sessions linked to same commit",
-    "Multi-session commit: two sessions linked to same commit",
-    "Multi-session commit: two sessions linked to same commit",
-    "Multi-session commit: two sessions linked to same commit",
-    "Multi-session commit: two sessions linked to same commit",
-    "Long duration session: 4 hour window may produce ambiguous matches",
-    "Missing duration: should be inferred from message timestamps",
-    "Long duration session: 4 hour window may produce ambiguous matches",
-    "Missing duration: should be inferred from message timestamps"
-  ],
-  "repos": [
-    {
-      "id": "repo_small_0",
-      "name": "small-repo-1",
-      "size": "small",
-      "commitCount": 41,
-      "sessionCount": 8,
-      "groundTruthCount": 7,
-      "edgeCases": [
-        "Unlinked session: no matching commit time window"
-      ]
-    },
-    {
-      "id": "repo_small_1",
-      "name": "small-repo-2",
-      "size": "small",
-      "commitCount": 49,
-      "sessionCount": 7,
-      "groundTruthCount": 6,
-      "edgeCases": [
-        "Unlinked session: no matching commit time window"
-      ]
-    },
-    {
-      "id": "repo_small_2",
-      "name": "small-repo-3",
-      "size": "small",
-      "commitCount": 26,
-      "sessionCount": 7,
-      "groundTruthCount": 6,
-      "edgeCases": [
-        "Unlinked session: no matching commit time window"
-      ]
-    },
-    {
-      "id": "repo_medium_0",
-      "name": "medium-repo-1",
-      "size": "medium",
-      "commitCount": 417,
-      "sessionCount": 12,
-      "groundTruthCount": 12,
-      "edgeCases": [
-        "Multi-session commit: two sessions linked to same commit"
-      ]
-    },
-    {
-      "id": "repo_medium_1",
-      "name": "medium-repo-2",
-      "size": "medium",
-      "commitCount": 350,
-      "sessionCount": 11,
-      "groundTruthCount": 11,
-      "edgeCases": [
-        "Multi-session commit: two sessions linked to same commit"
-      ]
-    },
-    {
-      "id": "repo_medium_2",
-      "name": "medium-repo-3",
-      "size": "medium",
-      "commitCount": 889,
-      "sessionCount": 8,
-      "groundTruthCount": 8,
-      "edgeCases": [
-        "Multi-session commit: two sessions linked to same commit"
-      ]
-    },
-    {
-      "id": "repo_medium_3",
-      "name": "medium-repo-4",
-      "size": "medium",
-      "commitCount": 833,
-      "sessionCount": 10,
-      "groundTruthCount": 10,
-      "edgeCases": [
-        "Multi-session commit: two sessions linked to same commit"
-      ]
-    },
-    {
-      "id": "repo_medium_4",
-      "name": "medium-repo-5",
-      "size": "medium",
-      "commitCount": 416,
-      "sessionCount": 9,
-      "groundTruthCount": 9,
-      "edgeCases": [
-        "Multi-session commit: two sessions linked to same commit"
-      ]
-    },
-    {
-      "id": "repo_large_0",
-      "name": "large-repo-1",
-      "size": "large",
-      "commitCount": 2000,
-      "sessionCount": 12,
-      "groundTruthCount": 12,
-      "edgeCases": [
-        "Long duration session: 4 hour window may produce ambiguous matches",
-        "Missing duration: should be inferred from message timestamps"
-      ]
-    },
-    {
-      "id": "repo_large_1",
-      "name": "large-repo-2",
-      "size": "large",
-      "commitCount": 2000,
-      "sessionCount": 12,
-      "groundTruthCount": 12,
-      "edgeCases": [
-        "Long duration session: 4 hour window may produce ambiguous matches",
-        "Missing duration: should be inferred from message timestamps"
-      ]
-    }
-  ]
+	"generatedAt": "2026-01-29T20:04:55.705Z",
+	"totalRepos": 10,
+	"smallRepos": 3,
+	"mediumRepos": 5,
+	"largeRepos": 2,
+	"totalCommits": 7021,
+	"totalSessions": 96,
+	"totalGroundTruth": 93,
+	"allEdgeCases": [
+		"Unlinked session: no matching commit time window",
+		"Unlinked session: no matching commit time window",
+		"Unlinked session: no matching commit time window",
+		"Multi-session commit: two sessions linked to same commit",
+		"Multi-session commit: two sessions linked to same commit",
+		"Multi-session commit: two sessions linked to same commit",
+		"Multi-session commit: two sessions linked to same commit",
+		"Multi-session commit: two sessions linked to same commit",
+		"Long duration session: 4 hour window may produce ambiguous matches",
+		"Missing duration: should be inferred from message timestamps",
+		"Long duration session: 4 hour window may produce ambiguous matches",
+		"Missing duration: should be inferred from message timestamps"
+	],
+	"repos": [
+		{
+			"id": "repo_small_0",
+			"name": "small-repo-1",
+			"size": "small",
+			"commitCount": 41,
+			"sessionCount": 8,
+			"groundTruthCount": 7,
+			"edgeCases": ["Unlinked session: no matching commit time window"]
+		},
+		{
+			"id": "repo_small_1",
+			"name": "small-repo-2",
+			"size": "small",
+			"commitCount": 49,
+			"sessionCount": 7,
+			"groundTruthCount": 6,
+			"edgeCases": ["Unlinked session: no matching commit time window"]
+		},
+		{
+			"id": "repo_small_2",
+			"name": "small-repo-3",
+			"size": "small",
+			"commitCount": 26,
+			"sessionCount": 7,
+			"groundTruthCount": 6,
+			"edgeCases": ["Unlinked session: no matching commit time window"]
+		},
+		{
+			"id": "repo_medium_0",
+			"name": "medium-repo-1",
+			"size": "medium",
+			"commitCount": 417,
+			"sessionCount": 12,
+			"groundTruthCount": 12,
+			"edgeCases": ["Multi-session commit: two sessions linked to same commit"]
+		},
+		{
+			"id": "repo_medium_1",
+			"name": "medium-repo-2",
+			"size": "medium",
+			"commitCount": 350,
+			"sessionCount": 11,
+			"groundTruthCount": 11,
+			"edgeCases": ["Multi-session commit: two sessions linked to same commit"]
+		},
+		{
+			"id": "repo_medium_2",
+			"name": "medium-repo-3",
+			"size": "medium",
+			"commitCount": 889,
+			"sessionCount": 8,
+			"groundTruthCount": 8,
+			"edgeCases": ["Multi-session commit: two sessions linked to same commit"]
+		},
+		{
+			"id": "repo_medium_3",
+			"name": "medium-repo-4",
+			"size": "medium",
+			"commitCount": 833,
+			"sessionCount": 10,
+			"groundTruthCount": 10,
+			"edgeCases": ["Multi-session commit: two sessions linked to same commit"]
+		},
+		{
+			"id": "repo_medium_4",
+			"name": "medium-repo-5",
+			"size": "medium",
+			"commitCount": 416,
+			"sessionCount": 9,
+			"groundTruthCount": 9,
+			"edgeCases": ["Multi-session commit: two sessions linked to same commit"]
+		},
+		{
+			"id": "repo_large_0",
+			"name": "large-repo-1",
+			"size": "large",
+			"commitCount": 2000,
+			"sessionCount": 12,
+			"groundTruthCount": 12,
+			"edgeCases": [
+				"Long duration session: 4 hour window may produce ambiguous matches",
+				"Missing duration: should be inferred from message timestamps"
+			]
+		},
+		{
+			"id": "repo_large_1",
+			"name": "large-repo-2",
+			"size": "large",
+			"commitCount": 2000,
+			"sessionCount": 12,
+			"groundTruthCount": 12,
+			"edgeCases": [
+				"Long duration session: 4 hour window may produce ambiguous matches",
+				"Missing duration: should be inferred from message timestamps"
+			]
+		}
+	]
 }

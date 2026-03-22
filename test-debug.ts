@@ -1,1 +1,1 @@
-console.log('Test execution works!');
+console.log("Test execution works!");

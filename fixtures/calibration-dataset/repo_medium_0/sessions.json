@@ -1,207 +1,176 @@
 [
-  {
-    "id": "session_1769717095678_be9ebolwt",
-    "tool": "claude-code",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-01T20:26:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_jvynjvln4",
-        "role": "user",
-        "text": "Update vite.config.ts",
-        "files": [
-          "vite.config.ts",
-          "src/components/Input.tsx"
-        ]
-      },
-      {
-        "id": "msg_1769717095678_7p6qr7mi4",
-        "role": "assistant",
-        "text": "Done",
-        "files": [
-          "vite.config.ts",
-          "src/components/Input.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_gyhtxiefe",
-    "tool": "codex",
-    "durationMin": 20,
-    "imported_at_iso": "2024-02-02T06:50:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_bniungwf1",
-        "role": "user",
-        "text": "Update src/components/Modal.tsx",
-        "files": [
-          "src/components/Modal.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_0n55grcbr",
-    "tool": "claude-code",
-    "durationMin": 8,
-    "imported_at_iso": "2024-02-02T13:46:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_imgbduk83",
-        "role": "user",
-        "text": "Quick fix needed",
-        "files": [
-          "src/components/Dialog.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_64gds0bmj",
-    "tool": "codex",
-    "durationMin": 11,
-    "imported_at_iso": "2024-02-01T20:55:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_k2ndh12r4",
-        "role": "user",
-        "text": "Work on src/hooks/useModal.ts",
-        "files": [
-          "src/utils/parse.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_n5zl7r49l",
-    "tool": "codex",
-    "durationMin": 29,
-    "imported_at_iso": "2024-02-01T23:56:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_4vfzsym13",
-        "role": "user",
-        "text": "Work on src/types/Link.ts",
-        "files": [
-          "src/types/Session.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_erejz4xu2",
-    "tool": "claude-code",
-    "durationMin": 13,
-    "imported_at_iso": "2024-02-02T04:01:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_l5mmimmbm",
-        "role": "user",
-        "text": "Work on src/utils/transform.ts",
-        "files": [
-          "src/components/Badge.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_7xz2zne7h",
-    "tool": "claude-code",
-    "durationMin": 24,
-    "imported_at_iso": "2024-02-02T06:50:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_pgfucyx1e",
-        "role": "user",
-        "text": "Work on src/components/Modal.tsx",
-        "files": [
-          "src/components/Modal.tsx",
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_dv7h6rb9p",
-    "tool": "codex",
-    "durationMin": 25,
-    "imported_at_iso": "2024-02-02T10:51:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_8v1gq2n1p",
-        "role": "user",
-        "text": "Work on src/components/Modal.tsx",
-        "files": [
-          "src/components/Modal.tsx",
-          "tests/components.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_tthizmx41",
-    "tool": "codex",
-    "durationMin": 25,
-    "imported_at_iso": "2024-02-02T14:30:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_x8xl10nm2",
-        "role": "user",
-        "text": "Work on src/utils/parse.ts",
-        "files": [
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_g83kfzu4e",
-    "tool": "claude-code",
-    "durationMin": 27,
-    "imported_at_iso": "2024-02-02T17:27:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_5odsfv5k7",
-        "role": "user",
-        "text": "Work on src/hooks/useAuth.ts",
-        "files": [
-          "tests/integration.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_c9oewjimr",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-02-01T23:45:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_a4r40vf7j",
-        "role": "user",
-        "text": "Start work on src/services/api.ts",
-        "files": [
-          "src/services/api.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095678_cp3opnimj",
-    "tool": "codex",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-01T23:50:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095678_yr2i3pitg",
-        "role": "user",
-        "text": "Continue work on src/services/api.ts",
-        "files": [
-          "src/services/api.ts",
-          "vite.config.ts"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095678_be9ebolwt",
+		"tool": "claude-code",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-01T20:26:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_jvynjvln4",
+				"role": "user",
+				"text": "Update vite.config.ts",
+				"files": ["vite.config.ts", "src/components/Input.tsx"]
+			},
+			{
+				"id": "msg_1769717095678_7p6qr7mi4",
+				"role": "assistant",
+				"text": "Done",
+				"files": ["vite.config.ts", "src/components/Input.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_gyhtxiefe",
+		"tool": "codex",
+		"durationMin": 20,
+		"imported_at_iso": "2024-02-02T06:50:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_bniungwf1",
+				"role": "user",
+				"text": "Update src/components/Modal.tsx",
+				"files": ["src/components/Modal.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_0n55grcbr",
+		"tool": "claude-code",
+		"durationMin": 8,
+		"imported_at_iso": "2024-02-02T13:46:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_imgbduk83",
+				"role": "user",
+				"text": "Quick fix needed",
+				"files": ["src/components/Dialog.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_64gds0bmj",
+		"tool": "codex",
+		"durationMin": 11,
+		"imported_at_iso": "2024-02-01T20:55:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_k2ndh12r4",
+				"role": "user",
+				"text": "Work on src/hooks/useModal.ts",
+				"files": ["src/utils/parse.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_n5zl7r49l",
+		"tool": "codex",
+		"durationMin": 29,
+		"imported_at_iso": "2024-02-01T23:56:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_4vfzsym13",
+				"role": "user",
+				"text": "Work on src/types/Link.ts",
+				"files": ["src/types/Session.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_erejz4xu2",
+		"tool": "claude-code",
+		"durationMin": 13,
+		"imported_at_iso": "2024-02-02T04:01:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_l5mmimmbm",
+				"role": "user",
+				"text": "Work on src/utils/transform.ts",
+				"files": ["src/components/Badge.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_7xz2zne7h",
+		"tool": "claude-code",
+		"durationMin": 24,
+		"imported_at_iso": "2024-02-02T06:50:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_pgfucyx1e",
+				"role": "user",
+				"text": "Work on src/components/Modal.tsx",
+				"files": ["src/components/Modal.tsx", "package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_dv7h6rb9p",
+		"tool": "codex",
+		"durationMin": 25,
+		"imported_at_iso": "2024-02-02T10:51:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_8v1gq2n1p",
+				"role": "user",
+				"text": "Work on src/components/Modal.tsx",
+				"files": ["src/components/Modal.tsx", "tests/components.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_tthizmx41",
+		"tool": "codex",
+		"durationMin": 25,
+		"imported_at_iso": "2024-02-02T14:30:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_x8xl10nm2",
+				"role": "user",
+				"text": "Work on src/utils/parse.ts",
+				"files": ["vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_g83kfzu4e",
+		"tool": "claude-code",
+		"durationMin": 27,
+		"imported_at_iso": "2024-02-02T17:27:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_5odsfv5k7",
+				"role": "user",
+				"text": "Work on src/hooks/useAuth.ts",
+				"files": ["tests/integration.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_c9oewjimr",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-02-01T23:45:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_a4r40vf7j",
+				"role": "user",
+				"text": "Start work on src/services/api.ts",
+				"files": ["src/services/api.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095678_cp3opnimj",
+		"tool": "codex",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-01T23:50:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095678_yr2i3pitg",
+				"role": "user",
+				"text": "Continue work on src/services/api.ts",
+				"files": ["src/services/api.ts", "vite.config.ts"]
+			}
+		]
+	}
 ]

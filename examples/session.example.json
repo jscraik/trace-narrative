@@ -1,21 +1,16 @@
 {
-  "tool": "claude-code",
-  "durationMin": 12,
-  "messages": [
-    {
-      "role": "user",
-      "text": "Refactor the distance formatter to support feet/miles based on locale.",
-      "files": [
-        "src/utils/distance.ts"
-      ]
-    },
-    {
-      "role": "assistant",
-      "text": "I'll add a locale-aware unit selection and update the formatter tests.",
-      "files": [
-        "src/utils/distance.ts",
-        "src/utils/distance.test.ts"
-      ]
-    }
-  ]
+	"tool": "claude-code",
+	"durationMin": 12,
+	"messages": [
+		{
+			"role": "user",
+			"text": "Refactor the distance formatter to support feet/miles based on locale.",
+			"files": ["src/utils/distance.ts"]
+		},
+		{
+			"role": "assistant",
+			"text": "I'll add a locale-aware unit selection and update the formatter tests.",
+			"files": ["src/utils/distance.ts", "src/utils/distance.test.ts"]
+		}
+	]
 }

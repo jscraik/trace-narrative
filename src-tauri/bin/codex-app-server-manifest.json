@@ -1,46 +1,46 @@
 {
-  "schemaVersion": 1,
-  "manifestVersion": 2026022601,
-  "minimumManifestVersion": 2026022501,
-  "minimumSidecarVersion": "0.106.0",
-  "activeSigner": "narrative-codex-sidecar-2026q1",
-  "payloadHash": "d7d0b464c617bae385bd5b2d9724443ef3fefdec9aaec9754a2c2bb00af7a03a",
-  "signature": "47fd91b0469dd52447c2795449c833c0060038c8c6430d4316c1069b0d83d351",
-  "artifacts": [
-    {
-      "target": "aarch64-apple-darwin",
-      "file": "codex-app-server",
-      "sidecarVersion": "0.106.0",
-      "minimumSidecarVersion": "0.106.0",
-      "sha256": "ede8fb71141801c5d76fdfddeb0061fe5b2de913ab5fc5971a6cb0dc5fa69ea2"
-    },
-    {
-      "target": "aarch64-apple-darwin",
-      "file": "codex-app-server-aarch64-apple-darwin",
-      "sidecarVersion": "0.106.0",
-      "minimumSidecarVersion": "0.106.0",
-      "sha256": "ede8fb71141801c5d76fdfddeb0061fe5b2de913ab5fc5971a6cb0dc5fa69ea2"
-    },
-    {
-      "target": "aarch64-unknown-linux-gnu",
-      "file": "codex-app-server-aarch64-unknown-linux-gnu",
-      "sidecarVersion": "0.106.0",
-      "minimumSidecarVersion": "0.106.0",
-      "sha256": "b2bc58788dc0676d2d017022d6c37fa82c534dbba35e0a33018db75f3f4c8c22"
-    },
-    {
-      "target": "x86_64-apple-darwin",
-      "file": "codex-app-server-x86_64-apple-darwin",
-      "sidecarVersion": "0.106.0",
-      "minimumSidecarVersion": "0.106.0",
-      "sha256": "79ce7a8486ead773b0ab104803415cb8f13bafb12daaa04ac24c4f80e02da5f5"
-    },
-    {
-      "target": "x86_64-unknown-linux-gnu",
-      "file": "codex-app-server-x86_64-unknown-linux-gnu",
-      "sidecarVersion": "0.106.0",
-      "minimumSidecarVersion": "0.106.0",
-      "sha256": "c7898edc303905ec279e2b8d5347b0e525c1980e2aa4d222600963b41ee65a6d"
-    }
-  ]
+	"schemaVersion": 1,
+	"manifestVersion": 2026022601,
+	"minimumManifestVersion": 2026022501,
+	"minimumSidecarVersion": "0.106.0",
+	"activeSigner": "narrative-codex-sidecar-2026q1",
+	"payloadHash": "d7d0b464c617bae385bd5b2d9724443ef3fefdec9aaec9754a2c2bb00af7a03a",
+	"signature": "47fd91b0469dd52447c2795449c833c0060038c8c6430d4316c1069b0d83d351",
+	"artifacts": [
+		{
+			"target": "aarch64-apple-darwin",
+			"file": "codex-app-server",
+			"sidecarVersion": "0.106.0",
+			"minimumSidecarVersion": "0.106.0",
+			"sha256": "ede8fb71141801c5d76fdfddeb0061fe5b2de913ab5fc5971a6cb0dc5fa69ea2"
+		},
+		{
+			"target": "aarch64-apple-darwin",
+			"file": "codex-app-server-aarch64-apple-darwin",
+			"sidecarVersion": "0.106.0",
+			"minimumSidecarVersion": "0.106.0",
+			"sha256": "ede8fb71141801c5d76fdfddeb0061fe5b2de913ab5fc5971a6cb0dc5fa69ea2"
+		},
+		{
+			"target": "aarch64-unknown-linux-gnu",
+			"file": "codex-app-server-aarch64-unknown-linux-gnu",
+			"sidecarVersion": "0.106.0",
+			"minimumSidecarVersion": "0.106.0",
+			"sha256": "b2bc58788dc0676d2d017022d6c37fa82c534dbba35e0a33018db75f3f4c8c22"
+		},
+		{
+			"target": "x86_64-apple-darwin",
+			"file": "codex-app-server-x86_64-apple-darwin",
+			"sidecarVersion": "0.106.0",
+			"minimumSidecarVersion": "0.106.0",
+			"sha256": "79ce7a8486ead773b0ab104803415cb8f13bafb12daaa04ac24c4f80e02da5f5"
+		},
+		{
+			"target": "x86_64-unknown-linux-gnu",
+			"file": "codex-app-server-x86_64-unknown-linux-gnu",
+			"sidecarVersion": "0.106.0",
+			"minimumSidecarVersion": "0.106.0",
+			"sha256": "c7898edc303905ec279e2b8d5347b0e525c1980e2aa4d222600963b41ee65a6d"
+		}
+	]
 }

@@ -1,38 +1,38 @@
 {
-  "generatedAt": "2026-02-24T16:21:23.384Z",
-  "url": "http://localhost:1420",
-  "flows": [
-    {
-      "name": "home",
-      "ok": true
-    },
-    {
-      "name": "repo-mode",
-      "ok": true
-    },
-    {
-      "name": "demo-timeline",
-      "ok": true
-    },
-    {
-      "name": "settings",
-      "ok": false,
-      "note": "settings tab visible but firefly toggle not visible"
-    }
-  ],
-  "consoleErrors": [],
-  "consoleWarnings": [],
-  "pageErrors": [],
-  "requestFailures": [],
-  "httpErrors": [],
-  "summary": {
-    "counts": {
-      "consoleErrors": 0,
-      "consoleWarnings": 0,
-      "pageErrors": 0,
-      "requestFailures": 0,
-      "httpErrors": 0
-    },
-    "screenshotDir": "/Users/jamiecraik/dev/firefly-narrative/docs/assets/verification/browser-audit-2026-02-24"
-  }
+	"generatedAt": "2026-02-24T16:21:23.384Z",
+	"url": "http://localhost:1420",
+	"flows": [
+		{
+			"name": "home",
+			"ok": true
+		},
+		{
+			"name": "repo-mode",
+			"ok": true
+		},
+		{
+			"name": "demo-timeline",
+			"ok": true
+		},
+		{
+			"name": "settings",
+			"ok": false,
+			"note": "settings tab visible but firefly toggle not visible"
+		}
+	],
+	"consoleErrors": [],
+	"consoleWarnings": [],
+	"pageErrors": [],
+	"requestFailures": [],
+	"httpErrors": [],
+	"summary": {
+		"counts": {
+			"consoleErrors": 0,
+			"consoleWarnings": 0,
+			"pageErrors": 0,
+			"requestFailures": 0,
+			"httpErrors": 0
+		},
+		"screenshotDir": "/Users/jamiecraik/dev/firefly-narrative/docs/assets/verification/browser-audit-2026-02-24"
+	}
 }

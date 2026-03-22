@@ -1,174 +1,148 @@
 [
-  {
-    "id": "session_1769717095682_isirzaeur",
-    "tool": "claude-code",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-02T06:45:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_cisl2s9qp",
-        "role": "user",
-        "text": "Update vite.config.ts",
-        "files": [
-          "vite.config.ts",
-          "src/hooks/useForm.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095682_slr68nkml",
-        "role": "assistant",
-        "text": "Done",
-        "files": [
-          "vite.config.ts",
-          "src/hooks/useForm.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_216c32n24",
-    "tool": "codex",
-    "durationMin": 20,
-    "imported_at_iso": "2024-02-03T03:37:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_pw8fyz43v",
-        "role": "user",
-        "text": "Update README.md",
-        "files": [
-          "README.md"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_1918kruj8",
-    "tool": "claude-code",
-    "durationMin": 8,
-    "imported_at_iso": "2024-02-03T17:30:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_8sasnm80r",
-        "role": "user",
-        "text": "Quick fix needed",
-        "files": [
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_8c9kwi3ca",
-    "tool": "claude-code",
-    "durationMin": 24,
-    "imported_at_iso": "2024-02-02T12:25:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_4hup0p7e5",
-        "role": "user",
-        "text": "Work on vite.config.ts",
-        "files": [
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_7xq6h3b9k",
-    "tool": "claude-code",
-    "durationMin": 24,
-    "imported_at_iso": "2024-02-02T21:12:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_eo8algt0q",
-        "role": "user",
-        "text": "Work on README.md",
-        "files": [
-          "README.md"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_fzxbbxq25",
-    "tool": "claude-code",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-03T06:00:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_l6dwtd40m",
-        "role": "user",
-        "text": "Work on src/types/User.ts",
-        "files": [
-          "src/types/User.ts",
-          "src/types/Session.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_un0x65eoy",
-    "tool": "claude-code",
-    "durationMin": 24,
-    "imported_at_iso": "2024-02-03T14:17:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_3y6c9nlk6",
-        "role": "user",
-        "text": "Work on package.json",
-        "files": [
-          "package.json",
-          "src/utils/format.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_209wb9ytm",
-    "tool": "codex",
-    "durationMin": 23,
-    "imported_at_iso": "2024-02-03T23:11:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_zuy115dgz",
-        "role": "user",
-        "text": "Work on src/components/Button.tsx",
-        "files": [
-          "src/services/api.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_no5wazpb0",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-02-02T13:42:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_28vxsnaic",
-        "role": "user",
-        "text": "Start work on src/hooks/useForm.ts",
-        "files": [
-          "src/hooks/useForm.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095682_ewxuf0bq9",
-    "tool": "codex",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-02T13:47:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095682_atwd5peha",
-        "role": "user",
-        "text": "Continue work on src/hooks/useForm.ts",
-        "files": [
-          "src/hooks/useForm.ts"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095682_isirzaeur",
+		"tool": "claude-code",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-02T06:45:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_cisl2s9qp",
+				"role": "user",
+				"text": "Update vite.config.ts",
+				"files": ["vite.config.ts", "src/hooks/useForm.ts"]
+			},
+			{
+				"id": "msg_1769717095682_slr68nkml",
+				"role": "assistant",
+				"text": "Done",
+				"files": ["vite.config.ts", "src/hooks/useForm.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_216c32n24",
+		"tool": "codex",
+		"durationMin": 20,
+		"imported_at_iso": "2024-02-03T03:37:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_pw8fyz43v",
+				"role": "user",
+				"text": "Update README.md",
+				"files": ["README.md"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_1918kruj8",
+		"tool": "claude-code",
+		"durationMin": 8,
+		"imported_at_iso": "2024-02-03T17:30:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_8sasnm80r",
+				"role": "user",
+				"text": "Quick fix needed",
+				"files": ["vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_8c9kwi3ca",
+		"tool": "claude-code",
+		"durationMin": 24,
+		"imported_at_iso": "2024-02-02T12:25:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_4hup0p7e5",
+				"role": "user",
+				"text": "Work on vite.config.ts",
+				"files": ["vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_7xq6h3b9k",
+		"tool": "claude-code",
+		"durationMin": 24,
+		"imported_at_iso": "2024-02-02T21:12:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_eo8algt0q",
+				"role": "user",
+				"text": "Work on README.md",
+				"files": ["README.md"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_fzxbbxq25",
+		"tool": "claude-code",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-03T06:00:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_l6dwtd40m",
+				"role": "user",
+				"text": "Work on src/types/User.ts",
+				"files": ["src/types/User.ts", "src/types/Session.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_un0x65eoy",
+		"tool": "claude-code",
+		"durationMin": 24,
+		"imported_at_iso": "2024-02-03T14:17:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_3y6c9nlk6",
+				"role": "user",
+				"text": "Work on package.json",
+				"files": ["package.json", "src/utils/format.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_209wb9ytm",
+		"tool": "codex",
+		"durationMin": 23,
+		"imported_at_iso": "2024-02-03T23:11:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_zuy115dgz",
+				"role": "user",
+				"text": "Work on src/components/Button.tsx",
+				"files": ["src/services/api.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_no5wazpb0",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-02-02T13:42:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_28vxsnaic",
+				"role": "user",
+				"text": "Start work on src/hooks/useForm.ts",
+				"files": ["src/hooks/useForm.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095682_ewxuf0bq9",
+		"tool": "codex",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-02T13:47:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095682_atwd5peha",
+				"role": "user",
+				"text": "Continue work on src/hooks/useForm.ts",
+				"files": ["src/hooks/useForm.ts"]
+			}
+		]
+	}
 ]

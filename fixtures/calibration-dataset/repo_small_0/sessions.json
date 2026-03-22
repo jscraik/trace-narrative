@@ -1,202 +1,164 @@
 [
-  {
-    "id": "session_1769717095676_octw9ki4o",
-    "tool": "codex",
-    "durationMin": 14,
-    "imported_at_iso": "2024-01-01T11:19:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_e3onjr3qc",
-        "role": "user",
-        "text": "Update src/components/Dialog.tsx with new feature",
-        "files": [
-          "src/components/Dialog.tsx",
-          "src/hooks/useModal.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_qqwa9216x",
-        "role": "assistant",
-        "text": "I'll update src/components/Dialog.tsx and src/hooks/useModal.ts with the requested changes.",
-        "files": [
-          "src/components/Dialog.tsx",
-          "src/hooks/useModal.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_kssx4dz0f",
-    "tool": "claude-code",
-    "durationMin": 11,
-    "imported_at_iso": "2024-01-01T12:00:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_b7ot6qxxf",
-        "role": "user",
-        "text": "Update src/hooks/useForm.ts with new feature",
-        "files": [
-          "src/hooks/useForm.ts",
-          "src/services/cache.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_qwr55dk1k",
-        "role": "assistant",
-        "text": "I'll update src/hooks/useForm.ts and src/services/cache.ts with the requested changes.",
-        "files": [
-          "src/hooks/useForm.ts",
-          "src/services/cache.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_zh0rdh8wi",
-    "tool": "codex",
-    "durationMin": 13,
-    "imported_at_iso": "2024-01-01T12:51:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_jmfhyavgj",
-        "role": "user",
-        "text": "Update tests/integration.test.ts with new feature",
-        "files": [
-          "tests/integration.test.ts",
-          "package.json"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_e3wu5nz8x",
-        "role": "assistant",
-        "text": "I'll update tests/integration.test.ts and package.json with the requested changes.",
-        "files": [
-          "tests/integration.test.ts",
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_8uc3ffzxt",
-    "tool": "claude-code",
-    "durationMin": 14,
-    "imported_at_iso": "2024-01-01T13:33:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_5zpftxv07",
-        "role": "user",
-        "text": "Update src/types/Commit.ts with new feature",
-        "files": [
-          "src/types/Commit.ts",
-          "src/components/Dialog.tsx"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_n2qy6xcep",
-        "role": "assistant",
-        "text": "I'll update src/types/Commit.ts and src/components/Dialog.tsx with the requested changes.",
-        "files": [
-          "src/types/Commit.ts",
-          "src/components/Dialog.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_jwa3zrfgi",
-    "tool": "claude-code",
-    "durationMin": 13,
-    "imported_at_iso": "2024-01-01T14:24:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_z5hykp31t",
-        "role": "user",
-        "text": "Update tests/integration.test.ts with new feature",
-        "files": [
-          "tests/integration.test.ts",
-          "src/hooks/useAuth.ts",
-          "src/services/cache.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_6hm4d2yr8",
-        "role": "assistant",
-        "text": "I'll update tests/integration.test.ts and src/hooks/useAuth.ts and src/services/cache.ts with the requested changes.",
-        "files": [
-          "tests/integration.test.ts",
-          "src/hooks/useAuth.ts",
-          "src/services/cache.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_qc6my35m4",
-    "tool": "codex",
-    "durationMin": 10,
-    "imported_at_iso": "2024-01-01T15:08:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_cu2rc7ws6",
-        "role": "user",
-        "text": "Update src/utils/validate.ts with new feature",
-        "files": [
-          "src/utils/validate.ts",
-          "tests/hooks.test.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_cawvtjasn",
-        "role": "assistant",
-        "text": "I'll update src/utils/validate.ts and tests/hooks.test.ts with the requested changes.",
-        "files": [
-          "src/utils/validate.ts",
-          "tests/hooks.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_33fqxxf4g",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-01-01T15:53:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_odxa1badx",
-        "role": "user",
-        "text": "Update src/types/Session.ts with new feature",
-        "files": [
-          "src/types/Session.ts",
-          "vite.config.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_fbfmyzce6",
-        "role": "assistant",
-        "text": "I'll update src/types/Session.ts and vite.config.ts with the requested changes.",
-        "files": [
-          "src/types/Session.ts",
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_uuuc2my8s",
-    "tool": "claude-code",
-    "durationMin": 5,
-    "imported_at_iso": "2024-01-02T02:40:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_f26vgfr5c",
-        "role": "user",
-        "text": "Explore potential refactoring options",
-        "files": [
-          "src/legacy/old-module.ts"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095676_octw9ki4o",
+		"tool": "codex",
+		"durationMin": 14,
+		"imported_at_iso": "2024-01-01T11:19:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_e3onjr3qc",
+				"role": "user",
+				"text": "Update src/components/Dialog.tsx with new feature",
+				"files": ["src/components/Dialog.tsx", "src/hooks/useModal.ts"]
+			},
+			{
+				"id": "msg_1769717095676_qqwa9216x",
+				"role": "assistant",
+				"text": "I'll update src/components/Dialog.tsx and src/hooks/useModal.ts with the requested changes.",
+				"files": ["src/components/Dialog.tsx", "src/hooks/useModal.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_kssx4dz0f",
+		"tool": "claude-code",
+		"durationMin": 11,
+		"imported_at_iso": "2024-01-01T12:00:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_b7ot6qxxf",
+				"role": "user",
+				"text": "Update src/hooks/useForm.ts with new feature",
+				"files": ["src/hooks/useForm.ts", "src/services/cache.ts"]
+			},
+			{
+				"id": "msg_1769717095676_qwr55dk1k",
+				"role": "assistant",
+				"text": "I'll update src/hooks/useForm.ts and src/services/cache.ts with the requested changes.",
+				"files": ["src/hooks/useForm.ts", "src/services/cache.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_zh0rdh8wi",
+		"tool": "codex",
+		"durationMin": 13,
+		"imported_at_iso": "2024-01-01T12:51:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_jmfhyavgj",
+				"role": "user",
+				"text": "Update tests/integration.test.ts with new feature",
+				"files": ["tests/integration.test.ts", "package.json"]
+			},
+			{
+				"id": "msg_1769717095676_e3wu5nz8x",
+				"role": "assistant",
+				"text": "I'll update tests/integration.test.ts and package.json with the requested changes.",
+				"files": ["tests/integration.test.ts", "package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_8uc3ffzxt",
+		"tool": "claude-code",
+		"durationMin": 14,
+		"imported_at_iso": "2024-01-01T13:33:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_5zpftxv07",
+				"role": "user",
+				"text": "Update src/types/Commit.ts with new feature",
+				"files": ["src/types/Commit.ts", "src/components/Dialog.tsx"]
+			},
+			{
+				"id": "msg_1769717095676_n2qy6xcep",
+				"role": "assistant",
+				"text": "I'll update src/types/Commit.ts and src/components/Dialog.tsx with the requested changes.",
+				"files": ["src/types/Commit.ts", "src/components/Dialog.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_jwa3zrfgi",
+		"tool": "claude-code",
+		"durationMin": 13,
+		"imported_at_iso": "2024-01-01T14:24:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_z5hykp31t",
+				"role": "user",
+				"text": "Update tests/integration.test.ts with new feature",
+				"files": [
+					"tests/integration.test.ts",
+					"src/hooks/useAuth.ts",
+					"src/services/cache.ts"
+				]
+			},
+			{
+				"id": "msg_1769717095676_6hm4d2yr8",
+				"role": "assistant",
+				"text": "I'll update tests/integration.test.ts and src/hooks/useAuth.ts and src/services/cache.ts with the requested changes.",
+				"files": [
+					"tests/integration.test.ts",
+					"src/hooks/useAuth.ts",
+					"src/services/cache.ts"
+				]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_qc6my35m4",
+		"tool": "codex",
+		"durationMin": 10,
+		"imported_at_iso": "2024-01-01T15:08:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_cu2rc7ws6",
+				"role": "user",
+				"text": "Update src/utils/validate.ts with new feature",
+				"files": ["src/utils/validate.ts", "tests/hooks.test.ts"]
+			},
+			{
+				"id": "msg_1769717095676_cawvtjasn",
+				"role": "assistant",
+				"text": "I'll update src/utils/validate.ts and tests/hooks.test.ts with the requested changes.",
+				"files": ["src/utils/validate.ts", "tests/hooks.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_33fqxxf4g",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-01-01T15:53:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_odxa1badx",
+				"role": "user",
+				"text": "Update src/types/Session.ts with new feature",
+				"files": ["src/types/Session.ts", "vite.config.ts"]
+			},
+			{
+				"id": "msg_1769717095676_fbfmyzce6",
+				"role": "assistant",
+				"text": "I'll update src/types/Session.ts and vite.config.ts with the requested changes.",
+				"files": ["src/types/Session.ts", "vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_uuuc2my8s",
+		"tool": "claude-code",
+		"durationMin": 5,
+		"imported_at_iso": "2024-01-02T02:40:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_f26vgfr5c",
+				"role": "user",
+				"text": "Explore potential refactoring options",
+				"files": ["src/legacy/old-module.ts"]
+			}
+		]
+	}
 ]

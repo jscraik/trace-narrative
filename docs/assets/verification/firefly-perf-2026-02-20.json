@@ -1,21 +1,21 @@
 {
-  "generatedAtISO": "2026-02-20T19:37:42.051Z",
-  "machineProfile": "dev-default",
-  "os": "darwin 25.4.0",
-  "runtimeMode": "playwright-headless",
-  "browser": "chromium",
-  "attempt": 1,
-  "fixture": "e2e/fixtures/firefly-large-timeline.json",
-  "thresholds": {
-    "averageFpsMin": 55,
-    "p95FrameTimeMsMax": 20,
-    "layoutShiftCountMax": 0
-  },
-  "metrics": {
-    "frameCount": 609,
-    "averageFps": 60.09888190418144,
-    "p95FrameTimeMs": 17.90000000000009,
-    "layoutShiftCount": 0,
-    "layoutShiftValue": 0
-  }
+	"generatedAtISO": "2026-02-20T19:37:42.051Z",
+	"machineProfile": "dev-default",
+	"os": "darwin 25.4.0",
+	"runtimeMode": "playwright-headless",
+	"browser": "chromium",
+	"attempt": 1,
+	"fixture": "e2e/fixtures/firefly-large-timeline.json",
+	"thresholds": {
+		"averageFpsMin": 55,
+		"p95FrameTimeMsMax": 20,
+		"layoutShiftCountMax": 0
+	},
+	"metrics": {
+		"frameCount": 609,
+		"averageFps": 60.09888190418144,
+		"p95FrameTimeMs": 17.90000000000009,
+		"layoutShiftCount": 0,
+		"layoutShiftValue": 0
+	}
 }

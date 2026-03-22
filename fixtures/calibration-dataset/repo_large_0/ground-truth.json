@@ -1,74 +1,74 @@
 [
-  {
-    "sessionId": "session_1769717095686_vjsghtwxe",
-    "commitSha": "ea8e9e48",
-    "confidence": 0.7308448792665114,
-    "reason": "Large repo: medium confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_jvncnc6yu",
-    "commitSha": "cee720db",
-    "confidence": 0.7573586895674368,
-    "reason": "Large repo: high confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_pza02vfel",
-    "commitSha": "14dec846",
-    "confidence": 0.9737993996384913,
-    "reason": "Large repo: high confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_bs24cdu98",
-    "commitSha": "577194de",
-    "confidence": 0.6863188634398376,
-    "reason": "Large repo: low confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_oxx09tuvd",
-    "commitSha": "600765f8",
-    "confidence": 0.7159818509233296,
-    "reason": "Large repo: medium confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_6mjmwko5f",
-    "commitSha": "ad5933dc",
-    "confidence": 0.7558604505743519,
-    "reason": "Large repo: high confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_8c2l0m1ky",
-    "commitSha": "31a5f3d5",
-    "confidence": 0.6710898277439636,
-    "reason": "Large repo: low confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_i51iy7op8",
-    "commitSha": "2898b6ae",
-    "confidence": 0.9842212990172426,
-    "reason": "Large repo: high confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_ix2uedhzj",
-    "commitSha": "6538148a",
-    "confidence": 0.8818105226951566,
-    "reason": "Large repo: high confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_6st04ha9a",
-    "commitSha": "d0eadc4c",
-    "confidence": 0.7136807237375904,
-    "reason": "Large repo: medium confidence match"
-  },
-  {
-    "sessionId": "session_1769717095686_llk9v5n34",
-    "commitSha": "5b854a43",
-    "confidence": 0.65,
-    "reason": "Long duration session (4h): may match multiple commits"
-  },
-  {
-    "sessionId": "session_1769717095686_dvb4hlimw",
-    "commitSha": "b6132921",
-    "confidence": 0.8,
-    "reason": "No duration: should be inferred from message timestamps"
-  }
+	{
+		"sessionId": "session_1769717095686_vjsghtwxe",
+		"commitSha": "ea8e9e48",
+		"confidence": 0.7308448792665114,
+		"reason": "Large repo: medium confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_jvncnc6yu",
+		"commitSha": "cee720db",
+		"confidence": 0.7573586895674368,
+		"reason": "Large repo: high confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_pza02vfel",
+		"commitSha": "14dec846",
+		"confidence": 0.9737993996384913,
+		"reason": "Large repo: high confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_bs24cdu98",
+		"commitSha": "577194de",
+		"confidence": 0.6863188634398376,
+		"reason": "Large repo: low confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_oxx09tuvd",
+		"commitSha": "600765f8",
+		"confidence": 0.7159818509233296,
+		"reason": "Large repo: medium confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_6mjmwko5f",
+		"commitSha": "ad5933dc",
+		"confidence": 0.7558604505743519,
+		"reason": "Large repo: high confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_8c2l0m1ky",
+		"commitSha": "31a5f3d5",
+		"confidence": 0.6710898277439636,
+		"reason": "Large repo: low confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_i51iy7op8",
+		"commitSha": "2898b6ae",
+		"confidence": 0.9842212990172426,
+		"reason": "Large repo: high confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_ix2uedhzj",
+		"commitSha": "6538148a",
+		"confidence": 0.8818105226951566,
+		"reason": "Large repo: high confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_6st04ha9a",
+		"commitSha": "d0eadc4c",
+		"confidence": 0.7136807237375904,
+		"reason": "Large repo: medium confidence match"
+	},
+	{
+		"sessionId": "session_1769717095686_llk9v5n34",
+		"commitSha": "5b854a43",
+		"confidence": 0.65,
+		"reason": "Long duration session (4h): may match multiple commits"
+	},
+	{
+		"sessionId": "session_1769717095686_dvb4hlimw",
+		"commitSha": "b6132921",
+		"confidence": 0.8,
+		"reason": "No duration: should be inferred from message timestamps"
+	}
 ]

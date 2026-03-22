@@ -1,262 +1,206 @@
 [
-  {
-    "sha": "fb50ceb1",
-    "authored_at": "2024-01-01T10:04:00.000Z",
-    "message": "Update Button to use new API",
-    "files": [
-      "src/components/Button.tsx",
-      "src/hooks/useBadge.ts"
-    ]
-  },
-  {
-    "sha": "87b3ee49",
-    "authored_at": "2024-01-01T10:17:00.000Z",
-    "message": "Add type definitions for apiService",
-    "files": [
-      "README.md",
-      "src/hooks/useForm.ts"
-    ]
-  },
-  {
-    "sha": "31d881ec",
-    "authored_at": "2024-01-01T10:38:00.000Z",
-    "message": "Add Panel component",
-    "files": [
-      "src/types/User.ts",
-      "tests/components.test.ts",
-      "README.md",
-      "src/services/storage.ts"
-    ]
-  },
-  {
-    "sha": "54836d60",
-    "authored_at": "2024-01-01T10:48:00.000Z",
-    "message": "Fix accessibility issue in useData",
-    "files": [
-      "src/components/Input.tsx",
-      "src/services/cache.ts",
-      "package.json",
-      "src/components/Dialog.tsx"
-    ]
-  },
-  {
-    "sha": "37927cb7",
-    "authored_at": "2024-01-01T11:08:00.000Z",
-    "message": "Remove deprecated Panel",
-    "files": [
-      "tests/components.test.ts",
-      "src/hooks/useAuth.ts",
-      "package.json"
-    ]
-  },
-  {
-    "sha": "ddee5a6c",
-    "authored_at": "2024-01-01T11:21:00.000Z",
-    "message": "Refactor useData for clarity",
-    "files": [
-      "README.md",
-      "src/types/Session.ts",
-      "vite.config.ts"
-    ]
-  },
-  {
-    "sha": "eb582753",
-    "authored_at": "2024-01-01T11:34:00.000Z",
-    "message": "Update Button to use new API",
-    "files": [
-      "vite.config.ts",
-      "src/hooks/useModal.ts"
-    ]
-  },
-  {
-    "sha": "6ddc32dc",
-    "authored_at": "2024-01-01T11:54:00.000Z",
-    "message": "Add Panel component",
-    "files": [
-      "src/hooks/useForm.ts",
-      "tests/hooks.test.ts",
-      "README.md"
-    ]
-  },
-  {
-    "sha": "4f3c9e09",
-    "authored_at": "2024-01-01T12:08:00.000Z",
-    "message": "Add tests for apiService",
-    "files": [
-      "src/types/Session.ts",
-      "src/utils/format.ts"
-    ]
-  },
-  {
-    "sha": "8852311b",
-    "authored_at": "2024-01-01T12:22:00.000Z",
-    "message": "Update useData to use new API",
-    "files": [
-      "package.json",
-      "src/services/auth.ts",
-      "vite.config.ts"
-    ]
-  },
-  {
-    "sha": "43e8869e",
-    "authored_at": "2024-01-01T12:31:00.000Z",
-    "message": "Add Badge component",
-    "files": [
-      "package.json",
-      "src/services/cache.ts",
-      "README.md"
-    ]
-  },
-  {
-    "sha": "f8b12a44",
-    "authored_at": "2024-01-01T12:47:00.000Z",
-    "message": "Remove deprecated Dialog",
-    "files": [
-      "src/services/cache.ts",
-      "vite.config.ts",
-      "package.json",
-      "src/types/User.ts"
-    ]
-  },
-  {
-    "sha": "ec9da136",
-    "authored_at": "2024-01-01T13:07:00.000Z",
-    "message": "Add Badge component",
-    "files": [
-      "src/services/cache.ts",
-      "src/types/Repo.ts",
-      "README.md",
-      "tests/hooks.test.ts"
-    ]
-  },
-  {
-    "sha": "edb10062",
-    "authored_at": "2024-01-01T13:15:00.000Z",
-    "message": "Improve performance of apiService",
-    "files": [
-      "README.md",
-      "src/hooks/useModal.ts",
-      "src/components/Dialog.tsx"
-    ]
-  },
-  {
-    "sha": "abfb4f64",
-    "authored_at": "2024-01-01T13:32:00.000Z",
-    "message": "Remove deprecated Badge",
-    "files": [
-      "vite.config.ts",
-      "src/types/Session.ts"
-    ]
-  },
-  {
-    "sha": "b916686e",
-    "authored_at": "2024-01-01T13:46:00.000Z",
-    "message": "Fix race condition in Timeline",
-    "files": [
-      "README.md",
-      "src/components/Dialog.tsx"
-    ]
-  },
-  {
-    "sha": "35b1611c",
-    "authored_at": "2024-01-01T14:07:00.000Z",
-    "message": "Refactor Timeline for clarity",
-    "files": [
-      "package.json",
-      "src/utils/validate.ts",
-      "src/types/Repo.ts",
-      "vite.config.ts"
-    ]
-  },
-  {
-    "sha": "dd8fb6be",
-    "authored_at": "2024-01-01T14:22:00.000Z",
-    "message": "Update Button to use new API",
-    "files": [
-      "package.json",
-      "vite.config.ts",
-      "src/services/cache.ts"
-    ]
-  },
-  {
-    "sha": "327e13ab",
-    "authored_at": "2024-01-01T14:34:00.000Z",
-    "message": "Refactor useData for clarity",
-    "files": [
-      "package.json",
-      "vite.config.ts"
-    ]
-  },
-  {
-    "sha": "a1e5eade",
-    "authored_at": "2024-01-01T14:54:00.000Z",
-    "message": "Add Badge component",
-    "files": [
-      "package.json",
-      "src/utils/compute.ts",
-      "README.md",
-      "src/components/Input.tsx"
-    ]
-  },
-  {
-    "sha": "5a844ed6",
-    "authored_at": "2024-01-01T15:06:00.000Z",
-    "message": "Fix type error in apiService",
-    "files": [
-      "vite.config.ts",
-      "src/types/Repo.ts",
-      "README.md"
-    ]
-  },
-  {
-    "sha": "3c685d47",
-    "authored_at": "2024-01-01T15:19:00.000Z",
-    "message": "Add tests for SessionPanel",
-    "files": [
-      "src/types/Repo.ts",
-      "src/hooks/useData.ts",
-      "package.json"
-    ]
-  },
-  {
-    "sha": "7fc90536",
-    "authored_at": "2024-01-01T15:33:00.000Z",
-    "message": "Refactor apiService for clarity",
-    "files": [
-      "README.md",
-      "src/utils/parse.ts",
-      "src/services/storage.ts",
-      "package.json"
-    ]
-  },
-  {
-    "sha": "c59797b9",
-    "authored_at": "2024-01-01T15:45:00.000Z",
-    "message": "Add tests for Timeline",
-    "files": [
-      "src/utils/format.ts",
-      "tests/components.test.ts",
-      "README.md",
-      "src/types/User.ts"
-    ]
-  },
-  {
-    "sha": "082d7605",
-    "authored_at": "2024-01-01T16:02:00.000Z",
-    "message": "Add type definitions for useData",
-    "files": [
-      "src/hooks/useData.ts",
-      "src/utils/compute.ts",
-      "tests/hooks.test.ts"
-    ]
-  },
-  {
-    "sha": "a6a0550e",
-    "authored_at": "2024-01-01T16:18:00.000Z",
-    "message": "Add type definitions for Timeline",
-    "files": [
-      "src/utils/compute.ts",
-      "tests/utils.test.ts"
-    ]
-  }
+	{
+		"sha": "fb50ceb1",
+		"authored_at": "2024-01-01T10:04:00.000Z",
+		"message": "Update Button to use new API",
+		"files": ["src/components/Button.tsx", "src/hooks/useBadge.ts"]
+	},
+	{
+		"sha": "87b3ee49",
+		"authored_at": "2024-01-01T10:17:00.000Z",
+		"message": "Add type definitions for apiService",
+		"files": ["README.md", "src/hooks/useForm.ts"]
+	},
+	{
+		"sha": "31d881ec",
+		"authored_at": "2024-01-01T10:38:00.000Z",
+		"message": "Add Panel component",
+		"files": [
+			"src/types/User.ts",
+			"tests/components.test.ts",
+			"README.md",
+			"src/services/storage.ts"
+		]
+	},
+	{
+		"sha": "54836d60",
+		"authored_at": "2024-01-01T10:48:00.000Z",
+		"message": "Fix accessibility issue in useData",
+		"files": [
+			"src/components/Input.tsx",
+			"src/services/cache.ts",
+			"package.json",
+			"src/components/Dialog.tsx"
+		]
+	},
+	{
+		"sha": "37927cb7",
+		"authored_at": "2024-01-01T11:08:00.000Z",
+		"message": "Remove deprecated Panel",
+		"files": [
+			"tests/components.test.ts",
+			"src/hooks/useAuth.ts",
+			"package.json"
+		]
+	},
+	{
+		"sha": "ddee5a6c",
+		"authored_at": "2024-01-01T11:21:00.000Z",
+		"message": "Refactor useData for clarity",
+		"files": ["README.md", "src/types/Session.ts", "vite.config.ts"]
+	},
+	{
+		"sha": "eb582753",
+		"authored_at": "2024-01-01T11:34:00.000Z",
+		"message": "Update Button to use new API",
+		"files": ["vite.config.ts", "src/hooks/useModal.ts"]
+	},
+	{
+		"sha": "6ddc32dc",
+		"authored_at": "2024-01-01T11:54:00.000Z",
+		"message": "Add Panel component",
+		"files": ["src/hooks/useForm.ts", "tests/hooks.test.ts", "README.md"]
+	},
+	{
+		"sha": "4f3c9e09",
+		"authored_at": "2024-01-01T12:08:00.000Z",
+		"message": "Add tests for apiService",
+		"files": ["src/types/Session.ts", "src/utils/format.ts"]
+	},
+	{
+		"sha": "8852311b",
+		"authored_at": "2024-01-01T12:22:00.000Z",
+		"message": "Update useData to use new API",
+		"files": ["package.json", "src/services/auth.ts", "vite.config.ts"]
+	},
+	{
+		"sha": "43e8869e",
+		"authored_at": "2024-01-01T12:31:00.000Z",
+		"message": "Add Badge component",
+		"files": ["package.json", "src/services/cache.ts", "README.md"]
+	},
+	{
+		"sha": "f8b12a44",
+		"authored_at": "2024-01-01T12:47:00.000Z",
+		"message": "Remove deprecated Dialog",
+		"files": [
+			"src/services/cache.ts",
+			"vite.config.ts",
+			"package.json",
+			"src/types/User.ts"
+		]
+	},
+	{
+		"sha": "ec9da136",
+		"authored_at": "2024-01-01T13:07:00.000Z",
+		"message": "Add Badge component",
+		"files": [
+			"src/services/cache.ts",
+			"src/types/Repo.ts",
+			"README.md",
+			"tests/hooks.test.ts"
+		]
+	},
+	{
+		"sha": "edb10062",
+		"authored_at": "2024-01-01T13:15:00.000Z",
+		"message": "Improve performance of apiService",
+		"files": ["README.md", "src/hooks/useModal.ts", "src/components/Dialog.tsx"]
+	},
+	{
+		"sha": "abfb4f64",
+		"authored_at": "2024-01-01T13:32:00.000Z",
+		"message": "Remove deprecated Badge",
+		"files": ["vite.config.ts", "src/types/Session.ts"]
+	},
+	{
+		"sha": "b916686e",
+		"authored_at": "2024-01-01T13:46:00.000Z",
+		"message": "Fix race condition in Timeline",
+		"files": ["README.md", "src/components/Dialog.tsx"]
+	},
+	{
+		"sha": "35b1611c",
+		"authored_at": "2024-01-01T14:07:00.000Z",
+		"message": "Refactor Timeline for clarity",
+		"files": [
+			"package.json",
+			"src/utils/validate.ts",
+			"src/types/Repo.ts",
+			"vite.config.ts"
+		]
+	},
+	{
+		"sha": "dd8fb6be",
+		"authored_at": "2024-01-01T14:22:00.000Z",
+		"message": "Update Button to use new API",
+		"files": ["package.json", "vite.config.ts", "src/services/cache.ts"]
+	},
+	{
+		"sha": "327e13ab",
+		"authored_at": "2024-01-01T14:34:00.000Z",
+		"message": "Refactor useData for clarity",
+		"files": ["package.json", "vite.config.ts"]
+	},
+	{
+		"sha": "a1e5eade",
+		"authored_at": "2024-01-01T14:54:00.000Z",
+		"message": "Add Badge component",
+		"files": [
+			"package.json",
+			"src/utils/compute.ts",
+			"README.md",
+			"src/components/Input.tsx"
+		]
+	},
+	{
+		"sha": "5a844ed6",
+		"authored_at": "2024-01-01T15:06:00.000Z",
+		"message": "Fix type error in apiService",
+		"files": ["vite.config.ts", "src/types/Repo.ts", "README.md"]
+	},
+	{
+		"sha": "3c685d47",
+		"authored_at": "2024-01-01T15:19:00.000Z",
+		"message": "Add tests for SessionPanel",
+		"files": ["src/types/Repo.ts", "src/hooks/useData.ts", "package.json"]
+	},
+	{
+		"sha": "7fc90536",
+		"authored_at": "2024-01-01T15:33:00.000Z",
+		"message": "Refactor apiService for clarity",
+		"files": [
+			"README.md",
+			"src/utils/parse.ts",
+			"src/services/storage.ts",
+			"package.json"
+		]
+	},
+	{
+		"sha": "c59797b9",
+		"authored_at": "2024-01-01T15:45:00.000Z",
+		"message": "Add tests for Timeline",
+		"files": [
+			"src/utils/format.ts",
+			"tests/components.test.ts",
+			"README.md",
+			"src/types/User.ts"
+		]
+	},
+	{
+		"sha": "082d7605",
+		"authored_at": "2024-01-01T16:02:00.000Z",
+		"message": "Add type definitions for useData",
+		"files": [
+			"src/hooks/useData.ts",
+			"src/utils/compute.ts",
+			"tests/hooks.test.ts"
+		]
+	},
+	{
+		"sha": "a6a0550e",
+		"authored_at": "2024-01-01T16:18:00.000Z",
+		"message": "Add type definitions for Timeline",
+		"files": ["src/utils/compute.ts", "tests/utils.test.ts"]
+	}
 ]

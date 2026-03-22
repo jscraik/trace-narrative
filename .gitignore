@@ -106,3 +106,4 @@ temporary screenshots/
 
 environment.toml
 app-screenshot.png
+.harness/memory/

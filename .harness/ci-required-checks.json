@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "activeProvider": "circleci",
+  "requiredChecks": [
+    {
+      "policyId": "required-check-1",
+      "displayName": "pr-template",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^pr-template$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-2",
+      "displayName": "linear-gate",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^linear-gate$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-3",
+      "displayName": "risk-policy-gate",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^risk-policy-gate$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-4",
+      "displayName": "dependency-scan",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^dependency-scan$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-5",
+      "displayName": "orb-pinning",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^orb-pinning$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-6",
+      "displayName": "consistency-drift-health",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^consistency-drift-health$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-7",
+      "displayName": "docs-gate",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^docs-gate$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-8",
+      "displayName": "lint",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^lint$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-9",
+      "displayName": "typecheck",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^typecheck$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-10",
+      "displayName": "test",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^test$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-11",
+      "displayName": "audit",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^audit$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-12",
+      "displayName": "check",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^check$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-13",
+      "displayName": "memory",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^memory$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-14",
+      "displayName": "security-scan",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^security-scan$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    },
+    {
+      "policyId": "required-check-15",
+      "displayName": "Greptile Review",
+      "sourceAppSlug": "circleci",
+      "sourceAppId": "circleci",
+      "externalIdPattern": "^Greptile Review$",
+      "requiredOnEvents": [
+        "pull_request",
+        "merge_group"
+      ],
+      "freshnessWindowDays": 7,
+      "class": "required"
+    }
+  ]
+}

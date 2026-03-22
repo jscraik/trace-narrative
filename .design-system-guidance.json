@@ -1,30 +1,30 @@
 {
-  "schemaVersion": 1,
-  "docs": [
-    "VISION.md",
-    "docs/design-system-guidance.md",
-    "docs/design-system-local-tarball-workflow.md"
-  ],
-  "include": [
-    "src/ui/views",
-    "src/ui/components",
-    "src/App.tsx",
-    "src/AppContent.tsx",
-    "src/main.tsx",
-    "src/styles.css",
-    "src/styles/trace-signal.css",
-    "src/assets/icons"
-  ],
-  "ignore": [
-    "node_modules",
-    "dist",
-    ".git",
-    "coverage",
-    ".next",
-    "build",
-    "__tests__",
-    "src/assets/icons/claude-color.svg",
-    "src/assets/icons/gemini-color.svg",
-    "src/assets/icons/kimi-color.svg"
-  ]
+	"schemaVersion": 1,
+	"docs": [
+		"VISION.md",
+		"docs/design-system-guidance.md",
+		"docs/design-system-local-tarball-workflow.md"
+	],
+	"include": [
+		"src/ui/views",
+		"src/ui/components",
+		"src/App.tsx",
+		"src/AppContent.tsx",
+		"src/main.tsx",
+		"src/styles.css",
+		"src/styles/trace-signal.css",
+		"src/assets/icons"
+	],
+	"ignore": [
+		"node_modules",
+		"dist",
+		".git",
+		"coverage",
+		".next",
+		"build",
+		"__tests__",
+		"src/assets/icons/claude-color.svg",
+		"src/assets/icons/gemini-color.svg",
+		"src/assets/icons/kimi-color.svg"
+	]
 }

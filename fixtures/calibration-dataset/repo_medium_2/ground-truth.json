@@ -1,50 +1,50 @@
 [
-  {
-    "sessionId": "session_1769717095681_lw3q5ts2o",
-    "commitSha": "ddb1dbbd",
-    "confidence": 0.9,
-    "reason": "High confidence: perfect temporal and file overlap"
-  },
-  {
-    "sessionId": "session_1769717095681_wgwzo0s6t",
-    "commitSha": "60c6bcf5",
-    "confidence": 0.75,
-    "reason": "Medium confidence: temporal match but partial file overlap"
-  },
-  {
-    "sessionId": "session_1769717095681_yi0rx1i9b",
-    "commitSha": "40001d00",
-    "confidence": 0.72,
-    "reason": "Low confidence: temporal proximity but minimal file overlap"
-  },
-  {
-    "sessionId": "session_1769717095681_18wsooke5",
-    "commitSha": "48a6e41b",
-    "confidence": 0.8571595227092853,
-    "reason": "Good overlap"
-  },
-  {
-    "sessionId": "session_1769717095681_pyfnm1rt4",
-    "commitSha": "27a204ba",
-    "confidence": 0.7266005409599924,
-    "reason": "Good overlap"
-  },
-  {
-    "sessionId": "session_1769717095681_exl0lsdmx",
-    "commitSha": "ad3f5c99",
-    "confidence": 0.6687667455236979,
-    "reason": "Weak match, may fall below threshold"
-  },
-  {
-    "sessionId": "session_1769717095681_d500iy4kq",
-    "commitSha": "f78c8a78",
-    "confidence": 0.78,
-    "reason": "Multi-session commit: session 1 of 2"
-  },
-  {
-    "sessionId": "session_1769717095681_ype2ezu6l",
-    "commitSha": "f78c8a78",
-    "confidence": 0.82,
-    "reason": "Multi-session commit: session 2 of 2"
-  }
+	{
+		"sessionId": "session_1769717095681_lw3q5ts2o",
+		"commitSha": "ddb1dbbd",
+		"confidence": 0.9,
+		"reason": "High confidence: perfect temporal and file overlap"
+	},
+	{
+		"sessionId": "session_1769717095681_wgwzo0s6t",
+		"commitSha": "60c6bcf5",
+		"confidence": 0.75,
+		"reason": "Medium confidence: temporal match but partial file overlap"
+	},
+	{
+		"sessionId": "session_1769717095681_yi0rx1i9b",
+		"commitSha": "40001d00",
+		"confidence": 0.72,
+		"reason": "Low confidence: temporal proximity but minimal file overlap"
+	},
+	{
+		"sessionId": "session_1769717095681_18wsooke5",
+		"commitSha": "48a6e41b",
+		"confidence": 0.8571595227092853,
+		"reason": "Good overlap"
+	},
+	{
+		"sessionId": "session_1769717095681_pyfnm1rt4",
+		"commitSha": "27a204ba",
+		"confidence": 0.7266005409599924,
+		"reason": "Good overlap"
+	},
+	{
+		"sessionId": "session_1769717095681_exl0lsdmx",
+		"commitSha": "ad3f5c99",
+		"confidence": 0.6687667455236979,
+		"reason": "Weak match, may fall below threshold"
+	},
+	{
+		"sessionId": "session_1769717095681_d500iy4kq",
+		"commitSha": "f78c8a78",
+		"confidence": 0.78,
+		"reason": "Multi-session commit: session 1 of 2"
+	},
+	{
+		"sessionId": "session_1769717095681_ype2ezu6l",
+		"commitSha": "f78c8a78",
+		"confidence": 0.82,
+		"reason": "Multi-session commit: session 2 of 2"
+	}
 ]

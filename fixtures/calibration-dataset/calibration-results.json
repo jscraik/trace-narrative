@@ -1,1518 +1,1518 @@
 {
-  "runAt": "2026-01-29T20:17:09.914Z",
-  "threshold": 0.7,
-  "overallAccuracy": 66.66666666666666,
-  "repoResults": [
-    {
-      "repoId": "repo_large_0",
-      "repoName": "large-repo-1",
-      "repoSize": "large",
-      "results": [
-        {
-          "sessionId": "session_1769717095686_vjsghtwxe",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_vjsghtwxe",
-            "commitSha": "ea8e9e48",
-            "confidence": 0.7308448792665114,
-            "reason": "Large repo: medium confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "ea8e9e48",
-            "confidence": 0.7,
-            "temporalScore": 1,
-            "fileScore": 0.25
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095686_jvncnc6yu",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_jvncnc6yu",
-            "commitSha": "cee720db",
-            "confidence": 0.7573586895674368,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "3968fb76",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095686_pza02vfel",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_pza02vfel",
-            "commitSha": "14dec846",
-            "confidence": 0.9737993996384913,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "14dec846",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095686_bs24cdu98",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_bs24cdu98",
-            "commitSha": "577194de",
-            "confidence": 0.6863188634398376,
-            "reason": "Large repo: low confidence match"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095686_oxx09tuvd",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_oxx09tuvd",
-            "commitSha": "600765f8",
-            "confidence": 0.7159818509233296,
-            "reason": "Large repo: medium confidence match"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095686_6mjmwko5f",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_6mjmwko5f",
-            "commitSha": "ad5933dc",
-            "confidence": 0.7558604505743519,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "ad5933dc",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095686_8c2l0m1ky",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_8c2l0m1ky",
-            "commitSha": "31a5f3d5",
-            "confidence": 0.6710898277439636,
-            "reason": "Large repo: low confidence match"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095686_i51iy7op8",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_i51iy7op8",
-            "commitSha": "2898b6ae",
-            "confidence": 0.9842212990172426,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "2898b6ae",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095686_ix2uedhzj",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_ix2uedhzj",
-            "commitSha": "6538148a",
-            "confidence": 0.8818105226951566,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "6538148a",
-            "confidence": 0.9,
-            "temporalScore": 1,
-            "fileScore": 0.75
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095686_6st04ha9a",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_6st04ha9a",
-            "commitSha": "d0eadc4c",
-            "confidence": 0.7136807237375904,
-            "reason": "Large repo: medium confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "4d9f4186",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095686_llk9v5n34",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_llk9v5n34",
-            "commitSha": "5b854a43",
-            "confidence": 0.65,
-            "reason": "Long duration session (4h): may match multiple commits"
-          },
-          "algorithmResult": {
-            "commitSha": "5b854a43",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095686_dvb4hlimw",
-          "groundTruth": {
-            "sessionId": "session_1769717095686_dvb4hlimw",
-            "commitSha": "b6132921",
-            "confidence": 0.8,
-            "reason": "No duration: should be inferred from message timestamps"
-          },
-          "algorithmResult": {
-            "commitSha": "6d36979b",
-            "confidence": 0.8200000000000001,
-            "temporalScore": 0.7,
-            "fileScore": 1
-          },
-          "isCorrect": false
-        }
-      ],
-      "accuracy": 50,
-      "truePositives": 6,
-      "falsePositives": 6,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_large_1",
-      "repoName": "large-repo-2",
-      "repoSize": "large",
-      "results": [
-        {
-          "sessionId": "session_1769717095689_i8kb88sht",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_i8kb88sht",
-            "commitSha": "2d760423",
-            "confidence": 0.7884813494995901,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "2d760423",
-            "confidence": 0.7333333333333333,
-            "temporalScore": 1,
-            "fileScore": 0.3333333333333333
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_79tqk0a2e",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_79tqk0a2e",
-            "commitSha": "2e74ca3a",
-            "confidence": 0.7361303826728978,
-            "reason": "Large repo: medium confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "2e74ca3a",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_zlnh1v6mc",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_zlnh1v6mc",
-            "commitSha": "dc8ef349",
-            "confidence": 0.7322535840400614,
-            "reason": "Large repo: medium confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "bd505bca",
-            "confidence": 0.7,
-            "temporalScore": 1,
-            "fileScore": 0.25
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095689_8dobmpurq",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_8dobmpurq",
-            "commitSha": "9eada50f",
-            "confidence": 0.8982923982732265,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "9eada50f",
-            "confidence": 0.9,
-            "temporalScore": 1,
-            "fileScore": 0.75
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_t22ff4gal",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_t22ff4gal",
-            "commitSha": "3db135c9",
-            "confidence": 0.9232054643732748,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "3db135c9",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_u32ybmk5k",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_u32ybmk5k",
-            "commitSha": "3b907b22",
-            "confidence": 0.7014389574901604,
-            "reason": "Large repo: medium confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "3b907b22",
-            "confidence": 0.7333333333333333,
-            "temporalScore": 1,
-            "fileScore": 0.3333333333333333
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_d87nw1qri",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_d87nw1qri",
-            "commitSha": "c0c7386f",
-            "confidence": 0.7971536258844079,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "c0c7386f",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_l53xiclle",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_l53xiclle",
-            "commitSha": "c77e70c0",
-            "confidence": 0.9815444995833954,
-            "reason": "Large repo: high confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "c77e70c0",
-            "confidence": 0.9,
-            "temporalScore": 1,
-            "fileScore": 0.75
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_57xw60rw9",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_57xw60rw9",
-            "commitSha": "8cc74cb3",
-            "confidence": 0.6501740475714596,
-            "reason": "Large repo: low confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "8cc74cb3",
-            "confidence": 0.7,
-            "temporalScore": 1,
-            "fileScore": 0.25
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095689_lrrwhv1h4",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_lrrwhv1h4",
-            "commitSha": "fefc2d58",
-            "confidence": 0.7063791972376976,
-            "reason": "Large repo: medium confidence match"
-          },
-          "algorithmResult": {
-            "commitSha": "cb04a505",
-            "confidence": 0.7,
-            "temporalScore": 1,
-            "fileScore": 0.25
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095689_qx4q9h1k8",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_qx4q9h1k8",
-            "commitSha": "14ad034e",
-            "confidence": 0.65,
-            "reason": "Long duration session (4h): may match multiple commits"
-          },
-          "algorithmResult": {
-            "commitSha": "0e6efecc",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095689_urwqorilp",
-          "groundTruth": {
-            "sessionId": "session_1769717095689_urwqorilp",
-            "commitSha": "266430e0",
-            "confidence": 0.8,
-            "reason": "No duration: should be inferred from message timestamps"
-          },
-          "algorithmResult": {
-            "commitSha": "266430e0",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 75,
-      "truePositives": 9,
-      "falsePositives": 3,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_medium_0",
-      "repoName": "medium-repo-1",
-      "repoSize": "medium",
-      "results": [
-        {
-          "sessionId": "session_1769717095678_be9ebolwt",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_be9ebolwt",
-            "commitSha": "6873f0b2",
-            "confidence": 0.9,
-            "reason": "High confidence: perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "6873f0b2",
-            "confidence": 0.76,
-            "temporalScore": 1,
-            "fileScore": 0.4
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095678_gyhtxiefe",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_gyhtxiefe",
-            "commitSha": "da76da1d",
-            "confidence": 0.75,
-            "reason": "Medium confidence: temporal match but partial file overlap"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_0n55grcbr",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_0n55grcbr",
-            "commitSha": "1e970da4",
-            "confidence": 0.72,
-            "reason": "Low confidence: temporal proximity but minimal file overlap"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_64gds0bmj",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_64gds0bmj",
-            "commitSha": "84a7ebe3",
-            "confidence": 0.7973595675404428,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_n5zl7r49l",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_n5zl7r49l",
-            "commitSha": "f1fdc344",
-            "confidence": 0.8615230108568274,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_erejz4xu2",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_erejz4xu2",
-            "commitSha": "db26a1f6",
-            "confidence": 0.924985572589298,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_7xz2zne7h",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_7xz2zne7h",
-            "commitSha": "da76da1d",
-            "confidence": 0.8928845675391042,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "da76da1d",
-            "confidence": 0.76,
-            "temporalScore": 1,
-            "fileScore": 0.4
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095678_dv7h6rb9p",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_dv7h6rb9p",
-            "commitSha": "e8f6537c",
-            "confidence": 0.668337045480096,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "e8f6537c",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095678_tthizmx41",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_tthizmx41",
-            "commitSha": "641430e1",
-            "confidence": 0.7822060856799159,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_g83kfzu4e",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_g83kfzu4e",
-            "commitSha": "7728805c",
-            "confidence": 0.8920898469918093,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_c9oewjimr",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_c9oewjimr",
-            "commitSha": "6873964b",
-            "confidence": 0.78,
-            "reason": "Multi-session commit: session 1 of 2"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095678_cp3opnimj",
-          "groundTruth": {
-            "sessionId": "session_1769717095678_cp3opnimj",
-            "commitSha": "6873964b",
-            "confidence": 0.82,
-            "reason": "Multi-session commit: session 2 of 2"
-          },
-          "algorithmResult": {
-            "commitSha": "6873964b",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 33.33333333333333,
-      "truePositives": 4,
-      "falsePositives": 8,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_medium_1",
-      "repoName": "medium-repo-2",
-      "repoSize": "medium",
-      "results": [
-        {
-          "sessionId": "session_1769717095679_8wykzygq6",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_8wykzygq6",
-            "commitSha": "ad1f525d",
-            "confidence": 0.9,
-            "reason": "High confidence: perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "ad1f525d",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095679_32n62w05w",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_32n62w05w",
-            "commitSha": "eefc64e8",
-            "confidence": 0.75,
-            "reason": "Medium confidence: temporal match but partial file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "e17c85eb",
-            "confidence": 0.7,
-            "temporalScore": 1,
-            "fileScore": 0.25
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095679_u4p2jair3",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_u4p2jair3",
-            "commitSha": "07fd44dd",
-            "confidence": 0.72,
-            "reason": "Low confidence: temporal proximity but minimal file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "07fd44dd",
-            "confidence": 0.7333333333333333,
-            "temporalScore": 1,
-            "fileScore": 0.3333333333333333
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095679_dcwbaead0",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_dcwbaead0",
-            "commitSha": "4782be3e",
-            "confidence": 0.7030709738842055,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "4782be3e",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095679_zkcua4rf5",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_zkcua4rf5",
-            "commitSha": "02ef0c2b",
-            "confidence": 0.6701823376956276,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "02ef0c2b",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095679_h3dmyz2p2",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_h3dmyz2p2",
-            "commitSha": "128fdef9",
-            "confidence": 0.8920136218543753,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095679_5w40salqe",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_5w40salqe",
-            "commitSha": "a2576b0f",
-            "confidence": 0.6644002284221514,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "a2576b0f",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095679_wi3sjv6cw",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_wi3sjv6cw",
-            "commitSha": "4b92eea8",
-            "confidence": 0.681659994343352,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095679_jqb2ot6rq",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_jqb2ot6rq",
-            "commitSha": "d82d7dc6",
-            "confidence": 0.7389941279129901,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": {
-            "commitSha": "3e91c211",
-            "confidence": 0.7333333333333333,
-            "temporalScore": 1,
-            "fileScore": 0.3333333333333333
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095679_wsosete3c",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_wsosete3c",
-            "commitSha": "9c60f578",
-            "confidence": 0.78,
-            "reason": "Multi-session commit: session 1 of 2"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095679_wcwbf1hlh",
-          "groundTruth": {
-            "sessionId": "session_1769717095679_wcwbf1hlh",
-            "commitSha": "9c60f578",
-            "confidence": 0.82,
-            "reason": "Multi-session commit: session 2 of 2"
-          },
-          "algorithmResult": {
-            "commitSha": "9c60f578",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 54.54545454545454,
-      "truePositives": 6,
-      "falsePositives": 5,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_medium_2",
-      "repoName": "medium-repo-3",
-      "repoSize": "medium",
-      "results": [
-        {
-          "sessionId": "session_1769717095681_lw3q5ts2o",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_lw3q5ts2o",
-            "commitSha": "ddb1dbbd",
-            "confidence": 0.9,
-            "reason": "High confidence: perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "ddb1dbbd",
-            "confidence": 0.76,
-            "temporalScore": 1,
-            "fileScore": 0.4
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095681_wgwzo0s6t",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_wgwzo0s6t",
-            "commitSha": "60c6bcf5",
-            "confidence": 0.75,
-            "reason": "Medium confidence: temporal match but partial file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "60c6bcf5",
-            "confidence": 0.7333333333333333,
-            "temporalScore": 1,
-            "fileScore": 0.3333333333333333
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095681_yi0rx1i9b",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_yi0rx1i9b",
-            "commitSha": "40001d00",
-            "confidence": 0.72,
-            "reason": "Low confidence: temporal proximity but minimal file overlap"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095681_18wsooke5",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_18wsooke5",
-            "commitSha": "48a6e41b",
-            "confidence": 0.8571595227092853,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "48a6e41b",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095681_pyfnm1rt4",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_pyfnm1rt4",
-            "commitSha": "27a204ba",
-            "confidence": 0.7266005409599924,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "27a204ba",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095681_exl0lsdmx",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_exl0lsdmx",
-            "commitSha": "ad3f5c99",
-            "confidence": 0.6687667455236979,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095681_d500iy4kq",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_d500iy4kq",
-            "commitSha": "f78c8a78",
-            "confidence": 0.78,
-            "reason": "Multi-session commit: session 1 of 2"
-          },
-          "algorithmResult": {
-            "commitSha": "2d917a97",
-            "confidence": 0.7,
-            "temporalScore": 1,
-            "fileScore": 0.25
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095681_ype2ezu6l",
-          "groundTruth": {
-            "sessionId": "session_1769717095681_ype2ezu6l",
-            "commitSha": "f78c8a78",
-            "confidence": 0.82,
-            "reason": "Multi-session commit: session 2 of 2"
-          },
-          "algorithmResult": {
-            "commitSha": "f78c8a78",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 62.5,
-      "truePositives": 5,
-      "falsePositives": 3,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_medium_3",
-      "repoName": "medium-repo-4",
-      "repoSize": "medium",
-      "results": [
-        {
-          "sessionId": "session_1769717095682_isirzaeur",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_isirzaeur",
-            "commitSha": "dfcad5ad",
-            "confidence": 0.9,
-            "reason": "High confidence: perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "dfcad5ad",
-            "confidence": 0.76,
-            "temporalScore": 1,
-            "fileScore": 0.4
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_216c32n24",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_216c32n24",
-            "commitSha": "0d03bf15",
-            "confidence": 0.75,
-            "reason": "Medium confidence: temporal match but partial file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "0d03bf15",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_1918kruj8",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_1918kruj8",
-            "commitSha": "97cd8652",
-            "confidence": 0.72,
-            "reason": "Low confidence: temporal proximity but minimal file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "97cd8652",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_8c9kwi3ca",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_8c9kwi3ca",
-            "commitSha": "6f0c6e4c",
-            "confidence": 0.8129641236522996,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "6f0c6e4c",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_7xq6h3b9k",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_7xq6h3b9k",
-            "commitSha": "b9ccb8af",
-            "confidence": 0.9471962763032438,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": {
-            "commitSha": "b9ccb8af",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_fzxbbxq25",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_fzxbbxq25",
-            "commitSha": "7715533e",
-            "confidence": 0.8015646691536527,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "7715533e",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_un0x65eoy",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_un0x65eoy",
-            "commitSha": "6aea8a42",
-            "confidence": 0.9392276161903634,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "6aea8a42",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_209wb9ytm",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_209wb9ytm",
-            "commitSha": "ff98e460",
-            "confidence": 0.8946507267189279,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095682_no5wazpb0",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_no5wazpb0",
-            "commitSha": "4bfe6e7e",
-            "confidence": 0.78,
-            "reason": "Multi-session commit: session 1 of 2"
-          },
-          "algorithmResult": {
-            "commitSha": "4bfe6e7e",
-            "confidence": 0.7,
-            "temporalScore": 0.5,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095682_ewxuf0bq9",
-          "groundTruth": {
-            "sessionId": "session_1769717095682_ewxuf0bq9",
-            "commitSha": "4bfe6e7e",
-            "confidence": 0.82,
-            "reason": "Multi-session commit: session 2 of 2"
-          },
-          "algorithmResult": {
-            "commitSha": "4bfe6e7e",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 90,
-      "truePositives": 9,
-      "falsePositives": 1,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_medium_4",
-      "repoName": "medium-repo-5",
-      "repoSize": "medium",
-      "results": [
-        {
-          "sessionId": "session_1769717095683_nhbmx24w8",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_nhbmx24w8",
-            "commitSha": "bf243136",
-            "confidence": 0.9,
-            "reason": "High confidence: perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "bf243136",
-            "confidence": 0.76,
-            "temporalScore": 1,
-            "fileScore": 0.4
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095683_xs548tc4d",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_xs548tc4d",
-            "commitSha": "8c698888",
-            "confidence": 0.75,
-            "reason": "Medium confidence: temporal match but partial file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "443301a9",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095683_8l8poaf12",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_8l8poaf12",
-            "commitSha": "d24fe85a",
-            "confidence": 0.72,
-            "reason": "Low confidence: temporal proximity but minimal file overlap"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095683_o6r9hed7i",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_o6r9hed7i",
-            "commitSha": "ef6717fc",
-            "confidence": 0.8227802665532786,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": {
-            "commitSha": "93a8b111",
-            "confidence": 0.7,
-            "temporalScore": 1,
-            "fileScore": 0.25
-          },
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095683_4cmr5nl8k",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_4cmr5nl8k",
-            "commitSha": "1a6d838e",
-            "confidence": 0.9276033377657351,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "1a6d838e",
-            "confidence": 0.76,
-            "temporalScore": 1,
-            "fileScore": 0.4
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095683_8916d8o8e",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_8916d8o8e",
-            "commitSha": "6ae8008f",
-            "confidence": 0.7675089974978472,
-            "reason": "Weak match, may fall below threshold"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095683_qs0wk94sv",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_qs0wk94sv",
-            "commitSha": "76c46ece",
-            "confidence": 0.6866794547208618,
-            "reason": "Good overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "76c46ece",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095683_a3z3xz0yf",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_a3z3xz0yf",
-            "commitSha": "4d096396",
-            "confidence": 0.78,
-            "reason": "Multi-session commit: session 1 of 2"
-          },
-          "algorithmResult": null,
-          "isCorrect": false
-        },
-        {
-          "sessionId": "session_1769717095683_e5yoh3cp8",
-          "groundTruth": {
-            "sessionId": "session_1769717095683_e5yoh3cp8",
-            "commitSha": "4d096396",
-            "confidence": 0.82,
-            "reason": "Multi-session commit: session 2 of 2"
-          },
-          "algorithmResult": {
-            "commitSha": "4d096396",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 44.44444444444444,
-      "truePositives": 4,
-      "falsePositives": 5,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_small_0",
-      "repoName": "small-repo-1",
-      "repoSize": "small",
-      "results": [
-        {
-          "sessionId": "session_1769717095676_octw9ki4o",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_octw9ki4o",
-            "commitSha": "e86170d0",
-            "confidence": 0.8500149511679782,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "e86170d0",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_kssx4dz0f",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_kssx4dz0f",
-            "commitSha": "49eb5cd2",
-            "confidence": 0.9654442000014042,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "49eb5cd2",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_zh0rdh8wi",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_zh0rdh8wi",
-            "commitSha": "9124aac2",
-            "confidence": 0.9033928034219533,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "9124aac2",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_8uc3ffzxt",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_8uc3ffzxt",
-            "commitSha": "2513d696",
-            "confidence": 0.9869282750985011,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "2513d696",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_jwa3zrfgi",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_jwa3zrfgi",
-            "commitSha": "60c9f8e4",
-            "confidence": 0.9194536867555069,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "60c9f8e4",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_qc6my35m4",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_qc6my35m4",
-            "commitSha": "a44d5020",
-            "confidence": 0.8992402514381614,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "a44d5020",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_33fqxxf4g",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_33fqxxf4g",
-            "commitSha": "132cdfc7",
-            "confidence": 0.8734982667873221,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "132cdfc7",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 100,
-      "truePositives": 7,
-      "falsePositives": 0,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_small_1",
-      "repoName": "small-repo-2",
-      "repoSize": "small",
-      "results": [
-        {
-          "sessionId": "session_1769717095676_3u0e6z5it",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_3u0e6z5it",
-            "commitSha": "dc16aff0",
-            "confidence": 0.8749321113873858,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "dc16aff0",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_d8bhwzus7",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_d8bhwzus7",
-            "commitSha": "c030d083",
-            "confidence": 0.8664955218120225,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "c030d083",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_5qaq8zxtr",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_5qaq8zxtr",
-            "commitSha": "dfaa2cc9",
-            "confidence": 0.9449426320708332,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "dfaa2cc9",
-            "confidence": 0.9,
-            "temporalScore": 1,
-            "fileScore": 0.75
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_q39ijf4ho",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_q39ijf4ho",
-            "commitSha": "e11d95e2",
-            "confidence": 0.9031267640330711,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "e11d95e2",
-            "confidence": 0.9,
-            "temporalScore": 1,
-            "fileScore": 0.75
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_7os0iynj8",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_7os0iynj8",
-            "commitSha": "5c6169bb",
-            "confidence": 0.9492094319884112,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "5c6169bb",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095676_sjt7d7zgc",
-          "groundTruth": {
-            "sessionId": "session_1769717095676_sjt7d7zgc",
-            "commitSha": "382aa4fe",
-            "confidence": 0.9711484901046006,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "382aa4fe",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 100,
-      "truePositives": 6,
-      "falsePositives": 0,
-      "falseNegatives": 0
-    },
-    {
-      "repoId": "repo_small_2",
-      "repoName": "small-repo-3",
-      "repoSize": "small",
-      "results": [
-        {
-          "sessionId": "session_1769717095677_e5o1tjtpg",
-          "groundTruth": {
-            "sessionId": "session_1769717095677_e5o1tjtpg",
-            "commitSha": "ddee5a6c",
-            "confidence": 0.8694906738090027,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "ddee5a6c",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095677_3kn16tez5",
-          "groundTruth": {
-            "sessionId": "session_1769717095677_3kn16tez5",
-            "commitSha": "4f3c9e09",
-            "confidence": 0.933750409544935,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "4f3c9e09",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095677_m9bmchm8k",
-          "groundTruth": {
-            "sessionId": "session_1769717095677_m9bmchm8k",
-            "commitSha": "f8b12a44",
-            "confidence": 0.9378707108344612,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "f8b12a44",
-            "confidence": 0.8,
-            "temporalScore": 1,
-            "fileScore": 0.5
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095677_e2mu8qp2v",
-          "groundTruth": {
-            "sessionId": "session_1769717095677_e2mu8qp2v",
-            "commitSha": "abfb4f64",
-            "confidence": 0.9292661369453911,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "abfb4f64",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095677_tncv2jl5g",
-          "groundTruth": {
-            "sessionId": "session_1769717095677_tncv2jl5g",
-            "commitSha": "dd8fb6be",
-            "confidence": 0.8820510063456215,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "dd8fb6be",
-            "confidence": 1,
-            "temporalScore": 1,
-            "fileScore": 1
-          },
-          "isCorrect": true
-        },
-        {
-          "sessionId": "session_1769717095677_7a6stzpn2",
-          "groundTruth": {
-            "sessionId": "session_1769717095677_7a6stzpn2",
-            "commitSha": "5a844ed6",
-            "confidence": 0.8764155388911141,
-            "reason": "Perfect temporal and file overlap"
-          },
-          "algorithmResult": {
-            "commitSha": "5a844ed6",
-            "confidence": 0.8666666666666667,
-            "temporalScore": 1,
-            "fileScore": 0.6666666666666666
-          },
-          "isCorrect": true
-        }
-      ],
-      "accuracy": 100,
-      "truePositives": 6,
-      "falsePositives": 0,
-      "falseNegatives": 0
-    }
-  ],
-  "summary": {
-    "totalRepos": 10,
-    "totalSessions": 93,
-    "correctLinks": 62,
-    "overallAccuracy": 66.66666666666666,
-    "truePositives": 62,
-    "falsePositives": 31,
-    "falseNegatives": 0,
-    "precision": 66.66666666666666,
-    "recall": 100,
-    "f1Score": 80
-  },
-  "recommendation": "✅ Accuracy within 65-80% range. Threshold validated at 0.65."
+	"runAt": "2026-01-29T20:17:09.914Z",
+	"threshold": 0.7,
+	"overallAccuracy": 66.66666666666666,
+	"repoResults": [
+		{
+			"repoId": "repo_large_0",
+			"repoName": "large-repo-1",
+			"repoSize": "large",
+			"results": [
+				{
+					"sessionId": "session_1769717095686_vjsghtwxe",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_vjsghtwxe",
+						"commitSha": "ea8e9e48",
+						"confidence": 0.7308448792665114,
+						"reason": "Large repo: medium confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "ea8e9e48",
+						"confidence": 0.7,
+						"temporalScore": 1,
+						"fileScore": 0.25
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095686_jvncnc6yu",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_jvncnc6yu",
+						"commitSha": "cee720db",
+						"confidence": 0.7573586895674368,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "3968fb76",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095686_pza02vfel",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_pza02vfel",
+						"commitSha": "14dec846",
+						"confidence": 0.9737993996384913,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "14dec846",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095686_bs24cdu98",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_bs24cdu98",
+						"commitSha": "577194de",
+						"confidence": 0.6863188634398376,
+						"reason": "Large repo: low confidence match"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095686_oxx09tuvd",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_oxx09tuvd",
+						"commitSha": "600765f8",
+						"confidence": 0.7159818509233296,
+						"reason": "Large repo: medium confidence match"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095686_6mjmwko5f",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_6mjmwko5f",
+						"commitSha": "ad5933dc",
+						"confidence": 0.7558604505743519,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "ad5933dc",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095686_8c2l0m1ky",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_8c2l0m1ky",
+						"commitSha": "31a5f3d5",
+						"confidence": 0.6710898277439636,
+						"reason": "Large repo: low confidence match"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095686_i51iy7op8",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_i51iy7op8",
+						"commitSha": "2898b6ae",
+						"confidence": 0.9842212990172426,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "2898b6ae",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095686_ix2uedhzj",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_ix2uedhzj",
+						"commitSha": "6538148a",
+						"confidence": 0.8818105226951566,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "6538148a",
+						"confidence": 0.9,
+						"temporalScore": 1,
+						"fileScore": 0.75
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095686_6st04ha9a",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_6st04ha9a",
+						"commitSha": "d0eadc4c",
+						"confidence": 0.7136807237375904,
+						"reason": "Large repo: medium confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "4d9f4186",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095686_llk9v5n34",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_llk9v5n34",
+						"commitSha": "5b854a43",
+						"confidence": 0.65,
+						"reason": "Long duration session (4h): may match multiple commits"
+					},
+					"algorithmResult": {
+						"commitSha": "5b854a43",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095686_dvb4hlimw",
+					"groundTruth": {
+						"sessionId": "session_1769717095686_dvb4hlimw",
+						"commitSha": "b6132921",
+						"confidence": 0.8,
+						"reason": "No duration: should be inferred from message timestamps"
+					},
+					"algorithmResult": {
+						"commitSha": "6d36979b",
+						"confidence": 0.8200000000000001,
+						"temporalScore": 0.7,
+						"fileScore": 1
+					},
+					"isCorrect": false
+				}
+			],
+			"accuracy": 50,
+			"truePositives": 6,
+			"falsePositives": 6,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_large_1",
+			"repoName": "large-repo-2",
+			"repoSize": "large",
+			"results": [
+				{
+					"sessionId": "session_1769717095689_i8kb88sht",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_i8kb88sht",
+						"commitSha": "2d760423",
+						"confidence": 0.7884813494995901,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "2d760423",
+						"confidence": 0.7333333333333333,
+						"temporalScore": 1,
+						"fileScore": 0.3333333333333333
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_79tqk0a2e",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_79tqk0a2e",
+						"commitSha": "2e74ca3a",
+						"confidence": 0.7361303826728978,
+						"reason": "Large repo: medium confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "2e74ca3a",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_zlnh1v6mc",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_zlnh1v6mc",
+						"commitSha": "dc8ef349",
+						"confidence": 0.7322535840400614,
+						"reason": "Large repo: medium confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "bd505bca",
+						"confidence": 0.7,
+						"temporalScore": 1,
+						"fileScore": 0.25
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095689_8dobmpurq",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_8dobmpurq",
+						"commitSha": "9eada50f",
+						"confidence": 0.8982923982732265,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "9eada50f",
+						"confidence": 0.9,
+						"temporalScore": 1,
+						"fileScore": 0.75
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_t22ff4gal",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_t22ff4gal",
+						"commitSha": "3db135c9",
+						"confidence": 0.9232054643732748,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "3db135c9",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_u32ybmk5k",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_u32ybmk5k",
+						"commitSha": "3b907b22",
+						"confidence": 0.7014389574901604,
+						"reason": "Large repo: medium confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "3b907b22",
+						"confidence": 0.7333333333333333,
+						"temporalScore": 1,
+						"fileScore": 0.3333333333333333
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_d87nw1qri",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_d87nw1qri",
+						"commitSha": "c0c7386f",
+						"confidence": 0.7971536258844079,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "c0c7386f",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_l53xiclle",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_l53xiclle",
+						"commitSha": "c77e70c0",
+						"confidence": 0.9815444995833954,
+						"reason": "Large repo: high confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "c77e70c0",
+						"confidence": 0.9,
+						"temporalScore": 1,
+						"fileScore": 0.75
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_57xw60rw9",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_57xw60rw9",
+						"commitSha": "8cc74cb3",
+						"confidence": 0.6501740475714596,
+						"reason": "Large repo: low confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "8cc74cb3",
+						"confidence": 0.7,
+						"temporalScore": 1,
+						"fileScore": 0.25
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095689_lrrwhv1h4",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_lrrwhv1h4",
+						"commitSha": "fefc2d58",
+						"confidence": 0.7063791972376976,
+						"reason": "Large repo: medium confidence match"
+					},
+					"algorithmResult": {
+						"commitSha": "cb04a505",
+						"confidence": 0.7,
+						"temporalScore": 1,
+						"fileScore": 0.25
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095689_qx4q9h1k8",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_qx4q9h1k8",
+						"commitSha": "14ad034e",
+						"confidence": 0.65,
+						"reason": "Long duration session (4h): may match multiple commits"
+					},
+					"algorithmResult": {
+						"commitSha": "0e6efecc",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095689_urwqorilp",
+					"groundTruth": {
+						"sessionId": "session_1769717095689_urwqorilp",
+						"commitSha": "266430e0",
+						"confidence": 0.8,
+						"reason": "No duration: should be inferred from message timestamps"
+					},
+					"algorithmResult": {
+						"commitSha": "266430e0",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 75,
+			"truePositives": 9,
+			"falsePositives": 3,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_medium_0",
+			"repoName": "medium-repo-1",
+			"repoSize": "medium",
+			"results": [
+				{
+					"sessionId": "session_1769717095678_be9ebolwt",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_be9ebolwt",
+						"commitSha": "6873f0b2",
+						"confidence": 0.9,
+						"reason": "High confidence: perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "6873f0b2",
+						"confidence": 0.76,
+						"temporalScore": 1,
+						"fileScore": 0.4
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095678_gyhtxiefe",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_gyhtxiefe",
+						"commitSha": "da76da1d",
+						"confidence": 0.75,
+						"reason": "Medium confidence: temporal match but partial file overlap"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_0n55grcbr",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_0n55grcbr",
+						"commitSha": "1e970da4",
+						"confidence": 0.72,
+						"reason": "Low confidence: temporal proximity but minimal file overlap"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_64gds0bmj",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_64gds0bmj",
+						"commitSha": "84a7ebe3",
+						"confidence": 0.7973595675404428,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_n5zl7r49l",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_n5zl7r49l",
+						"commitSha": "f1fdc344",
+						"confidence": 0.8615230108568274,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_erejz4xu2",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_erejz4xu2",
+						"commitSha": "db26a1f6",
+						"confidence": 0.924985572589298,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_7xz2zne7h",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_7xz2zne7h",
+						"commitSha": "da76da1d",
+						"confidence": 0.8928845675391042,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "da76da1d",
+						"confidence": 0.76,
+						"temporalScore": 1,
+						"fileScore": 0.4
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095678_dv7h6rb9p",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_dv7h6rb9p",
+						"commitSha": "e8f6537c",
+						"confidence": 0.668337045480096,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "e8f6537c",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095678_tthizmx41",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_tthizmx41",
+						"commitSha": "641430e1",
+						"confidence": 0.7822060856799159,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_g83kfzu4e",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_g83kfzu4e",
+						"commitSha": "7728805c",
+						"confidence": 0.8920898469918093,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_c9oewjimr",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_c9oewjimr",
+						"commitSha": "6873964b",
+						"confidence": 0.78,
+						"reason": "Multi-session commit: session 1 of 2"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095678_cp3opnimj",
+					"groundTruth": {
+						"sessionId": "session_1769717095678_cp3opnimj",
+						"commitSha": "6873964b",
+						"confidence": 0.82,
+						"reason": "Multi-session commit: session 2 of 2"
+					},
+					"algorithmResult": {
+						"commitSha": "6873964b",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 33.33333333333333,
+			"truePositives": 4,
+			"falsePositives": 8,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_medium_1",
+			"repoName": "medium-repo-2",
+			"repoSize": "medium",
+			"results": [
+				{
+					"sessionId": "session_1769717095679_8wykzygq6",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_8wykzygq6",
+						"commitSha": "ad1f525d",
+						"confidence": 0.9,
+						"reason": "High confidence: perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "ad1f525d",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095679_32n62w05w",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_32n62w05w",
+						"commitSha": "eefc64e8",
+						"confidence": 0.75,
+						"reason": "Medium confidence: temporal match but partial file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "e17c85eb",
+						"confidence": 0.7,
+						"temporalScore": 1,
+						"fileScore": 0.25
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095679_u4p2jair3",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_u4p2jair3",
+						"commitSha": "07fd44dd",
+						"confidence": 0.72,
+						"reason": "Low confidence: temporal proximity but minimal file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "07fd44dd",
+						"confidence": 0.7333333333333333,
+						"temporalScore": 1,
+						"fileScore": 0.3333333333333333
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095679_dcwbaead0",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_dcwbaead0",
+						"commitSha": "4782be3e",
+						"confidence": 0.7030709738842055,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "4782be3e",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095679_zkcua4rf5",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_zkcua4rf5",
+						"commitSha": "02ef0c2b",
+						"confidence": 0.6701823376956276,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "02ef0c2b",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095679_h3dmyz2p2",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_h3dmyz2p2",
+						"commitSha": "128fdef9",
+						"confidence": 0.8920136218543753,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095679_5w40salqe",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_5w40salqe",
+						"commitSha": "a2576b0f",
+						"confidence": 0.6644002284221514,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "a2576b0f",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095679_wi3sjv6cw",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_wi3sjv6cw",
+						"commitSha": "4b92eea8",
+						"confidence": 0.681659994343352,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095679_jqb2ot6rq",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_jqb2ot6rq",
+						"commitSha": "d82d7dc6",
+						"confidence": 0.7389941279129901,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": {
+						"commitSha": "3e91c211",
+						"confidence": 0.7333333333333333,
+						"temporalScore": 1,
+						"fileScore": 0.3333333333333333
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095679_wsosete3c",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_wsosete3c",
+						"commitSha": "9c60f578",
+						"confidence": 0.78,
+						"reason": "Multi-session commit: session 1 of 2"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095679_wcwbf1hlh",
+					"groundTruth": {
+						"sessionId": "session_1769717095679_wcwbf1hlh",
+						"commitSha": "9c60f578",
+						"confidence": 0.82,
+						"reason": "Multi-session commit: session 2 of 2"
+					},
+					"algorithmResult": {
+						"commitSha": "9c60f578",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 54.54545454545454,
+			"truePositives": 6,
+			"falsePositives": 5,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_medium_2",
+			"repoName": "medium-repo-3",
+			"repoSize": "medium",
+			"results": [
+				{
+					"sessionId": "session_1769717095681_lw3q5ts2o",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_lw3q5ts2o",
+						"commitSha": "ddb1dbbd",
+						"confidence": 0.9,
+						"reason": "High confidence: perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "ddb1dbbd",
+						"confidence": 0.76,
+						"temporalScore": 1,
+						"fileScore": 0.4
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095681_wgwzo0s6t",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_wgwzo0s6t",
+						"commitSha": "60c6bcf5",
+						"confidence": 0.75,
+						"reason": "Medium confidence: temporal match but partial file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "60c6bcf5",
+						"confidence": 0.7333333333333333,
+						"temporalScore": 1,
+						"fileScore": 0.3333333333333333
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095681_yi0rx1i9b",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_yi0rx1i9b",
+						"commitSha": "40001d00",
+						"confidence": 0.72,
+						"reason": "Low confidence: temporal proximity but minimal file overlap"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095681_18wsooke5",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_18wsooke5",
+						"commitSha": "48a6e41b",
+						"confidence": 0.8571595227092853,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "48a6e41b",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095681_pyfnm1rt4",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_pyfnm1rt4",
+						"commitSha": "27a204ba",
+						"confidence": 0.7266005409599924,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "27a204ba",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095681_exl0lsdmx",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_exl0lsdmx",
+						"commitSha": "ad3f5c99",
+						"confidence": 0.6687667455236979,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095681_d500iy4kq",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_d500iy4kq",
+						"commitSha": "f78c8a78",
+						"confidence": 0.78,
+						"reason": "Multi-session commit: session 1 of 2"
+					},
+					"algorithmResult": {
+						"commitSha": "2d917a97",
+						"confidence": 0.7,
+						"temporalScore": 1,
+						"fileScore": 0.25
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095681_ype2ezu6l",
+					"groundTruth": {
+						"sessionId": "session_1769717095681_ype2ezu6l",
+						"commitSha": "f78c8a78",
+						"confidence": 0.82,
+						"reason": "Multi-session commit: session 2 of 2"
+					},
+					"algorithmResult": {
+						"commitSha": "f78c8a78",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 62.5,
+			"truePositives": 5,
+			"falsePositives": 3,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_medium_3",
+			"repoName": "medium-repo-4",
+			"repoSize": "medium",
+			"results": [
+				{
+					"sessionId": "session_1769717095682_isirzaeur",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_isirzaeur",
+						"commitSha": "dfcad5ad",
+						"confidence": 0.9,
+						"reason": "High confidence: perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "dfcad5ad",
+						"confidence": 0.76,
+						"temporalScore": 1,
+						"fileScore": 0.4
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_216c32n24",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_216c32n24",
+						"commitSha": "0d03bf15",
+						"confidence": 0.75,
+						"reason": "Medium confidence: temporal match but partial file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "0d03bf15",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_1918kruj8",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_1918kruj8",
+						"commitSha": "97cd8652",
+						"confidence": 0.72,
+						"reason": "Low confidence: temporal proximity but minimal file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "97cd8652",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_8c9kwi3ca",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_8c9kwi3ca",
+						"commitSha": "6f0c6e4c",
+						"confidence": 0.8129641236522996,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "6f0c6e4c",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_7xq6h3b9k",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_7xq6h3b9k",
+						"commitSha": "b9ccb8af",
+						"confidence": 0.9471962763032438,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": {
+						"commitSha": "b9ccb8af",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_fzxbbxq25",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_fzxbbxq25",
+						"commitSha": "7715533e",
+						"confidence": 0.8015646691536527,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "7715533e",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_un0x65eoy",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_un0x65eoy",
+						"commitSha": "6aea8a42",
+						"confidence": 0.9392276161903634,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "6aea8a42",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_209wb9ytm",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_209wb9ytm",
+						"commitSha": "ff98e460",
+						"confidence": 0.8946507267189279,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095682_no5wazpb0",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_no5wazpb0",
+						"commitSha": "4bfe6e7e",
+						"confidence": 0.78,
+						"reason": "Multi-session commit: session 1 of 2"
+					},
+					"algorithmResult": {
+						"commitSha": "4bfe6e7e",
+						"confidence": 0.7,
+						"temporalScore": 0.5,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095682_ewxuf0bq9",
+					"groundTruth": {
+						"sessionId": "session_1769717095682_ewxuf0bq9",
+						"commitSha": "4bfe6e7e",
+						"confidence": 0.82,
+						"reason": "Multi-session commit: session 2 of 2"
+					},
+					"algorithmResult": {
+						"commitSha": "4bfe6e7e",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 90,
+			"truePositives": 9,
+			"falsePositives": 1,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_medium_4",
+			"repoName": "medium-repo-5",
+			"repoSize": "medium",
+			"results": [
+				{
+					"sessionId": "session_1769717095683_nhbmx24w8",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_nhbmx24w8",
+						"commitSha": "bf243136",
+						"confidence": 0.9,
+						"reason": "High confidence: perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "bf243136",
+						"confidence": 0.76,
+						"temporalScore": 1,
+						"fileScore": 0.4
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095683_xs548tc4d",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_xs548tc4d",
+						"commitSha": "8c698888",
+						"confidence": 0.75,
+						"reason": "Medium confidence: temporal match but partial file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "443301a9",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095683_8l8poaf12",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_8l8poaf12",
+						"commitSha": "d24fe85a",
+						"confidence": 0.72,
+						"reason": "Low confidence: temporal proximity but minimal file overlap"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095683_o6r9hed7i",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_o6r9hed7i",
+						"commitSha": "ef6717fc",
+						"confidence": 0.8227802665532786,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": {
+						"commitSha": "93a8b111",
+						"confidence": 0.7,
+						"temporalScore": 1,
+						"fileScore": 0.25
+					},
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095683_4cmr5nl8k",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_4cmr5nl8k",
+						"commitSha": "1a6d838e",
+						"confidence": 0.9276033377657351,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "1a6d838e",
+						"confidence": 0.76,
+						"temporalScore": 1,
+						"fileScore": 0.4
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095683_8916d8o8e",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_8916d8o8e",
+						"commitSha": "6ae8008f",
+						"confidence": 0.7675089974978472,
+						"reason": "Weak match, may fall below threshold"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095683_qs0wk94sv",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_qs0wk94sv",
+						"commitSha": "76c46ece",
+						"confidence": 0.6866794547208618,
+						"reason": "Good overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "76c46ece",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095683_a3z3xz0yf",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_a3z3xz0yf",
+						"commitSha": "4d096396",
+						"confidence": 0.78,
+						"reason": "Multi-session commit: session 1 of 2"
+					},
+					"algorithmResult": null,
+					"isCorrect": false
+				},
+				{
+					"sessionId": "session_1769717095683_e5yoh3cp8",
+					"groundTruth": {
+						"sessionId": "session_1769717095683_e5yoh3cp8",
+						"commitSha": "4d096396",
+						"confidence": 0.82,
+						"reason": "Multi-session commit: session 2 of 2"
+					},
+					"algorithmResult": {
+						"commitSha": "4d096396",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 44.44444444444444,
+			"truePositives": 4,
+			"falsePositives": 5,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_small_0",
+			"repoName": "small-repo-1",
+			"repoSize": "small",
+			"results": [
+				{
+					"sessionId": "session_1769717095676_octw9ki4o",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_octw9ki4o",
+						"commitSha": "e86170d0",
+						"confidence": 0.8500149511679782,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "e86170d0",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_kssx4dz0f",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_kssx4dz0f",
+						"commitSha": "49eb5cd2",
+						"confidence": 0.9654442000014042,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "49eb5cd2",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_zh0rdh8wi",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_zh0rdh8wi",
+						"commitSha": "9124aac2",
+						"confidence": 0.9033928034219533,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "9124aac2",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_8uc3ffzxt",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_8uc3ffzxt",
+						"commitSha": "2513d696",
+						"confidence": 0.9869282750985011,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "2513d696",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_jwa3zrfgi",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_jwa3zrfgi",
+						"commitSha": "60c9f8e4",
+						"confidence": 0.9194536867555069,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "60c9f8e4",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_qc6my35m4",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_qc6my35m4",
+						"commitSha": "a44d5020",
+						"confidence": 0.8992402514381614,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "a44d5020",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_33fqxxf4g",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_33fqxxf4g",
+						"commitSha": "132cdfc7",
+						"confidence": 0.8734982667873221,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "132cdfc7",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 100,
+			"truePositives": 7,
+			"falsePositives": 0,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_small_1",
+			"repoName": "small-repo-2",
+			"repoSize": "small",
+			"results": [
+				{
+					"sessionId": "session_1769717095676_3u0e6z5it",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_3u0e6z5it",
+						"commitSha": "dc16aff0",
+						"confidence": 0.8749321113873858,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "dc16aff0",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_d8bhwzus7",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_d8bhwzus7",
+						"commitSha": "c030d083",
+						"confidence": 0.8664955218120225,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "c030d083",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_5qaq8zxtr",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_5qaq8zxtr",
+						"commitSha": "dfaa2cc9",
+						"confidence": 0.9449426320708332,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "dfaa2cc9",
+						"confidence": 0.9,
+						"temporalScore": 1,
+						"fileScore": 0.75
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_q39ijf4ho",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_q39ijf4ho",
+						"commitSha": "e11d95e2",
+						"confidence": 0.9031267640330711,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "e11d95e2",
+						"confidence": 0.9,
+						"temporalScore": 1,
+						"fileScore": 0.75
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_7os0iynj8",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_7os0iynj8",
+						"commitSha": "5c6169bb",
+						"confidence": 0.9492094319884112,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "5c6169bb",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095676_sjt7d7zgc",
+					"groundTruth": {
+						"sessionId": "session_1769717095676_sjt7d7zgc",
+						"commitSha": "382aa4fe",
+						"confidence": 0.9711484901046006,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "382aa4fe",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 100,
+			"truePositives": 6,
+			"falsePositives": 0,
+			"falseNegatives": 0
+		},
+		{
+			"repoId": "repo_small_2",
+			"repoName": "small-repo-3",
+			"repoSize": "small",
+			"results": [
+				{
+					"sessionId": "session_1769717095677_e5o1tjtpg",
+					"groundTruth": {
+						"sessionId": "session_1769717095677_e5o1tjtpg",
+						"commitSha": "ddee5a6c",
+						"confidence": 0.8694906738090027,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "ddee5a6c",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095677_3kn16tez5",
+					"groundTruth": {
+						"sessionId": "session_1769717095677_3kn16tez5",
+						"commitSha": "4f3c9e09",
+						"confidence": 0.933750409544935,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "4f3c9e09",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095677_m9bmchm8k",
+					"groundTruth": {
+						"sessionId": "session_1769717095677_m9bmchm8k",
+						"commitSha": "f8b12a44",
+						"confidence": 0.9378707108344612,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "f8b12a44",
+						"confidence": 0.8,
+						"temporalScore": 1,
+						"fileScore": 0.5
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095677_e2mu8qp2v",
+					"groundTruth": {
+						"sessionId": "session_1769717095677_e2mu8qp2v",
+						"commitSha": "abfb4f64",
+						"confidence": 0.9292661369453911,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "abfb4f64",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095677_tncv2jl5g",
+					"groundTruth": {
+						"sessionId": "session_1769717095677_tncv2jl5g",
+						"commitSha": "dd8fb6be",
+						"confidence": 0.8820510063456215,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "dd8fb6be",
+						"confidence": 1,
+						"temporalScore": 1,
+						"fileScore": 1
+					},
+					"isCorrect": true
+				},
+				{
+					"sessionId": "session_1769717095677_7a6stzpn2",
+					"groundTruth": {
+						"sessionId": "session_1769717095677_7a6stzpn2",
+						"commitSha": "5a844ed6",
+						"confidence": 0.8764155388911141,
+						"reason": "Perfect temporal and file overlap"
+					},
+					"algorithmResult": {
+						"commitSha": "5a844ed6",
+						"confidence": 0.8666666666666667,
+						"temporalScore": 1,
+						"fileScore": 0.6666666666666666
+					},
+					"isCorrect": true
+				}
+			],
+			"accuracy": 100,
+			"truePositives": 6,
+			"falsePositives": 0,
+			"falseNegatives": 0
+		}
+	],
+	"summary": {
+		"totalRepos": 10,
+		"totalSessions": 93,
+		"correctLinks": 62,
+		"overallAccuracy": 66.66666666666666,
+		"truePositives": 62,
+		"falsePositives": 31,
+		"falseNegatives": 0,
+		"precision": 66.66666666666666,
+		"recall": 100,
+		"f1Score": 80
+	},
+	"recommendation": "✅ Accuracy within 65-80% range. Threshold validated at 0.65."
 }

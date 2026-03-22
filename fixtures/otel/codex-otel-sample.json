@@ -1,49 +1,49 @@
 {
-  "resourceLogs": [
-    {
-      "resource": {
-        "attributes": [
-          {
-            "key": "service.name",
-            "value": { "stringValue": "codex" }
-          }
-        ]
-      },
-      "scopeLogs": [
-        {
-          "logRecords": [
-            {
-              "timeUnixNano": "1710000000000000000",
-              "attributes": [
-                {
-                  "key": "commit_sha",
-                  "value": { "stringValue": "__COMMIT_SHA__" }
-                },
-                {
-                  "key": "file_paths",
-                  "value": {
-                    "arrayValue": {
-                      "values": [{ "stringValue": "__FILE_PATH__" }]
-                    }
-                  }
-                },
-                {
-                  "key": "model_id",
-                  "value": { "stringValue": "gpt-4o" }
-                },
-                {
-                  "key": "conversation_id",
-                  "value": { "stringValue": "conv-smoke" }
-                },
-                {
-                  "key": "app.version",
-                  "value": { "stringValue": "0.0.0" }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
+	"resourceLogs": [
+		{
+			"resource": {
+				"attributes": [
+					{
+						"key": "service.name",
+						"value": { "stringValue": "codex" }
+					}
+				]
+			},
+			"scopeLogs": [
+				{
+					"logRecords": [
+						{
+							"timeUnixNano": "1710000000000000000",
+							"attributes": [
+								{
+									"key": "commit_sha",
+									"value": { "stringValue": "__COMMIT_SHA__" }
+								},
+								{
+									"key": "file_paths",
+									"value": {
+										"arrayValue": {
+											"values": [{ "stringValue": "__FILE_PATH__" }]
+										}
+									}
+								},
+								{
+									"key": "model_id",
+									"value": { "stringValue": "gpt-4o" }
+								},
+								{
+									"key": "conversation_id",
+									"value": { "stringValue": "conv-smoke" }
+								},
+								{
+									"key": "app.version",
+									"value": { "stringValue": "0.0.0" }
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
 }

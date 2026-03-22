@@ -37,7 +37,7 @@ export function SurfaceHeader({
 				<DashboardTrustBadge trustState={trustState} />
 
 				{repoPath && (
-					<span className="ml-2 truncate max-w-[200px] text-xs font-mono text-text-tertiary opacity-70">
+					<span className="ml-2 truncate max-w-[12.5rem] text-xs font-mono text-text-tertiary opacity-70">
 						{repoPath}
 					</span>
 				)}

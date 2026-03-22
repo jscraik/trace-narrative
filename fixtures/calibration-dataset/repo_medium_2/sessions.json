@@ -1,143 +1,120 @@
 [
-  {
-    "id": "session_1769717095681_lw3q5ts2o",
-    "tool": "claude-code",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-02T08:11:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_oehf5gr5i",
-        "role": "user",
-        "text": "Update src/types/User.ts",
-        "files": [
-          "src/types/User.ts",
-          "src/hooks/useAuth.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095681_fj3fpqau7",
-        "role": "assistant",
-        "text": "Done",
-        "files": [
-          "src/types/User.ts",
-          "src/hooks/useAuth.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095681_wgwzo0s6t",
-    "tool": "codex",
-    "durationMin": 20,
-    "imported_at_iso": "2024-02-03T06:27:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_1hpzttzli",
-        "role": "user",
-        "text": "Update src/services/storage.ts",
-        "files": [
-          "src/services/storage.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095681_yi0rx1i9b",
-    "tool": "claude-code",
-    "durationMin": 8,
-    "imported_at_iso": "2024-02-03T21:17:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_wlr2q4cld",
-        "role": "user",
-        "text": "Quick fix needed",
-        "files": [
-          "src/utils/format.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095681_18wsooke5",
-    "tool": "codex",
-    "durationMin": 23,
-    "imported_at_iso": "2024-02-02T23:32:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_3vi4wrri0",
-        "role": "user",
-        "text": "Work on vite.config.ts",
-        "files": [
-          "vite.config.ts",
-          "src/services/auth.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095681_pyfnm1rt4",
-    "tool": "codex",
-    "durationMin": 16,
-    "imported_at_iso": "2024-02-03T11:46:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_b9b32ywf2",
-        "role": "user",
-        "text": "Work on package.json",
-        "files": [
-          "package.json",
-          "README.md"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095681_exl0lsdmx",
-    "tool": "codex",
-    "durationMin": 16,
-    "imported_at_iso": "2024-02-03T23:45:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_oliz4vyv7",
-        "role": "user",
-        "text": "Work on src/types/Session.ts",
-        "files": [
-          "tests/integration.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095681_d500iy4kq",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-02-02T15:30:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_az9pctn9w",
-        "role": "user",
-        "text": "Start work on src/hooks/useAuth.ts",
-        "files": [
-          "src/hooks/useAuth.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095681_ype2ezu6l",
-    "tool": "codex",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-02T15:35:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095681_w8gyrm8dh",
-        "role": "user",
-        "text": "Continue work on src/hooks/useAuth.ts",
-        "files": [
-          "src/hooks/useAuth.ts",
-          "package.json"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095681_lw3q5ts2o",
+		"tool": "claude-code",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-02T08:11:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_oehf5gr5i",
+				"role": "user",
+				"text": "Update src/types/User.ts",
+				"files": ["src/types/User.ts", "src/hooks/useAuth.ts"]
+			},
+			{
+				"id": "msg_1769717095681_fj3fpqau7",
+				"role": "assistant",
+				"text": "Done",
+				"files": ["src/types/User.ts", "src/hooks/useAuth.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095681_wgwzo0s6t",
+		"tool": "codex",
+		"durationMin": 20,
+		"imported_at_iso": "2024-02-03T06:27:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_1hpzttzli",
+				"role": "user",
+				"text": "Update src/services/storage.ts",
+				"files": ["src/services/storage.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095681_yi0rx1i9b",
+		"tool": "claude-code",
+		"durationMin": 8,
+		"imported_at_iso": "2024-02-03T21:17:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_wlr2q4cld",
+				"role": "user",
+				"text": "Quick fix needed",
+				"files": ["src/utils/format.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095681_18wsooke5",
+		"tool": "codex",
+		"durationMin": 23,
+		"imported_at_iso": "2024-02-02T23:32:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_3vi4wrri0",
+				"role": "user",
+				"text": "Work on vite.config.ts",
+				"files": ["vite.config.ts", "src/services/auth.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095681_pyfnm1rt4",
+		"tool": "codex",
+		"durationMin": 16,
+		"imported_at_iso": "2024-02-03T11:46:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_b9b32ywf2",
+				"role": "user",
+				"text": "Work on package.json",
+				"files": ["package.json", "README.md"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095681_exl0lsdmx",
+		"tool": "codex",
+		"durationMin": 16,
+		"imported_at_iso": "2024-02-03T23:45:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_oliz4vyv7",
+				"role": "user",
+				"text": "Work on src/types/Session.ts",
+				"files": ["tests/integration.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095681_d500iy4kq",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-02-02T15:30:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_az9pctn9w",
+				"role": "user",
+				"text": "Start work on src/hooks/useAuth.ts",
+				"files": ["src/hooks/useAuth.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095681_ype2ezu6l",
+		"tool": "codex",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-02T15:35:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095681_w8gyrm8dh",
+				"role": "user",
+				"text": "Continue work on src/hooks/useAuth.ts",
+				"files": ["src/hooks/useAuth.ts", "package.json"]
+			}
+		]
+	}
 ]

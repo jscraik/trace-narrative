@@ -1,159 +1,134 @@
 [
-  {
-    "id": "session_1769717095683_nhbmx24w8",
-    "tool": "claude-code",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-01T20:21:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_e1siu6nuk",
-        "role": "user",
-        "text": "Update vite.config.ts",
-        "files": [
-          "vite.config.ts",
-          "src/hooks/useModal.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095683_g9w6ylflj",
-        "role": "assistant",
-        "text": "Done",
-        "files": [
-          "vite.config.ts",
-          "src/hooks/useModal.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_xs548tc4d",
-    "tool": "codex",
-    "durationMin": 20,
-    "imported_at_iso": "2024-02-02T06:45:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_ypods3i1c",
-        "role": "user",
-        "text": "Update src/components/Modal.tsx",
-        "files": [
-          "src/components/Modal.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_8l8poaf12",
-    "tool": "claude-code",
-    "durationMin": 8,
-    "imported_at_iso": "2024-02-02T13:41:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_nb1xye2ui",
-        "role": "user",
-        "text": "Quick fix needed",
-        "files": [
-          "README.md"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_o6r9hed7i",
-    "tool": "codex",
-    "durationMin": 10,
-    "imported_at_iso": "2024-02-02T01:26:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_r58wzkghs",
-        "role": "user",
-        "text": "Work on tests/integration.test.ts",
-        "files": [
-          "README.md"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_4cmr5nl8k",
-    "tool": "codex",
-    "durationMin": 18,
-    "imported_at_iso": "2024-02-02T06:10:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_e97c01stk",
-        "role": "user",
-        "text": "Work on src/services/cache.ts",
-        "files": [
-          "src/services/cache.ts",
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_8916d8o8e",
-    "tool": "codex",
-    "durationMin": 10,
-    "imported_at_iso": "2024-02-02T10:57:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_jim1zlhk0",
-        "role": "user",
-        "text": "Work on tests/utils.test.ts",
-        "files": [
-          "src/types/Link.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_qs0wk94sv",
-    "tool": "claude-code",
-    "durationMin": 13,
-    "imported_at_iso": "2024-02-02T16:17:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_tyxxcuskj",
-        "role": "user",
-        "text": "Work on src/components/Button.tsx",
-        "files": [
-          "src/components/Button.tsx",
-          "tests/hooks.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_a3z3xz0yf",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-02-01T23:45:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_6pmutbs8x",
-        "role": "user",
-        "text": "Start work on package.json",
-        "files": [
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095683_e5yoh3cp8",
-    "tool": "codex",
-    "durationMin": 15,
-    "imported_at_iso": "2024-02-01T23:50:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095683_hx0ih5o3r",
-        "role": "user",
-        "text": "Continue work on package.json",
-        "files": [
-          "package.json",
-          "tests/services.test.ts"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095683_nhbmx24w8",
+		"tool": "claude-code",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-01T20:21:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_e1siu6nuk",
+				"role": "user",
+				"text": "Update vite.config.ts",
+				"files": ["vite.config.ts", "src/hooks/useModal.ts"]
+			},
+			{
+				"id": "msg_1769717095683_g9w6ylflj",
+				"role": "assistant",
+				"text": "Done",
+				"files": ["vite.config.ts", "src/hooks/useModal.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_xs548tc4d",
+		"tool": "codex",
+		"durationMin": 20,
+		"imported_at_iso": "2024-02-02T06:45:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_ypods3i1c",
+				"role": "user",
+				"text": "Update src/components/Modal.tsx",
+				"files": ["src/components/Modal.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_8l8poaf12",
+		"tool": "claude-code",
+		"durationMin": 8,
+		"imported_at_iso": "2024-02-02T13:41:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_nb1xye2ui",
+				"role": "user",
+				"text": "Quick fix needed",
+				"files": ["README.md"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_o6r9hed7i",
+		"tool": "codex",
+		"durationMin": 10,
+		"imported_at_iso": "2024-02-02T01:26:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_r58wzkghs",
+				"role": "user",
+				"text": "Work on tests/integration.test.ts",
+				"files": ["README.md"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_4cmr5nl8k",
+		"tool": "codex",
+		"durationMin": 18,
+		"imported_at_iso": "2024-02-02T06:10:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_e97c01stk",
+				"role": "user",
+				"text": "Work on src/services/cache.ts",
+				"files": ["src/services/cache.ts", "vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_8916d8o8e",
+		"tool": "codex",
+		"durationMin": 10,
+		"imported_at_iso": "2024-02-02T10:57:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_jim1zlhk0",
+				"role": "user",
+				"text": "Work on tests/utils.test.ts",
+				"files": ["src/types/Link.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_qs0wk94sv",
+		"tool": "claude-code",
+		"durationMin": 13,
+		"imported_at_iso": "2024-02-02T16:17:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_tyxxcuskj",
+				"role": "user",
+				"text": "Work on src/components/Button.tsx",
+				"files": ["src/components/Button.tsx", "tests/hooks.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_a3z3xz0yf",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-02-01T23:45:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_6pmutbs8x",
+				"role": "user",
+				"text": "Start work on package.json",
+				"files": ["package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095683_e5yoh3cp8",
+		"tool": "codex",
+		"durationMin": 15,
+		"imported_at_iso": "2024-02-01T23:50:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095683_hx0ih5o3r",
+				"role": "user",
+				"text": "Continue work on package.json",
+				"files": ["package.json", "tests/services.test.ts"]
+			}
+		]
+	}
 ]

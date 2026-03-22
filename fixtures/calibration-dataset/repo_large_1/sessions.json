@@ -1,282 +1,245 @@
 [
-  {
-    "id": "session_1769717095689_i8kb88sht",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-03-01T10:43:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_bn22itq47",
-        "role": "user",
-        "text": "Update src/types/Repo.ts",
-        "files": [
-          "src/types/Repo.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_ecqwr70jb",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/types/Repo.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_79tqk0a2e",
-    "tool": "codex",
-    "durationMin": 9,
-    "imported_at_iso": "2024-03-01T17:27:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_i0b3yhb6f",
-        "role": "user",
-        "text": "Update src/services/storage.ts",
-        "files": [
-          "src/services/storage.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_lrmcomsdr",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/services/storage.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_zlnh1v6mc",
-    "tool": "claude-code",
-    "durationMin": 17,
-    "imported_at_iso": "2024-03-02T00:06:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_btl7wlev5",
-        "role": "user",
-        "text": "Update src/utils/transform.ts",
-        "files": [
-          "src/utils/transform.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_y77uc513e",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/utils/transform.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_8dobmpurq",
-    "tool": "claude-code",
-    "durationMin": 10,
-    "imported_at_iso": "2024-03-02T06:59:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_qcpik06eh",
-        "role": "user",
-        "text": "Update src/utils/format.ts",
-        "files": [
-          "src/utils/format.ts",
-          "src/types/Commit.ts",
-          "src/services/database.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_9547n1a4y",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/utils/format.ts",
-          "src/types/Commit.ts",
-          "src/services/database.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_t22ff4gal",
-    "tool": "claude-code",
-    "durationMin": 29,
-    "imported_at_iso": "2024-03-02T13:09:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_lced70gp7",
-        "role": "user",
-        "text": "Update src/utils/format.ts",
-        "files": [
-          "src/utils/format.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_mmtsm2l1k",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/utils/format.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_u32ybmk5k",
-    "tool": "codex",
-    "durationMin": 15,
-    "imported_at_iso": "2024-03-02T20:30:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_mhc1t9gyv",
-        "role": "user",
-        "text": "Update vite.config.ts",
-        "files": [
-          "vite.config.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_4on69tdo3",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_d87nw1qri",
-    "tool": "codex",
-    "durationMin": 15,
-    "imported_at_iso": "2024-03-03T02:51:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_p703r0y2m",
-        "role": "user",
-        "text": "Update src/hooks/useData.ts",
-        "files": [
-          "src/hooks/useData.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_yyajbfhkw",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/hooks/useData.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_l53xiclle",
-    "tool": "claude-code",
-    "durationMin": 29,
-    "imported_at_iso": "2024-03-03T09:49:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_1up158znw",
-        "role": "user",
-        "text": "Update src/components/Dialog.tsx",
-        "files": [
-          "src/components/Dialog.tsx",
-          "package.json",
-          "src/utils/compute.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_21evwgyso",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/components/Dialog.tsx",
-          "package.json",
-          "src/utils/compute.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_57xw60rw9",
-    "tool": "codex",
-    "durationMin": 14,
-    "imported_at_iso": "2024-03-03T15:29:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_dy61urfnf",
-        "role": "user",
-        "text": "Update README.md",
-        "files": [
-          "README.md"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_3mpvhsobd",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "README.md"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_lrrwhv1h4",
-    "tool": "codex",
-    "durationMin": 15,
-    "imported_at_iso": "2024-03-03T23:05:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_fpp549nxb",
-        "role": "user",
-        "text": "Update package.json",
-        "files": [
-          "package.json"
-        ]
-      },
-      {
-        "id": "msg_1769717095689_lhb9hxb2p",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_qx4q9h1k8",
-    "tool": "claude-code",
-    "durationMin": 240,
-    "imported_at_iso": "2024-03-02T19:20:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_9rzpe5hfa",
-        "role": "user",
-        "text": "Major refactoring work",
-        "files": [
-          "README.md",
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095689_urwqorilp",
-    "tool": "codex",
-    "imported_at_iso": "2024-03-03T08:40:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095689_sw2rknybv",
-        "role": "user",
-        "text": "Fix package.json",
-        "files": [
-          "package.json"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095689_i8kb88sht",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-03-01T10:43:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_bn22itq47",
+				"role": "user",
+				"text": "Update src/types/Repo.ts",
+				"files": ["src/types/Repo.ts"]
+			},
+			{
+				"id": "msg_1769717095689_ecqwr70jb",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["src/types/Repo.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_79tqk0a2e",
+		"tool": "codex",
+		"durationMin": 9,
+		"imported_at_iso": "2024-03-01T17:27:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_i0b3yhb6f",
+				"role": "user",
+				"text": "Update src/services/storage.ts",
+				"files": ["src/services/storage.ts"]
+			},
+			{
+				"id": "msg_1769717095689_lrmcomsdr",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["src/services/storage.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_zlnh1v6mc",
+		"tool": "claude-code",
+		"durationMin": 17,
+		"imported_at_iso": "2024-03-02T00:06:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_btl7wlev5",
+				"role": "user",
+				"text": "Update src/utils/transform.ts",
+				"files": ["src/utils/transform.ts"]
+			},
+			{
+				"id": "msg_1769717095689_y77uc513e",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["src/utils/transform.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_8dobmpurq",
+		"tool": "claude-code",
+		"durationMin": 10,
+		"imported_at_iso": "2024-03-02T06:59:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_qcpik06eh",
+				"role": "user",
+				"text": "Update src/utils/format.ts",
+				"files": [
+					"src/utils/format.ts",
+					"src/types/Commit.ts",
+					"src/services/database.ts"
+				]
+			},
+			{
+				"id": "msg_1769717095689_9547n1a4y",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": [
+					"src/utils/format.ts",
+					"src/types/Commit.ts",
+					"src/services/database.ts"
+				]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_t22ff4gal",
+		"tool": "claude-code",
+		"durationMin": 29,
+		"imported_at_iso": "2024-03-02T13:09:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_lced70gp7",
+				"role": "user",
+				"text": "Update src/utils/format.ts",
+				"files": ["src/utils/format.ts"]
+			},
+			{
+				"id": "msg_1769717095689_mmtsm2l1k",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["src/utils/format.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_u32ybmk5k",
+		"tool": "codex",
+		"durationMin": 15,
+		"imported_at_iso": "2024-03-02T20:30:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_mhc1t9gyv",
+				"role": "user",
+				"text": "Update vite.config.ts",
+				"files": ["vite.config.ts"]
+			},
+			{
+				"id": "msg_1769717095689_4on69tdo3",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_d87nw1qri",
+		"tool": "codex",
+		"durationMin": 15,
+		"imported_at_iso": "2024-03-03T02:51:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_p703r0y2m",
+				"role": "user",
+				"text": "Update src/hooks/useData.ts",
+				"files": ["src/hooks/useData.ts"]
+			},
+			{
+				"id": "msg_1769717095689_yyajbfhkw",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["src/hooks/useData.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_l53xiclle",
+		"tool": "claude-code",
+		"durationMin": 29,
+		"imported_at_iso": "2024-03-03T09:49:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_1up158znw",
+				"role": "user",
+				"text": "Update src/components/Dialog.tsx",
+				"files": [
+					"src/components/Dialog.tsx",
+					"package.json",
+					"src/utils/compute.ts"
+				]
+			},
+			{
+				"id": "msg_1769717095689_21evwgyso",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": [
+					"src/components/Dialog.tsx",
+					"package.json",
+					"src/utils/compute.ts"
+				]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_57xw60rw9",
+		"tool": "codex",
+		"durationMin": 14,
+		"imported_at_iso": "2024-03-03T15:29:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_dy61urfnf",
+				"role": "user",
+				"text": "Update README.md",
+				"files": ["README.md"]
+			},
+			{
+				"id": "msg_1769717095689_3mpvhsobd",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["README.md"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_lrrwhv1h4",
+		"tool": "codex",
+		"durationMin": 15,
+		"imported_at_iso": "2024-03-03T23:05:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_fpp549nxb",
+				"role": "user",
+				"text": "Update package.json",
+				"files": ["package.json"]
+			},
+			{
+				"id": "msg_1769717095689_lhb9hxb2p",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_qx4q9h1k8",
+		"tool": "claude-code",
+		"durationMin": 240,
+		"imported_at_iso": "2024-03-02T19:20:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_9rzpe5hfa",
+				"role": "user",
+				"text": "Major refactoring work",
+				"files": ["README.md", "package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095689_urwqorilp",
+		"tool": "codex",
+		"imported_at_iso": "2024-03-03T08:40:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095689_sw2rknybv",
+				"role": "user",
+				"text": "Fix package.json",
+				"files": ["package.json"]
+			}
+		]
+	}
 ]

@@ -1,12 +1,12 @@
 {
-  "entryPoints": ["src/core/types.ts"],
-  "entryPointStrategy": "expand",
-  "out": "docs/api",
-  "theme": "default",
-  "includeVersion": true,
-  "excludeExternals": true,
-  "excludePrivate": true,
-  "excludeProtected": true,
-  "readme": "README.md",
-  "name": "Narrative API Documentation"
+	"entryPoints": ["src/core/types.ts"],
+	"entryPointStrategy": "expand",
+	"out": "docs/api",
+	"theme": "default",
+	"includeVersion": true,
+	"excludeExternals": true,
+	"excludePrivate": true,
+	"excludeProtected": true,
+	"readme": "README.md",
+	"name": "Narrative API Documentation"
 }

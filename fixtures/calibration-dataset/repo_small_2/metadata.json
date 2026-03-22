@@ -1,11 +1,9 @@
 {
-  "id": "repo_small_2",
-  "name": "small-repo-3",
-  "size": "small",
-  "commitCount": 26,
-  "sessionCount": 7,
-  "groundTruthCount": 6,
-  "edgeCases": [
-    "Unlinked session: no matching commit time window"
-  ]
+	"id": "repo_small_2",
+	"name": "small-repo-3",
+	"size": "small",
+	"commitCount": 26,
+	"sessionCount": 7,
+	"groundTruthCount": 6,
+	"edgeCases": ["Unlinked session: no matching commit time window"]
 }

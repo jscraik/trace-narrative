@@ -1,11 +1,9 @@
 {
-  "id": "repo_medium_1",
-  "name": "medium-repo-2",
-  "size": "medium",
-  "commitCount": 350,
-  "sessionCount": 11,
-  "groundTruthCount": 11,
-  "edgeCases": [
-    "Multi-session commit: two sessions linked to same commit"
-  ]
+	"id": "repo_medium_1",
+	"name": "medium-repo-2",
+	"size": "medium",
+	"commitCount": 350,
+	"sessionCount": 11,
+	"groundTruthCount": 11,
+	"edgeCases": ["Multi-session commit: two sessions linked to same commit"]
 }

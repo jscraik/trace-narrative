@@ -1,12 +1,12 @@
 {
-  "id": "repo_large_0",
-  "name": "large-repo-1",
-  "size": "large",
-  "commitCount": 2000,
-  "sessionCount": 12,
-  "groundTruthCount": 12,
-  "edgeCases": [
-    "Long duration session: 4 hour window may produce ambiguous matches",
-    "Missing duration: should be inferred from message timestamps"
-  ]
+	"id": "repo_large_0",
+	"name": "large-repo-1",
+	"size": "large",
+	"commitCount": 2000,
+	"sessionCount": 12,
+	"groundTruthCount": 12,
+	"edgeCases": [
+		"Long duration session: 4 hour window may produce ambiguous matches",
+		"Missing duration: should be inferred from message timestamps"
+	]
 }

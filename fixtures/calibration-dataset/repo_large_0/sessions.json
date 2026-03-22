@@ -1,282 +1,245 @@
 [
-  {
-    "id": "session_1769717095686_vjsghtwxe",
-    "tool": "claude-code",
-    "durationMin": 7,
-    "imported_at_iso": "2024-03-01T11:33:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_vaa8v28y4",
-        "role": "user",
-        "text": "Update tests/integration.test.ts",
-        "files": [
-          "tests/integration.test.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_eajunrnpr",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "tests/integration.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_jvncnc6yu",
-    "tool": "codex",
-    "durationMin": 29,
-    "imported_at_iso": "2024-03-01T17:02:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_q9qvaruto",
-        "role": "user",
-        "text": "Update package.json",
-        "files": [
-          "package.json"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_zloutu81k",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_pza02vfel",
-    "tool": "codex",
-    "durationMin": 23,
-    "imported_at_iso": "2024-03-02T00:14:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_2615sg52p",
-        "role": "user",
-        "text": "Update package.json",
-        "files": [
-          "package.json"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_my844ok55",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_bs24cdu98",
-    "tool": "codex",
-    "durationMin": 22,
-    "imported_at_iso": "2024-03-02T07:01:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_y5ob59tsg",
-        "role": "user",
-        "text": "Update src/components/Badge.tsx",
-        "files": [
-          "src/components/Badge.tsx"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_gnsbd4u6r",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/components/Badge.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_oxx09tuvd",
-    "tool": "claude-code",
-    "durationMin": 17,
-    "imported_at_iso": "2024-03-02T12:43:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_j2sdz9y16",
-        "role": "user",
-        "text": "Update src/utils/format.ts",
-        "files": [
-          "src/utils/format.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_jvg1vpfe1",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "src/utils/format.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_6mjmwko5f",
-    "tool": "claude-code",
-    "durationMin": 17,
-    "imported_at_iso": "2024-03-02T20:30:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_3g4c1merx",
-        "role": "user",
-        "text": "Update vite.config.ts",
-        "files": [
-          "vite.config.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_1s3a1ll3h",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_8c2l0m1ky",
-    "tool": "claude-code",
-    "durationMin": 26,
-    "imported_at_iso": "2024-03-03T03:15:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_xjlj1te7p",
-        "role": "user",
-        "text": "Update tests/services.test.ts",
-        "files": [
-          "tests/services.test.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_4njyqfcjk",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "tests/services.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_i51iy7op8",
-    "tool": "codex",
-    "durationMin": 26,
-    "imported_at_iso": "2024-03-03T09:09:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_u725m6tak",
-        "role": "user",
-        "text": "Update tests/components.test.ts",
-        "files": [
-          "tests/components.test.ts",
-          "vite.config.ts",
-          "src/utils/format.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_jvlnx3lz3",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "tests/components.test.ts",
-          "vite.config.ts",
-          "src/utils/format.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_ix2uedhzj",
-    "tool": "codex",
-    "durationMin": 17,
-    "imported_at_iso": "2024-03-03T15:39:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_q2g7x1g4t",
-        "role": "user",
-        "text": "Update vite.config.ts",
-        "files": [
-          "vite.config.ts",
-          "src/components/Badge.tsx",
-          "src/hooks/useData.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_lonpducz3",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "vite.config.ts",
-          "src/components/Badge.tsx",
-          "src/hooks/useData.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_6st04ha9a",
-    "tool": "codex",
-    "durationMin": 19,
-    "imported_at_iso": "2024-03-03T23:16:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_wqrzx3fd4",
-        "role": "user",
-        "text": "Update package.json",
-        "files": [
-          "package.json"
-        ]
-      },
-      {
-        "id": "msg_1769717095686_2xbzg36sh",
-        "role": "assistant",
-        "text": "I will implement that",
-        "files": [
-          "package.json"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_llk9v5n34",
-    "tool": "claude-code",
-    "durationMin": 240,
-    "imported_at_iso": "2024-03-02T19:21:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_ualz1ofe8",
-        "role": "user",
-        "text": "Major refactoring work",
-        "files": [
-          "src/services/auth.ts",
-          "src/utils/validate.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095686_dvb4hlimw",
-    "tool": "codex",
-    "imported_at_iso": "2024-03-03T08:40:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095686_gjziiqwxb",
-        "role": "user",
-        "text": "Fix vite.config.ts",
-        "files": [
-          "vite.config.ts"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095686_vjsghtwxe",
+		"tool": "claude-code",
+		"durationMin": 7,
+		"imported_at_iso": "2024-03-01T11:33:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_vaa8v28y4",
+				"role": "user",
+				"text": "Update tests/integration.test.ts",
+				"files": ["tests/integration.test.ts"]
+			},
+			{
+				"id": "msg_1769717095686_eajunrnpr",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["tests/integration.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_jvncnc6yu",
+		"tool": "codex",
+		"durationMin": 29,
+		"imported_at_iso": "2024-03-01T17:02:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_q9qvaruto",
+				"role": "user",
+				"text": "Update package.json",
+				"files": ["package.json"]
+			},
+			{
+				"id": "msg_1769717095686_zloutu81k",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_pza02vfel",
+		"tool": "codex",
+		"durationMin": 23,
+		"imported_at_iso": "2024-03-02T00:14:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_2615sg52p",
+				"role": "user",
+				"text": "Update package.json",
+				"files": ["package.json"]
+			},
+			{
+				"id": "msg_1769717095686_my844ok55",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_bs24cdu98",
+		"tool": "codex",
+		"durationMin": 22,
+		"imported_at_iso": "2024-03-02T07:01:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_y5ob59tsg",
+				"role": "user",
+				"text": "Update src/components/Badge.tsx",
+				"files": ["src/components/Badge.tsx"]
+			},
+			{
+				"id": "msg_1769717095686_gnsbd4u6r",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["src/components/Badge.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_oxx09tuvd",
+		"tool": "claude-code",
+		"durationMin": 17,
+		"imported_at_iso": "2024-03-02T12:43:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_j2sdz9y16",
+				"role": "user",
+				"text": "Update src/utils/format.ts",
+				"files": ["src/utils/format.ts"]
+			},
+			{
+				"id": "msg_1769717095686_jvg1vpfe1",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["src/utils/format.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_6mjmwko5f",
+		"tool": "claude-code",
+		"durationMin": 17,
+		"imported_at_iso": "2024-03-02T20:30:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_3g4c1merx",
+				"role": "user",
+				"text": "Update vite.config.ts",
+				"files": ["vite.config.ts"]
+			},
+			{
+				"id": "msg_1769717095686_1s3a1ll3h",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_8c2l0m1ky",
+		"tool": "claude-code",
+		"durationMin": 26,
+		"imported_at_iso": "2024-03-03T03:15:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_xjlj1te7p",
+				"role": "user",
+				"text": "Update tests/services.test.ts",
+				"files": ["tests/services.test.ts"]
+			},
+			{
+				"id": "msg_1769717095686_4njyqfcjk",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["tests/services.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_i51iy7op8",
+		"tool": "codex",
+		"durationMin": 26,
+		"imported_at_iso": "2024-03-03T09:09:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_u725m6tak",
+				"role": "user",
+				"text": "Update tests/components.test.ts",
+				"files": [
+					"tests/components.test.ts",
+					"vite.config.ts",
+					"src/utils/format.ts"
+				]
+			},
+			{
+				"id": "msg_1769717095686_jvlnx3lz3",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": [
+					"tests/components.test.ts",
+					"vite.config.ts",
+					"src/utils/format.ts"
+				]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_ix2uedhzj",
+		"tool": "codex",
+		"durationMin": 17,
+		"imported_at_iso": "2024-03-03T15:39:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_q2g7x1g4t",
+				"role": "user",
+				"text": "Update vite.config.ts",
+				"files": [
+					"vite.config.ts",
+					"src/components/Badge.tsx",
+					"src/hooks/useData.ts"
+				]
+			},
+			{
+				"id": "msg_1769717095686_lonpducz3",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": [
+					"vite.config.ts",
+					"src/components/Badge.tsx",
+					"src/hooks/useData.ts"
+				]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_6st04ha9a",
+		"tool": "codex",
+		"durationMin": 19,
+		"imported_at_iso": "2024-03-03T23:16:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_wqrzx3fd4",
+				"role": "user",
+				"text": "Update package.json",
+				"files": ["package.json"]
+			},
+			{
+				"id": "msg_1769717095686_2xbzg36sh",
+				"role": "assistant",
+				"text": "I will implement that",
+				"files": ["package.json"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_llk9v5n34",
+		"tool": "claude-code",
+		"durationMin": 240,
+		"imported_at_iso": "2024-03-02T19:21:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_ualz1ofe8",
+				"role": "user",
+				"text": "Major refactoring work",
+				"files": ["src/services/auth.ts", "src/utils/validate.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095686_dvb4hlimw",
+		"tool": "codex",
+		"imported_at_iso": "2024-03-03T08:40:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095686_gjziiqwxb",
+				"role": "user",
+				"text": "Fix vite.config.ts",
+				"files": ["vite.config.ts"]
+			}
+		]
+	}
 ]

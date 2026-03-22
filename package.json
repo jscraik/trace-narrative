@@ -64,7 +64,7 @@
     "test:artifacts:e2e": "bash scripts/test-with-artifacts.sh e2e"
   },
   "dependencies": {
-    "@brainwav/coding-harness": "^0.7.1",
+    "@brainwav/coding-harness": "^0.8.2",
     "@design-studio/runtime": "file:vendor/design-studio/design-studio-runtime-2.0.0.tgz",
     "@design-studio/tokens": "file:vendor/design-studio/design-studio-tokens-2.0.0.tgz",
     "@design-studio/ui": "file:vendor/design-studio/design-studio-ui-0.0.1.tgz",

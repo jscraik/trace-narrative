@@ -104,7 +104,7 @@ function InputRow({
 				type={masked ? "password" : type}
 				defaultValue={value}
 				readOnly
-				className="w-full sm:max-w-[240px] rounded-lg border border-border-subtle bg-bg-primary px-3 py-1.5 text-sm text-text-secondary focus:border-accent-violet focus:outline-none focus:ring-1 focus:ring-accent-violet transition-shadow"
+				className="w-full sm:max-w-60 rounded-lg border border-border-subtle bg-bg-primary px-3 py-1.5 text-sm text-text-secondary focus:border-accent-violet focus:outline-none focus:ring-1 focus:ring-accent-violet transition-shadow"
 			/>
 		</div>
 	);

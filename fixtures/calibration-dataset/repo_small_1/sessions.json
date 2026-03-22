@@ -1,180 +1,152 @@
 [
-  {
-    "id": "session_1769717095676_3u0e6z5it",
-    "tool": "claude-code",
-    "durationMin": 11,
-    "imported_at_iso": "2024-01-01T11:17:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_iupte5478",
-        "role": "user",
-        "text": "Update tests/services.test.ts with new feature",
-        "files": [
-          "tests/services.test.ts",
-          "src/utils/compute.ts",
-          "README.md"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_92aeo8i7n",
-        "role": "assistant",
-        "text": "I'll update tests/services.test.ts and src/utils/compute.ts and README.md with the requested changes.",
-        "files": [
-          "tests/services.test.ts",
-          "src/utils/compute.ts",
-          "README.md"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_d8bhwzus7",
-    "tool": "codex",
-    "durationMin": 10,
-    "imported_at_iso": "2024-01-01T12:05:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_u7zf9ozlv",
-        "role": "user",
-        "text": "Update tests/components.test.ts with new feature",
-        "files": [
-          "tests/components.test.ts",
-          "vite.config.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_rii51x1q1",
-        "role": "assistant",
-        "text": "I'll update tests/components.test.ts and vite.config.ts with the requested changes.",
-        "files": [
-          "tests/components.test.ts",
-          "vite.config.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_5qaq8zxtr",
-    "tool": "claude-code",
-    "durationMin": 11,
-    "imported_at_iso": "2024-01-01T12:50:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_co900xkpt",
-        "role": "user",
-        "text": "Update tests/services.test.ts with new feature",
-        "files": [
-          "tests/services.test.ts",
-          "vite.config.ts",
-          "src/hooks/useModal.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_q0mvmkh2u",
-        "role": "assistant",
-        "text": "I'll update tests/services.test.ts and vite.config.ts and src/hooks/useModal.ts with the requested changes.",
-        "files": [
-          "tests/services.test.ts",
-          "vite.config.ts",
-          "src/hooks/useModal.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_q39ijf4ho",
-    "tool": "claude-code",
-    "durationMin": 14,
-    "imported_at_iso": "2024-01-01T13:30:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_wpbdhuofe",
-        "role": "user",
-        "text": "Update src/utils/validate.ts with new feature",
-        "files": [
-          "src/utils/validate.ts",
-          "src/hooks/useBadge.ts",
-          "src/types/Repo.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_dcpdidohm",
-        "role": "assistant",
-        "text": "I'll update src/utils/validate.ts and src/hooks/useBadge.ts and src/types/Repo.ts with the requested changes.",
-        "files": [
-          "src/utils/validate.ts",
-          "src/hooks/useBadge.ts",
-          "src/types/Repo.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_7os0iynj8",
-    "tool": "claude-code",
-    "durationMin": 12,
-    "imported_at_iso": "2024-01-01T14:21:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_4jn8nhmzo",
-        "role": "user",
-        "text": "Update vite.config.ts with new feature",
-        "files": [
-          "vite.config.ts",
-          "tests/hooks.test.ts"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_jz947dcl1",
-        "role": "assistant",
-        "text": "I'll update vite.config.ts and tests/hooks.test.ts with the requested changes.",
-        "files": [
-          "vite.config.ts",
-          "tests/hooks.test.ts"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_sjt7d7zgc",
-    "tool": "claude-code",
-    "durationMin": 14,
-    "imported_at_iso": "2024-01-01T15:01:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_vh25pqwj6",
-        "role": "user",
-        "text": "Update README.md with new feature",
-        "files": [
-          "README.md",
-          "src/components/Modal.tsx"
-        ]
-      },
-      {
-        "id": "msg_1769717095676_dyd8aoa1y",
-        "role": "assistant",
-        "text": "I'll update README.md and src/components/Modal.tsx with the requested changes.",
-        "files": [
-          "README.md",
-          "src/components/Modal.tsx"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "session_1769717095676_9sbdsbpeg",
-    "tool": "claude-code",
-    "durationMin": 5,
-    "imported_at_iso": "2024-01-02T02:40:00.000Z",
-    "messages": [
-      {
-        "id": "msg_1769717095676_j4kx4pyeo",
-        "role": "user",
-        "text": "Explore potential refactoring options",
-        "files": [
-          "src/legacy/old-module.ts"
-        ]
-      }
-    ]
-  }
+	{
+		"id": "session_1769717095676_3u0e6z5it",
+		"tool": "claude-code",
+		"durationMin": 11,
+		"imported_at_iso": "2024-01-01T11:17:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_iupte5478",
+				"role": "user",
+				"text": "Update tests/services.test.ts with new feature",
+				"files": ["tests/services.test.ts", "src/utils/compute.ts", "README.md"]
+			},
+			{
+				"id": "msg_1769717095676_92aeo8i7n",
+				"role": "assistant",
+				"text": "I'll update tests/services.test.ts and src/utils/compute.ts and README.md with the requested changes.",
+				"files": ["tests/services.test.ts", "src/utils/compute.ts", "README.md"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_d8bhwzus7",
+		"tool": "codex",
+		"durationMin": 10,
+		"imported_at_iso": "2024-01-01T12:05:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_u7zf9ozlv",
+				"role": "user",
+				"text": "Update tests/components.test.ts with new feature",
+				"files": ["tests/components.test.ts", "vite.config.ts"]
+			},
+			{
+				"id": "msg_1769717095676_rii51x1q1",
+				"role": "assistant",
+				"text": "I'll update tests/components.test.ts and vite.config.ts with the requested changes.",
+				"files": ["tests/components.test.ts", "vite.config.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_5qaq8zxtr",
+		"tool": "claude-code",
+		"durationMin": 11,
+		"imported_at_iso": "2024-01-01T12:50:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_co900xkpt",
+				"role": "user",
+				"text": "Update tests/services.test.ts with new feature",
+				"files": [
+					"tests/services.test.ts",
+					"vite.config.ts",
+					"src/hooks/useModal.ts"
+				]
+			},
+			{
+				"id": "msg_1769717095676_q0mvmkh2u",
+				"role": "assistant",
+				"text": "I'll update tests/services.test.ts and vite.config.ts and src/hooks/useModal.ts with the requested changes.",
+				"files": [
+					"tests/services.test.ts",
+					"vite.config.ts",
+					"src/hooks/useModal.ts"
+				]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_q39ijf4ho",
+		"tool": "claude-code",
+		"durationMin": 14,
+		"imported_at_iso": "2024-01-01T13:30:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_wpbdhuofe",
+				"role": "user",
+				"text": "Update src/utils/validate.ts with new feature",
+				"files": [
+					"src/utils/validate.ts",
+					"src/hooks/useBadge.ts",
+					"src/types/Repo.ts"
+				]
+			},
+			{
+				"id": "msg_1769717095676_dcpdidohm",
+				"role": "assistant",
+				"text": "I'll update src/utils/validate.ts and src/hooks/useBadge.ts and src/types/Repo.ts with the requested changes.",
+				"files": [
+					"src/utils/validate.ts",
+					"src/hooks/useBadge.ts",
+					"src/types/Repo.ts"
+				]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_7os0iynj8",
+		"tool": "claude-code",
+		"durationMin": 12,
+		"imported_at_iso": "2024-01-01T14:21:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_4jn8nhmzo",
+				"role": "user",
+				"text": "Update vite.config.ts with new feature",
+				"files": ["vite.config.ts", "tests/hooks.test.ts"]
+			},
+			{
+				"id": "msg_1769717095676_jz947dcl1",
+				"role": "assistant",
+				"text": "I'll update vite.config.ts and tests/hooks.test.ts with the requested changes.",
+				"files": ["vite.config.ts", "tests/hooks.test.ts"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_sjt7d7zgc",
+		"tool": "claude-code",
+		"durationMin": 14,
+		"imported_at_iso": "2024-01-01T15:01:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_vh25pqwj6",
+				"role": "user",
+				"text": "Update README.md with new feature",
+				"files": ["README.md", "src/components/Modal.tsx"]
+			},
+			{
+				"id": "msg_1769717095676_dyd8aoa1y",
+				"role": "assistant",
+				"text": "I'll update README.md and src/components/Modal.tsx with the requested changes.",
+				"files": ["README.md", "src/components/Modal.tsx"]
+			}
+		]
+	},
+	{
+		"id": "session_1769717095676_9sbdsbpeg",
+		"tool": "claude-code",
+		"durationMin": 5,
+		"imported_at_iso": "2024-01-02T02:40:00.000Z",
+		"messages": [
+			{
+				"id": "msg_1769717095676_j4kx4pyeo",
+				"role": "user",
+				"text": "Explore potential refactoring options",
+				"files": ["src/legacy/old-module.ts"]
+			}
+		]
+	}
 ]

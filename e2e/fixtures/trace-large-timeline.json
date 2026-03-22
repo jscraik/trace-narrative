@@ -1,33 +1,33 @@
 {
-  "name": "firefly-large-timeline",
-  "description": "Scripted timeline-scroll fixture for Firefly perf validation.",
-  "durationMs": 10000,
-  "stepMs": 120,
-  "scrollActions": [
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowLeft",
-    "ArrowLeft",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowLeft",
-    "ArrowLeft",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowRight",
-    "ArrowLeft",
-    "ArrowLeft"
-  ],
-  "metadata": {
-    "machineProfile": "dev-default",
-    "runtimeMode": "playwright-headless",
-    "notes": "Uses app default demo timeline with scripted keyboard scrolling."
-  }
+	"name": "firefly-large-timeline",
+	"description": "Scripted timeline-scroll fixture for Firefly perf validation.",
+	"durationMs": 10000,
+	"stepMs": 120,
+	"scrollActions": [
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowLeft",
+		"ArrowLeft",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowLeft",
+		"ArrowLeft",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowRight",
+		"ArrowLeft",
+		"ArrowLeft"
+	],
+	"metadata": {
+		"machineProfile": "dev-default",
+		"runtimeMode": "playwright-headless",
+		"notes": "Uses app default demo timeline with scripted keyboard scrolling."
+	}
 }

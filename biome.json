@@ -16,16 +16,6 @@
 			"!**/artifacts"
 		]
 	},
-	"css": {
-		"parser": {
-			"allowWrongLineComments": true,
-			"cssModules": false,
-			"tailwindDirectives": true
-		},
-		"linter": {
-			"enabled": false
-		}
-	},
 	"overrides": [
 		{
 			"includes": [
@@ -56,10 +46,7 @@
 				"noEmptyBlockStatements": "error",
 				"noExplicitAny": "warn",
 				"noDebugger": "error",
-				"noConsole": {
-					"level": "warn",
-					"options": { "allow": ["log", "warn", "error"] }
-				}
+				"noConsole": { "level": "warn", "options": { "allow": ["log", "warn", "error", "debug", "info"] } }
 			},
 			"style": {
 				"noDefaultExport": "error",
@@ -67,5 +54,12 @@
 				"useImportType": "error"
 			}
 		}
+	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		},
+		"linter": { "enabled": true }
 	}
 }
