@@ -627,8 +627,15 @@
       "contents:read",
       "issues:write"
     ],
-    "repoAllowlist": [],
-    "branchAllowlist": [],
+    "repoAllowlist": [
+      "jscraik/trace-narrative"
+    ],
+    "branchAllowlist": [
+      "feature/*",
+      "fix/*",
+      "chore/*",
+      "refactor/*"
+    ],
     "protectedBranchDenylist": [
       "main",
       "master",
