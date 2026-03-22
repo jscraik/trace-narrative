@@ -1,6 +1,15 @@
 version: 2.1
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Executors
+# ─────────────────────────────────────────────────────────────────────────────
+executors:
+  node:
+    docker:
+      - image: cimg/node:24.13
+    resource_class: medium
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Reusable commands
 # ─────────────────────────────────────────────────────────────────────────────
 commands:
@@ -37,20 +46,12 @@ commands:
             - ~/.local/share/pnpm/store
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Job defaults
-# ─────────────────────────────────────────────────────────────────────────────
-defaults: &defaults
-  docker:
-    - image: cimg/node:24.13
-  resource_class: medium
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Jobs — each job name maps to a GitHub check run name
 # ─────────────────────────────────────────────────────────────────────────────
 jobs:
   # Required check: "lint"
   lint:
-    <<: *defaults
+    executor: node
     steps:
       - setup-node
       - run:
@@ -59,7 +60,7 @@ jobs:
 
   # Required check: "typecheck"
   typecheck:
-    <<: *defaults
+    executor: node
     steps:
       - setup-node
       - run:
@@ -68,7 +69,7 @@ jobs:
 
   # Required check: "test"
   test:
-    <<: *defaults
+    executor: node
     steps:
       - setup-node
       - run:
@@ -77,16 +78,16 @@ jobs:
 
   # Required check: "audit"
   audit:
-    <<: *defaults
+    executor: node
     steps:
       - setup-node
       - run:
           name: Audit
           command: pnpm audit
 
-  # Required check: "check" — policy bundle (design-guidance, docs-lint)
+  # Required check: "check" — policy bundle (design-guidance + docs-lint)
   check:
-    <<: *defaults
+    executor: node
     steps:
       - setup-node
       - run:
@@ -95,7 +96,7 @@ jobs:
 
   # Required check: "memory" — harness memory-gate validation
   memory:
-    <<: *defaults
+    executor: node
     steps:
       - setup-node
       - run:
@@ -105,26 +106,6 @@ jobs:
               --memory memory.json \
               --forjamie README.md \
               --metrics /tmp/harness-memory-metrics.json || true
-
-  # Generate and store transition-status artifact for harness ci-migrate verify
-  transition-status:
-    <<: *defaults
-    steps:
-      - checkout
-      - run:
-          name: Write ci-provider-transition-status artifact
-          command: |
-            mkdir -p .harness
-            cat > .harness/ci-provider-transition-status.json << 'EOF'
-            {
-              "schemaVersion": "ci-provider-transition-status/v1",
-              "nextGateComplete": false,
-              "updatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            }
-            EOF
-      - store_artifacts:
-          path: .harness/ci-provider-transition-status.json
-          destination: ci-provider-transition-status.json
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Workflows
@@ -136,12 +117,10 @@ workflows:
       - typecheck
       - test
       - audit
+      - memory
       - check:
           requires:
             - lint
             - typecheck
             - test
             - audit
-      - memory
-      - transition-status
-
