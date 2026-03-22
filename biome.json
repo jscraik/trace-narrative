@@ -10,21 +10,34 @@
 		"ignoreUnknown": true,
 		"includes": [
 			"**",
-			"!**/node_modules",
-			"!**/dist",
-			"!**/coverage",
-			"!**/artifacts"
+			"!node_modules/**",
+			"!dist/**",
+			"!coverage/**",
+			"!artifacts/**",
+			"!src/styles.css"
 		]
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
 	},
 	"overrides": [
 		{
-			"includes": [
-				"**/*.config.ts",
-				"**/vite.config.ts",
-				"**/vitest.config.ts",
-				"**/*.stories.tsx",
-				"**/*.stories.ts"
-			],
+			"includes": ["*.config.ts", "vite.config.ts", "vitest.config.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noDefaultExport": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/*.stories.tsx", "**/*.stories.ts"],
 			"linter": {
 				"rules": {
 					"style": {
@@ -34,6 +47,15 @@
 			}
 		}
 	],
+	"css": {
+		"parser": {
+			"cssModules": true,
+			"allowWrongLineComments": true
+		},
+		"linter": {
+			"enabled": true
+		}
+	},
 	"linter": {
 		"enabled": true,
 		"rules": {
@@ -45,8 +67,8 @@
 			"suspicious": {
 				"noEmptyBlockStatements": "error",
 				"noExplicitAny": "warn",
-				"noDebugger": "error",
-				"noConsole": { "level": "warn", "options": { "allow": ["log", "warn", "error", "debug", "info"] } }
+				"noConsole": "warn",
+				"noDebugger": "error"
 			},
 			"style": {
 				"noDefaultExport": "error",
@@ -54,12 +76,5 @@
 				"useImportType": "error"
 			}
 		}
-	},
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
-	"css": {
-		"parser": {
-			"tailwindDirectives": true
-		},
-		"linter": { "enabled": true }
 	}
 }

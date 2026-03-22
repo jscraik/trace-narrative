@@ -1,6 +1,5 @@
 {
-  "harnessVersion": "0.8.2",
-  "ciProvider": "circleci",
+  "harnessVersion": "0.8.1-pr.93.dcba8e1",
   "files": [
     {
       "path": "harness.contract.json",
@@ -11,11 +10,6 @@
       "path": "memory.json",
       "action": "modified",
       "backupHash": "5d9fc88f6936a6a7"
-    },
-    {
-      "path": ".harness/ci-required-checks.json",
-      "action": "modified",
-      "backupHash": "f1a6cf9855ac3530"
     },
     {
       "path": ".greptile/config.json",
@@ -33,9 +27,17 @@
       "backupHash": "a7e59c07d8b2b7e3"
     },
     {
-      "path": ".circleci/config.yml",
+      "path": ".github/workflows/greptile-review.yml",
+      "action": "created"
+    },
+    {
+      "path": ".github/workflows/pr-pipeline.yml",
       "action": "modified",
-      "backupHash": "78a8a19706dbd2a4"
+      "backupHash": "e45cc7ad4955fa1d"
+    },
+    {
+      "path": ".github/workflows/secret-scan.yml",
+      "action": "created"
     },
     {
       "path": "CONTRIBUTING.md",
@@ -59,28 +61,23 @@
     },
     {
       "path": "scripts/check-staged-secrets.sh",
-      "action": "modified",
-      "backupHash": "fbf819e1b716c5c7"
+      "action": "created"
     },
     {
       "path": "scripts/check-doc-style.sh",
-      "action": "modified",
-      "backupHash": "bfa7144e675aaf4c"
+      "action": "created"
     },
     {
       "path": "scripts/check-related-tests.sh",
-      "action": "modified",
-      "backupHash": "192f4f59cf18a0bd"
+      "action": "created"
     },
     {
       "path": "scripts/check-semgrep-changed.sh",
-      "action": "modified",
-      "backupHash": "99f572fb5c9e13f3"
+      "action": "created"
     },
     {
       "path": "scripts/semgrep-pre-push.yml",
-      "action": "modified",
-      "backupHash": "55b989fe88b4d061"
+      "action": "created"
     },
     {
       "path": "scripts/refresh-diagram-context.sh",
@@ -89,13 +86,11 @@
     },
     {
       "path": "scripts/check-diagram-freshness.sh",
-      "action": "modified",
-      "backupHash": "f7fe2b4307b0355d"
+      "action": "created"
     },
     {
       "path": ".diagram/.gitkeep",
-      "action": "modified",
-      "backupHash": "09571f259e6a00f7"
+      "action": "created"
     },
     {
       "path": ".diagram/context/diagram-context.md",
@@ -124,8 +119,7 @@
     },
     {
       "path": ".mise.toml",
-      "action": "modified",
-      "backupHash": "1bac9641068b68e6"
+      "action": "created"
     },
     {
       "path": "scripts/codex-preflight.sh",

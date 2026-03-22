@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "ci-migrate-snapshot-attestation/v1",
+  "snapshotId": "2026-03-22T17-13-48-911Z",
+  "createdAt": "2026-03-22T17:15:11.964Z",
+  "expiresAt": "2026-04-21T17:15:11.964Z",
+  "payloadPath": "2026-03-22T17-13-48-911Z.json",
+  "payloadDigest": "4b04a89ddcbb1624e1ddba9d69f1a8548dee2216a625ae414d477b6b990707c0",
+  "externalControlPlaneStatePath": "2026-03-22T17-13-48-911Z.external-control-plane.json",
+  "externalControlPlaneStateDigest": "303271a20b13167a30bfee2230f5e53503e9aeb8e993bcf11a314c5327108920",
+  "signatureAlgorithm": "hmac-sha256",
+  "signingKeyId": "c99a881ae4e29ca6"
+}

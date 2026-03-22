@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "ci-migrate-state/v1",
+  "snapshotId": "snapshot-2026-03-22T17-13-40-309Z",
+  "stage": "prepared",
+  "sourceProvider": "circleci",
+  "targetProvider": "circleci",
+  "reportDigest": "9a0345d2f74110c12893675bcccf4c373d2b8da7c55e7d85d016ccd10f39afd7",
+  "requiredChecksDigest": "fb833aabb5685eb0f3b5fda3b81a6a80536d58ffa6f15ae2a2bd2bddf19da99d",
+  "preCutoverStatus": "satisfied",
+  "createdAt": "2026-03-22T17:13:40.335Z",
+  "updatedAt": "2026-03-22T17:13:40.335Z"
+}

@@ -66,7 +66,8 @@ export CLAUDE_APPROVAL_POSTURE="${CLAUDE_APPROVAL_POSTURE:-require}"
 
 required_mise_tools=("node" "pnpm" "python" "uv" "cargo:prek" "npm:@brainwav/diagram" "npm:@argos-ci/cli" "cosign" "cloudflared" "npm:vitest" "ruff" "npm:eslint" "npm:agent-browser" "npm:agentation" "npm:agentation-mcp" "npm:@mermaid-js/mermaid-cli" "npm:@brainwav/rsearch" "npm:@brainwav/wsearch-cli" "npm:beautiful-mermaid" "npm:markdownlint-cli2" "npm:semver" "npm:wrangler" "semgrep" "trivy" "vale")
 for tool in "${required_mise_tools[@]}"; do
-	if ! rg -Fq ""${tool}" = " "$MISE_PATH" && ! rg -Fq "${tool} = " "$MISE_PATH"; then
+	tool_pattern="$(printf '%s' "$tool" | sed 's/[][(){}.^$*+?|\\]/\\&/g')"
+	if ! rg -q "^[[:space:]]*(\"${tool_pattern}\"|${tool_pattern})[[:space:]]*=" "$MISE_PATH"; then
 		echo "Error: required tool '$tool' is not pinned in $MISE_PATH [tools]"
 		echo "Fix: add '$tool = \"<version>\"' to $MISE_PATH."
 		exit 1
@@ -292,8 +293,7 @@ if ! npm ls -g --depth=0 @brainwav/coding-harness >/dev/null 2>&1; then
 	echo "  npm i -g @brainwav/coding-harness"
 	echo "Private registry auth is required:"
 	echo "  - Local shell: export NPM_TOKEN=<token>"
-	echo "  - GitHub Actions: add repository secret NPM_TOKEN and map it to workflow env"
-	echo '    env: NPM_TOKEN: ${{ secrets.NPM_TOKEN }}'
+	echo "  - CI (CircleCI): set NPM_TOKEN as a project environment variable in CircleCI project settings"
 	exit 1
 fi
 
@@ -307,8 +307,7 @@ if ! run_check_environment_with_runner "global npm harness ($(command -v harness
 	echo "Error: global npm harness failed to run check-environment successfully."
 	echo "Reinstall and retry:"
 	echo "  npm i -g @brainwav/coding-harness"
-	echo "If this is CI, confirm:"
-	echo '  env: NPM_TOKEN: ${{ secrets.NPM_TOKEN }}'
+	echo "If this is CI (CircleCI), confirm NPM_TOKEN is set as a project environment variable."
 	exit 1
 fi
 

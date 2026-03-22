@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "ci-migrate-external-control-plane-state/v1",
+  "snapshotId": "snapshot-2026-03-22T17-14-10-927Z",
+  "capturedAt": "2026-03-22T17:14:10.950Z",
+  "artifacts": [
+    {
+      "relativePath": ".harness/control-plane/github-rulesets.json",
+      "existed": false
+    },
+    {
+      "relativePath": ".harness/control-plane/circleci-project-settings.json",
+      "existed": false
+    },
+    {
+      "relativePath": ".harness/control-plane/circleci-context-bindings.json",
+      "existed": false
+    },
+    {
+      "relativePath": ".harness/control-plane/github-app-installation.json",
+      "existed": false
+    }
+  ]
+}

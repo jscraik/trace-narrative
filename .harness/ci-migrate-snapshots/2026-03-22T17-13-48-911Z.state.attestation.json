@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "ci-migrate-state-attestation/v1",
+  "snapshotId": "2026-03-22T17-13-48-911Z",
+  "stage": "committed",
+  "createdAt": "2026-03-22T17:15:12.012Z",
+  "expiresAt": "2026-04-21T17:15:12.012Z",
+  "payloadPath": "2026-03-22T17-13-48-911Z.state.json",
+  "payloadDigest": "6de6ef70fe5c14df3770b6d04e4316ffe27b4973e14eea01d44741bf55d1b39a",
+  "reportDigest": "9a0345d2f74110c12893675bcccf4c373d2b8da7c55e7d85d016ccd10f39afd7",
+  "requiredChecksDigest": "fb833aabb5685eb0f3b5fda3b81a6a80536d58ffa6f15ae2a2bd2bddf19da99d",
+  "signatureAlgorithm": "hmac-sha256",
+  "signingKeyId": "c99a881ae4e29ca6"
+}

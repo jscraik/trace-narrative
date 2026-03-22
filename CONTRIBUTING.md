@@ -202,8 +202,8 @@ Configure GitHub branch protection (or rulesets) on `main`:
   - `pr-template`
   - `linear-gate`
   - `risk-policy-gate`
-  - `dependency-review`
-  - `actions-pinning`
+  - `dependency-scan`
+  - `orb-pinning`
   - `consistency-drift-health`
   - `docs-gate`
   - `lint`

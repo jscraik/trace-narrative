@@ -22,8 +22,8 @@
     "timeoutAction": "fail",
     "requiredChecks": [
       "security-scan",
-      "dependency-review",
-      "actions-pinning"
+      "dependency-scan",
+      "orb-pinning"
     ],
     "enforceReviewerIndependence": true
   },
@@ -32,8 +32,8 @@
       "pr-template",
       "linear-gate",
       "risk-policy-gate",
-      "dependency-review",
-      "actions-pinning",
+      "dependency-scan",
+      "orb-pinning",
       "consistency-drift-health",
       "docs-gate",
       "lint",
@@ -658,6 +658,15 @@
         "missing_snapshot_integrity_verification"
       ]
     }
+  },
+  "ciProviderPolicy": {
+    "activeProvider": "circleci",
+    "mode": "shadow",
+    "migrationStage": "circleci-only",
+    "transitionStatusArtifactPath": ".harness/ci-provider-transition-status.json",
+    "authorityConfigPath": "harness.contract.json",
+    "requiredCheckManifestPath": ".harness/ci-required-checks.json",
+    "trustedPolicyRef": "refs/heads/main"
   },
   "contextIntegrityPolicy": {
     "mode": "shadow",
