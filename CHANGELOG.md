@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.3](https://github.com/jscraik/trace-narrative/compare/trace-narrative-v0.19.2...trace-narrative-v0.19.3) (2026-03-22)
+
+
+### Bug Fixes
+
+* **ci:** correct circleci schema — executors not defaults anchor ([9311a90](https://github.com/jscraik/trace-narrative/commit/9311a9069a8022bfa3a1fd5bc7780107cd3e2571))
+
 ## [0.19.2](https://github.com/jscraik/trace-narrative/compare/trace-narrative-v0.19.1...trace-narrative-v0.19.2) (2026-03-19)
 
 
